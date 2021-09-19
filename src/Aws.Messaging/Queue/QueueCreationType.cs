@@ -1,4 +1,4 @@
-﻿namespace Aws.Messaging.Queue.SQS
+﻿namespace Aws.Messaging.Queue
 {
     public enum QueueCreationType
     {

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Message = Amazon.SimpleNotificationService.Util.Message;
 
-namespace Aws.Messaging.Queue.SQS
+namespace Aws.Messaging.Queue
 {
     public class QueueProvider : IQueueProvider
     {

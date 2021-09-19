@@ -1,7 +1,6 @@
-﻿using System;
-using Aws.Messaging.Config;
+﻿using Aws.Messaging.Config;
 using Aws.Messaging.Contracts;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 using Aws.Messaging.Settings;
 
 namespace Aws.Messaging.Builders
@@ -73,7 +72,15 @@ namespace Aws.Messaging.Builders
 
         private AwsQueueAttributes GetDefaultQueueAttributes()
         {
-            var attributes = new AwsQueueAttributes();
+            var attributes = new AwsQueueAttributes
+            {
+                VisibilityTimeout = 30,
+                IsFifoQueue = true,
+                MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax,
+                MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
+                DelaySeconds = 0,
+                ReceiveMessageWaitTimeSeconds = 0
+            };
 
             if (_awsDefaultAttributeSettings == null) return attributes;
             

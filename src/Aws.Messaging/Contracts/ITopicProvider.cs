@@ -5,7 +5,7 @@ using Aws.Messaging.Messages;
 
 namespace Aws.Messaging.Contracts
 {
-    public interface INotificationProvider
+    public interface ITopicProvider
     {
         Task<string> GetTopicArnAsync(string topicName);
         Task<bool> TopicExistsAsync(string topicName);

@@ -6,18 +6,26 @@ using Aws.Messaging.Contracts;
 
 namespace Aws.Messaging.Notifications
 {
+    public interface ITopicOptionalSetting
+    {
+        ITopicOptionalSetting WithSubscribedQueue(string queueName);
+        ITopicOptionalSetting WithSubscribedQueue(string[] queueNames);
+        ITopicOptionalSetting WithQueueConfiguration(SqsConfiguration sqsConfiguration);
+        Task<string> BuildAsync();
+    }
+    
     public class TopicOptionalSetting : ITopicOptionalSetting
     {
         private readonly string _topicName;
-        private readonly INotificationProvider _notificationProvider;
+        private readonly ITopicProvider _topicProvider;
 
         private readonly IList<string> _queuesToAdd;
         private SqsConfiguration _sqsConfiguration;
 
-        public TopicOptionalSetting(string topicName, INotificationProvider notificationProvider)
+        public TopicOptionalSetting(string topicName, ITopicProvider topicProvider)
         {
             _topicName = topicName;
-            _notificationProvider = notificationProvider;
+            _topicProvider = topicProvider;
             _queuesToAdd = new List<string>();
         }
 
@@ -39,10 +47,9 @@ namespace Aws.Messaging.Notifications
             return this;
         }
 
-        public async Task<string> CreateAsync()
+        public async Task<string> BuildAsync()
         {
-            return await _notificationProvider
-                .CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
+            return await _topicProvider.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
         }
     }
 }

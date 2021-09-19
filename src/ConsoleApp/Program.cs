@@ -8,7 +8,7 @@ using Aws.Messaging.Builders;
 using Aws.Messaging.Contracts;
 using Aws.Messaging.Factories;
 using Aws.Messaging.Notifications;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 using Aws.Messaging.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,18 +25,27 @@ namespace ConsoleApp
 
             var logger = host.Services.GetService<ILogger<Program>>();
 
-            logger.LogInformation("******* INFO ******* HERE");
+            logger.LogInformation("******* Starting Topic creator ******* ");
 
-            var topicCreator = host.Services.GetService<ITopicCreator>();
+            var topicBuilder = host.Services.GetService<ITopicBuilder>();
+            var queueBuilder = host.Services.GetService<IQueueBuilder>();
+
+            const int incrementNumber = 6;
             
-            var topicArn = await topicCreator
-                .WithTopicName("ar-sns-test-2")
-                .WithSubscribedQueue("ar-sqs-test-2_1")
-                .WithSubscribedQueue("ar-sqs-test-2_2")
+            var topicArn = await topicBuilder
+                .WithTopicName($"ar-sns-test-{incrementNumber}")
+                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_1")
+                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_2")
+                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_3")
                 .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
-                .CreateAsync();
-            
+                .BuildAsync();
             logger.LogInformation(topicArn);
+
+            // var queueUrl = await queueBuilder
+            //     .WithQueueName($"ar-sqs-test-{incrementNumber}")
+            //     .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
+            //     .BuildAsync();
+            // logger.LogInformation(queueUrl);
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -59,12 +68,14 @@ namespace ConsoleApp
                     services.AddTransient<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
                     services.AddTransient<IQueueCreationFactory, QueueCreationFactory>();
                     services.AddTransient<IAwsPolicyBuilder, AwsPolicyBuilder>();
-                    services.AddTransient<INotificationProvider, NotificationProvider>();
+                    services.AddTransient<ITopicProvider, TopicProvider>();
                     services.AddTransient(_ => new AwsDefaultAttributeSettings
                     {
-                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600, FifoQueue = true
+                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600, FifoQueue = true,
+                        VisibilityTimeout = 30
                     });
-                    services.AddTransient<ITopicCreator, TopicCreator>();
+                    services.AddTransient<ITopicBuilder, TopicBuilder>();
+                    services.AddTransient<IQueueBuilder, QueueBuilder>();
                 })
                 .ConfigureLogging(builder =>
                 {

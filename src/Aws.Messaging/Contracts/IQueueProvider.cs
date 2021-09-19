@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aws.Messaging.Config;
 using Aws.Messaging.Messages;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 
 namespace Aws.Messaging.Contracts
 {

@@ -29,7 +29,10 @@ namespace Aws.Messaging.Strategy
 
             var response = await _client.CreateQueueAsync(request);
 
-            if (response.HttpStatusCode == HttpStatusCode.OK) return response.QueueUrl;
+            if (response.HttpStatusCode == HttpStatusCode.OK)
+            {
+                return response.QueueUrl;
+            }
 
             throw new ApplicationException($"Error creating queue, response from AWS: { JsonConvert.SerializeObject(response) }");
         }

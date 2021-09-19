@@ -8,22 +8,22 @@ using Amazon.SimpleNotificationService.Model;
 using Aws.Messaging.Config;
 using Aws.Messaging.Contracts;
 using Aws.Messaging.Messages;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Aws.Messaging.Notifications
 {
-    public class NotificationProvider : INotificationProvider
+    public class TopicProvider : ITopicProvider
     {
         private readonly IAwsPolicyBuilder _awsPolicyBuilder;
         private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
-        private readonly ILogger<NotificationProvider> _logger;
+        private readonly ILogger<TopicProvider> _logger;
         private readonly IAmazonSimpleNotificationService _snsClient;
         private readonly IQueueProvider _queueProvider;
 
-        public NotificationProvider(IAmazonSimpleNotificationService snsClient, IQueueProvider queueProvider, 
-            IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<NotificationProvider> logger)
+        public TopicProvider(IAmazonSimpleNotificationService snsClient, IQueueProvider queueProvider, 
+            IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<TopicProvider> logger)
         {
             _snsClient = snsClient;
             _queueProvider = queueProvider;
@@ -146,7 +146,11 @@ namespace Aws.Messaging.Notifications
                 if (!await SubscriptionExistsAsync(topicArn, queueArn))
                 {
                     await _snsClient.SubscribeAsync(topicArn, "sqs", queueArn);
-                    _logger.LogDebug("SNS: queue subscribed to topic");
+                    _logger.LogDebug("SNS: NEW subscription to topic create");
+                }
+                else
+                {
+                    _logger.LogDebug("SNS: queue ALREADY subscribed to topic");
                 }
 
                 //TODO - Get properties from above and create method to parse policy, check if already has allow all users to send message from topic?

@@ -5,7 +5,7 @@ using Aws.Messaging.Contracts;
 using Aws.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 
-namespace Aws.Messaging.Queue.SQS
+namespace Aws.Messaging.Queue
 {
     public class QueueListener : IQueueListener
     {

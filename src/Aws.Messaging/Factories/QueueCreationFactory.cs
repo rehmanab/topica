@@ -1,7 +1,7 @@
 ﻿using System;
 using Amazon.SQS;
 using Aws.Messaging.Contracts;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 using Aws.Messaging.Strategy;
 
 namespace Aws.Messaging.Factories

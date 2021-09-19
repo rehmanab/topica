@@ -1,5 +1,5 @@
 ﻿using Aws.Messaging.Config;
-using Aws.Messaging.Queue.SQS;
+using Aws.Messaging.Queue;
 
 namespace Aws.Messaging.Contracts
 {
