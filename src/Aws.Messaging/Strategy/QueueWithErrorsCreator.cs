@@ -14,6 +14,7 @@ namespace Aws.Messaging.Strategy
     public class QueueWithErrorsCreator : IQueueCreator
     {
         private const string ErrorQueueSuffix = "_error";
+        private const string FifoQueueSuffix = ".fifo";
         private const int DefaultMaxReceiveCount = 3;
         private readonly IAmazonSQS _client;
 
@@ -26,12 +27,13 @@ namespace Aws.Messaging.Strategy
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
-            var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{ErrorQueueSuffix}", configuration);
+            var isFifo = configuration.QueueAttributes.IsFifoQueue;
+            var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{ErrorQueueSuffix}{(isFifo ? FifoQueueSuffix : "")}", configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
             var redrivePolicy = new RedrivePolicy(configuration.MaxReceiveCount ?? DefaultMaxReceiveCount, errorQueueArn).ToJson();
             
-            var mainQueueUrl = await InternalMainCreateQueue(queueName, configuration, redrivePolicy);
+            var mainQueueUrl = await InternalMainCreateQueue($"{queueName}{(isFifo ? FifoQueueSuffix : "")}", configuration, redrivePolicy);
 
             return mainQueueUrl;
         }

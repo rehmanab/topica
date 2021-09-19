@@ -56,13 +56,17 @@ namespace Aws.Messaging.Notifications
             await _snsClient.AuthorizeS3ToPublishAsync(topicArn, bucketName);
         }
 
-        public async Task<string> CreateTopicArnAsync(string topicName)
+        public async Task<string> CreateTopicArnAsync(string topicName, bool? isFifoQueue)
         {
             var topicArn = await GetTopicArnAsync(topicName);
 
             if (!string.IsNullOrWhiteSpace(topicArn)) return topicArn;
 
-            var response = await _snsClient.CreateTopicAsync(topicName);
+            var response = await _snsClient.CreateTopicAsync(new CreateTopicRequest
+            {
+                Name = $"{topicName}{(isFifoQueue.HasValue && isFifoQueue.Value ? ".fifo" : "")}",
+                Attributes = new Dictionary<string, string>{{"FifoTopic", isFifoQueue.HasValue && isFifoQueue.Value ? "true" : "false"}}
+            });
 
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
@@ -117,7 +121,7 @@ namespace Aws.Messaging.Notifications
             if (string.IsNullOrWhiteSpace(topicArn))
             {
                 _logger.LogDebug($"SNS: Topic does not exist, creating topic: {topicName}");
-                topicArn = await CreateTopicArnAsync(topicName);
+                topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration?.QueueAttributes?.IsFifoQueue);
             }
 
             foreach (var queueName in queueNames)
@@ -149,10 +153,10 @@ namespace Aws.Messaging.Notifications
                 if(await _queueProvider.UpdateQueueAttributesAsync(queueUrl, _sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
                     _logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
                 else
-                    throw new ApplicationException($"Could not update the policy for queue: {queueName} to recieve messages from topic: {topicName}");
+                    throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");
             }
 
-            _logger.LogDebug(null);
+            _logger.LogDebug("SNS: Done !");
 
             return topicArn;
         }

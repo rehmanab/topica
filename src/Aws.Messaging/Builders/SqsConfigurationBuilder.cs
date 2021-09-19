@@ -82,6 +82,7 @@ namespace Aws.Messaging.Builders
             attributes.MessageRetentionPeriod = _awsDefaultAttributeSettings.MessageRetentionPeriod;
             attributes.ReceiveMessageWaitTimeSeconds = _awsDefaultAttributeSettings.ReceiveMessageWaitTimeSeconds;
             attributes.VisibilityTimeout = _awsDefaultAttributeSettings.VisibilityTimeout;
+            attributes.IsFifoQueue = _awsDefaultAttributeSettings.FifoQueue;
 
             return attributes;
         }

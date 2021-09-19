@@ -31,9 +31,8 @@ namespace ConsoleApp
             var topicCreator = host.Services.GetService<ITopicCreator>();
             
             var topicArn = topicCreator
-                .WithTopicName("ar-sns-test-1")
-                .WithSubscribedQueue("ar-sqs-test-1")
-                .WithSubscribedQueue("ar-sqs-test-2")
+                .WithTopicName("ar-sns-test-10")
+                .WithSubscribedQueue("ar-sqs-test-10")
                 .WithQueueConfiguration(sqsConfigurationBuilder.BuildCreateWithErrorQueue(5))
                 .Create();
             
@@ -63,7 +62,7 @@ namespace ConsoleApp
                     services.AddTransient<INotificationProvider, NotificationProvider>();
                     services.AddTransient(_ => new AwsDefaultAttributeSettings
                     {
-                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600
+                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600, FifoQueue = true
                     });
                     services.AddTransient<ITopicCreator, TopicCreator>();
                 })
