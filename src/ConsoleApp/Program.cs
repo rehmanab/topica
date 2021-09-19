@@ -29,12 +29,12 @@ namespace ConsoleApp
 
             var topicCreator = host.Services.GetService<ITopicCreator>();
             
-            var topicArn = topicCreator
-                .WithTopicName("ar-sns-test-15")
-                .WithSubscribedQueue("ar-sqs-test-15_1")
-                .WithSubscribedQueue("ar-sqs-test-15_2")
+            var topicArn = await topicCreator
+                .WithTopicName("ar-sns-test-2")
+                .WithSubscribedQueue("ar-sqs-test-2_1")
+                .WithSubscribedQueue("ar-sqs-test-2_2")
                 .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
-                .Create();
+                .CreateAsync();
             
             logger.LogInformation(topicArn);
         }
@@ -52,7 +52,7 @@ namespace ConsoleApp
                 )
                 .ConfigureServices(services =>
                 {
-                    var awsRegion = RegionEndpoint.GetBySystemName("eu-west-1");
+                    var awsRegion = RegionEndpoint.GetBySystemName("eu-west-2");
                     services.AddTransient<IAmazonSimpleNotificationService>(_ => new AmazonSimpleNotificationServiceClient(awsRegion));
                     services.AddTransient<IAmazonSQS>(_ => new AmazonSQSClient(awsRegion));
                     services.AddTransient<IQueueProvider, QueueProvider>();

@@ -1,4 +1,5 @@
-﻿using Aws.Messaging.Config;
+﻿using System.Threading.Tasks;
+using Aws.Messaging.Config;
 
 namespace Aws.Messaging.Notifications
 {
@@ -12,7 +13,7 @@ namespace Aws.Messaging.Notifications
         ITopicOptionalSetting WithSubscribedQueue(string queueName);
         ITopicOptionalSetting WithSubscribedQueue(string[] queueNames);
         ITopicOptionalSetting WithQueueConfiguration(SqsConfiguration sqsConfiguration);
-        string Create();
+        Task<string> CreateAsync();
     }
 
     public interface ITopicComplete

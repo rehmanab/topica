@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Aws.Messaging.Config;
 using Aws.Messaging.Contracts;
 
@@ -38,9 +39,10 @@ namespace Aws.Messaging.Notifications
             return this;
         }
 
-        public string Create()
+        public async Task<string> CreateAsync()
         {
-            return _notificationProvider.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration).Result;
+            return await _notificationProvider
+                .CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
         }
     }
 }
