@@ -27,13 +27,13 @@ namespace ConsoleApp
 
             logger.LogInformation("******* INFO ******* HERE");
 
-            var sqsConfigurationBuilder = host.Services.GetService<ISqsConfigurationBuilder>();
             var topicCreator = host.Services.GetService<ITopicCreator>();
             
             var topicArn = topicCreator
-                .WithTopicName("ar-sns-test-10")
-                .WithSubscribedQueue("ar-sqs-test-10")
-                .WithQueueConfiguration(sqsConfigurationBuilder.BuildCreateWithErrorQueue(5))
+                .WithTopicName("ar-sns-test-15")
+                .WithSubscribedQueue("ar-sqs-test-15_1")
+                .WithSubscribedQueue("ar-sqs-test-15_2")
+                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
                 .Create();
             
             logger.LogInformation(topicArn);

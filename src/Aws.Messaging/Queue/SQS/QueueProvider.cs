@@ -111,17 +111,15 @@ namespace Aws.Messaging.Queue.SQS
             return await CreateQueueAsync(queueName, configuration);
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, SqsConfiguration configuration = null)
+        public async Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration)
         {
-            if (configuration == null) configuration = _sqsConfigurationBuilder.BuildCreateDefaultQueue();
-
-            var createQueueType = configuration.CreateErrorQueue.HasValue && configuration.CreateErrorQueue.Value
+            var createQueueType = sqsConfiguration.CreateErrorQueue.HasValue && sqsConfiguration.CreateErrorQueue.Value
                 ? QueueCreationType.WithErrorQueue
                 : QueueCreationType.SoleQueue;
 
             var queueCreator = _queueCreationFactory.Create(createQueueType);
 
-            return await queueCreator.CreateQueue(queueName, configuration);
+            return await queueCreator.CreateQueue(queueName, sqsConfiguration);
         }
 
         //TODO - Update method to update all error queues redrive MaxReceiveCount property

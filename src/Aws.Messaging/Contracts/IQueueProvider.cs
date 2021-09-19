@@ -17,7 +17,7 @@ namespace Aws.Messaging.Contracts
         Task<IDictionary<string, string>> GetAttributesByQueueName(string queueName, IEnumerable<string> attributeNames = null);
         Task<IDictionary<string, string>> GetAttributesByQueueUrl(string queueUrl, IEnumerable<string> attributeNames = null);
         Task<string> CreateQueueAsync(string queueName, QueueCreationType queueCreationType);
-        Task<string> CreateQueueAsync(string queueName, SqsConfiguration configuration = null);
+        Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration);
         Task<bool> UpdateQueueAttributesAsync(string queueUrl, SqsConfiguration configuration);
         Task SendSingleAsync(string queueUrl, BaseSqsMessage message);
         Task SendMultipleAsync(string queueUrl, IEnumerable<BaseSqsMessage> messages);

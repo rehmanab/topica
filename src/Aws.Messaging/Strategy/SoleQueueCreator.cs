@@ -11,6 +11,7 @@ namespace Aws.Messaging.Strategy
 {
     public class SoleQueueCreator : IQueueCreator
     {
+        private const string FifoQueueSuffix = ".fifo";
         private readonly IAmazonSQS _client;
 
         public SoleQueueCreator(IAmazonSQS client)
@@ -22,7 +23,7 @@ namespace Aws.Messaging.Strategy
         {
             var request = new CreateQueueRequest
             {
-                QueueName = queueName,
+                QueueName = $"{queueName}{(configuration.QueueAttributes.IsFifoQueue ? FifoQueueSuffix : "")}",
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 

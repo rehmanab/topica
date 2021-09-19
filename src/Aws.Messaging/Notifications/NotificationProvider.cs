@@ -116,12 +116,14 @@ namespace Aws.Messaging.Notifications
 
         public async Task<string> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, SqsConfiguration sqsConfiguration)
         {
+            sqsConfiguration ??= _sqsConfigurationBuilder.BuildCreateDefaultQueue();
+            
             var topicArn = await GetTopicArnAsync(topicName);
 
             if (string.IsNullOrWhiteSpace(topicArn))
             {
                 _logger.LogDebug($"SNS: Topic does not exist, creating topic: {topicName}");
-                topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration?.QueueAttributes?.IsFifoQueue);
+                topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
             }
 
             foreach (var queueName in queueNames)
