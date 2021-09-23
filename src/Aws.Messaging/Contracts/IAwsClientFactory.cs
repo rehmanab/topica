@@ -2,6 +2,7 @@
 using Amazon.Runtime;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
+using Aws.Messaging.Settings;
 
 namespace Aws.Messaging.Contracts
 {

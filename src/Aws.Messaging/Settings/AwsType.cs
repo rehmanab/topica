@@ -1,4 +1,4 @@
-﻿namespace Aws.Messaging
+﻿namespace Aws.Messaging.Settings
 {
     public enum AwsType
     {

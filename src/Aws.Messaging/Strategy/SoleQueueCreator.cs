@@ -21,9 +21,12 @@ namespace Aws.Messaging.Strategy
 
         public async Task<string> CreateQueue(string queueName, SqsConfiguration configuration)
         {
+            var isFifo = configuration.QueueAttributes.IsFifoQueue;
+            if (isFifo) queueName = queueName.Replace(".fifo", string.Empty);
+            
             var request = new CreateQueueRequest
             {
-                QueueName = $"{queueName}{(configuration.QueueAttributes.IsFifoQueue ? FifoQueueSuffix : "")}",
+                QueueName = $"{queueName}{(isFifo ? FifoQueueSuffix : "")}",
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 

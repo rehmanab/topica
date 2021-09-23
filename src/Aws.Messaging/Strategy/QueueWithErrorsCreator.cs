@@ -28,6 +28,7 @@ namespace Aws.Messaging.Strategy
             //Create Error Queue
             //Create normal queue passing in redrive policy
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
+            if (isFifo) queueName = queueName.Replace(".fifo", string.Empty);
             var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{ErrorQueueSuffix}{(isFifo ? FifoQueueSuffix : "")}", configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
@@ -61,7 +62,10 @@ namespace Aws.Messaging.Strategy
 
             var response = await _client.CreateQueueAsync(request);
 
-            if (response.HttpStatusCode == HttpStatusCode.OK) return response.QueueUrl;
+            if (response.HttpStatusCode == HttpStatusCode.OK)
+            {
+                return response.QueueUrl;
+            }
 
             throw new ApplicationException($"Error creating queue, response from AWS: { JsonConvert.SerializeObject(response) }");
         }

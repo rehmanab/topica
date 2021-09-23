@@ -45,19 +45,18 @@ namespace Aws.Messaging.Queue
             {
                 var attributes = await GetAttributesByQueueUrl(queueUrl, new []{ AwsQueueAttributes.QueueArnName });
 
-                return attributes.ContainsKey(AwsQueueAttributes.QueueArnName) &&
-                       !string.IsNullOrWhiteSpace(attributes[AwsQueueAttributes.QueueArnName]);
+                return attributes.ContainsKey(AwsQueueAttributes.QueueArnName) && !string.IsNullOrWhiteSpace(attributes[AwsQueueAttributes.QueueArnName]);
             }
             catch (AmazonSQSException ex)
             {
                 if (ex.ErrorCode == AwsNonExistentQueue) return false;
 
-                _logger.LogError(ex, "SQS: Error");
+                _logger.LogError(ex, $"SQS: Error - {ex.Message}");
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "SQS: Error");
+                _logger.LogError(ex, $"SQS: Error - {ex.Message}");
                 throw;
             }
         }
@@ -111,6 +110,14 @@ namespace Aws.Messaging.Queue
             return await CreateQueueAsync(queueName, configuration);
         }
 
+        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, SqsConfiguration sqsConfiguration)
+        {
+            foreach (var queueName in queueNames)
+            {
+                yield return await CreateQueueAsync(queueName, sqsConfiguration);
+            }
+        }
+
         public async Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration)
         {
             var createQueueType = sqsConfiguration.CreateErrorQueue.HasValue && sqsConfiguration.CreateErrorQueue.Value
@@ -125,38 +132,48 @@ namespace Aws.Messaging.Queue
         //TODO - Update method to update all error queues redrive MaxReceiveCount property
         public async Task<bool> UpdateQueueAttributesAsync(string queueUrl, SqsConfiguration configuration)
         {
-//            if (configuration.CreateErrorQueue.HasValue && configuration.CreateErrorQueue.Value)
-//            {
-//                var errorQueueUrl = $"{queueUrl}_error";
-//                if (!await QueueExistsByUrlAsync(errorQueueUrl))
-//                {
-//                    var errorMessage = $"SQS: trying to update the error queue as specified through the configuration object, the error queue: {errorQueueUrl} does not exist";
-//                    throw new AmazonSQSException(errorMessage, ErrorType.Sender, AwsNonExistentQueue, string.Empty, HttpStatusCode.NotFound);
-//                }
-//            }
-
             var response = await _client.SetQueueAttributesAsync(queueUrl, configuration.QueueAttributes.GetAttributeDictionary());
 
             return response.HttpStatusCode == HttpStatusCode.OK;
         }
 
-        public async Task SendSingleAsync(string queueUrl, BaseSqsMessage message)
+        public async Task<bool> SendSingleAsync<T>(string queueUrl, T message)
         {
             var sendMessageRequest = new SendMessageRequest
             {
                 QueueUrl = queueUrl,
                 MessageBody = JsonConvert.SerializeObject(message)
-
             };
 
-            await _client.SendMessageAsync(sendMessageRequest);
+            if (queueUrl.EndsWith(".fifo"))
+            {
+                sendMessageRequest.MessageGroupId = Guid.NewGuid().ToString();
+                sendMessageRequest.MessageDeduplicationId = Guid.NewGuid().ToString();
+            }
+
+            var result = await _client.SendMessageAsync(sendMessageRequest);
+
+            return result.HttpStatusCode == HttpStatusCode.OK;
         }
 
-        public async Task SendMultipleAsync(string queueUrl, IEnumerable<BaseSqsMessage> messages)
+        public async Task<bool> SendMultipleAsync<T>(string queueUrl, IEnumerable<T> messages)
         {
+            var isFifoQueue = queueUrl.EndsWith(".fifo");
+            
             var requestEntries = 
                 messages
-                .Select((x, index) => new SendMessageBatchRequestEntry(index.ToString(), JsonConvert.SerializeObject(x)))
+                .Select((x, index) =>
+                {
+                    var entry = new SendMessageBatchRequestEntry(index.ToString(), JsonConvert.SerializeObject(x));
+                    
+                    if (isFifoQueue)
+                    {
+                        entry.MessageGroupId = Guid.NewGuid().ToString();
+                        entry.MessageDeduplicationId = Guid.NewGuid().ToString();
+                    }
+                    
+                    return entry;
+                })
                 .ToList();
 
             var request = new SendMessageBatchRequest
@@ -169,23 +186,18 @@ namespace Aws.Messaging.Queue
             var response = await _client.SendMessageBatchAsync(request);
             _logger.LogError($"SQS: {response.Successful.Count} messages sent");
 
-            if (response.Failed.Any())
+            if (!response.Failed.Any())
             {
-                _logger.LogError($"SQS: {response.Failed.Count} messages failed to send");
-                foreach (var failed in response.Failed)
-                {
-                    _logger.LogError($"SQS: failed messageId: {failed.Id}, Code: {failed.Code}, Message: {failed.Message}, SenderFault: {failed.SenderFault}");
-                }
-
-                //TODO - try to retry? use polly nuget package ?
-//                _logger.Info("SQS: Retrying send one by one...");
-//
-//                var failedIds = response.Failed.Select(x => x.Id);
-//                foreach (var message in requestEntries.Where(x => failedIds.Contains(x.Id)))
-//                {
-//                    
-//                }
+                return true;
             }
+            
+            _logger.LogError($"SQS: {response.Failed.Count} messages failed to send");
+            foreach (var failed in response.Failed)
+            {
+                _logger.LogError($"SQS: failed messageId: {failed.Id}, Code: {failed.Code}, Message: {failed.Message}, SenderFault: {failed.SenderFault}");
+            }
+
+            return false;
         }
 
         public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : BaseSqsMessage

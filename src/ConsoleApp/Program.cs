@@ -30,22 +30,22 @@ namespace ConsoleApp
             var topicBuilder = host.Services.GetService<ITopicBuilder>();
             var queueBuilder = host.Services.GetService<IQueueBuilder>();
 
-            const int incrementNumber = 6;
+            const int incrementNumber = 1;
             
-            var topicArn = await topicBuilder
-                .WithTopicName($"ar-sns-test-{incrementNumber}")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_1")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_2")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_3")
-                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
-                .BuildAsync();
-            logger.LogInformation(topicArn);
-
-            // var queueUrl = await queueBuilder
-            //     .WithQueueName($"ar-sqs-test-{incrementNumber}")
+            // var topicArn = await topicBuilder
+            //     .WithTopicName($"ar-sns-test-{incrementNumber}")
+            //     .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_1")
+            //     .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_2")
+            //     .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_3")
             //     .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
             //     .BuildAsync();
-            // logger.LogInformation(queueUrl);
+            // logger.LogInformation(topicArn);
+
+            var queueUrls = await queueBuilder
+                .WithQueueName($"ar-sqs-test-{incrementNumber}")
+                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
+                .BuildAsync();
+            logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -61,7 +61,7 @@ namespace ConsoleApp
                 )
                 .ConfigureServices(services =>
                 {
-                    var awsRegion = RegionEndpoint.GetBySystemName("eu-west-2");
+                    var awsRegion = RegionEndpoint.GetBySystemName("eu-west-1");
                     services.AddTransient<IAmazonSimpleNotificationService>(_ => new AmazonSimpleNotificationServiceClient(awsRegion));
                     services.AddTransient<IAmazonSQS>(_ => new AmazonSQSClient(awsRegion));
                     services.AddTransient<IQueueProvider, QueueProvider>();
