@@ -7,6 +7,12 @@ namespace Aws.Messaging.Settings
         public int MessageRetentionPeriod { get; set; }
         public int ReceiveMessageWaitTimeSeconds { get; set; }
         public int VisibilityTimeout { get; set; }
-        public bool FifoQueue { get; set; } = true;
+        public AwsSqsFifoQueueSettings FifoSettings { get; set; }
+    }
+
+    public class AwsSqsFifoQueueSettings
+    {
+        public bool IsFifoQueue { get; set; }
+        public bool IsContentBasedDeduplication { get; set; }
     }
 }

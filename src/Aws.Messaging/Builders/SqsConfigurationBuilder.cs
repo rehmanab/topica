@@ -76,6 +76,7 @@ namespace Aws.Messaging.Builders
             {
                 VisibilityTimeout = 30,
                 IsFifoQueue = true,
+                IsFifoContentBasedDeduplication = true,
                 MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax,
                 MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
                 DelaySeconds = 0,
@@ -89,7 +90,8 @@ namespace Aws.Messaging.Builders
             attributes.MessageRetentionPeriod = _awsDefaultAttributeSettings.MessageRetentionPeriod;
             attributes.ReceiveMessageWaitTimeSeconds = _awsDefaultAttributeSettings.ReceiveMessageWaitTimeSeconds;
             attributes.VisibilityTimeout = _awsDefaultAttributeSettings.VisibilityTimeout;
-            attributes.IsFifoQueue = _awsDefaultAttributeSettings.FifoQueue;
+            attributes.IsFifoQueue = _awsDefaultAttributeSettings.FifoSettings.IsFifoQueue;
+            attributes.IsFifoQueue = _awsDefaultAttributeSettings.FifoSettings.IsContentBasedDeduplication;
 
             return attributes;
         }

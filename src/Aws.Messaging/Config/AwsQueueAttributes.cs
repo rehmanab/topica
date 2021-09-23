@@ -31,6 +31,7 @@ namespace Aws.Messaging.Config
         public const string CreatedTimestampName = "CreatedTimestamp";
         public const string LastModifiedTimestampName = "LastModifiedTimestamp";
         public const string IsFifoQueueName = "FifoQueue";
+        public const string FifoContentBasedDeduplicationName = "ContentBasedDeduplication";
 
         public int? DelaySeconds { get; set; }
         public int? MaximumMessageSize { get; set; }
@@ -40,6 +41,7 @@ namespace Aws.Messaging.Config
         public int? VisibilityTimeout { get; set; }
         public string RedrivePolicy { get; set; }
         public bool IsFifoQueue { get; set; }
+        public bool IsFifoContentBasedDeduplication { get; set; }
 
         public Dictionary<string, string> GetAttributeDictionary()
         {
@@ -54,7 +56,11 @@ namespace Aws.Messaging.Config
             if(ReceiveMessageWaitTimeSeconds.HasValue) properties.Add(ReceiveMessageWaitTimeSecondsName, ReceiveMessageWaitTimeSeconds.Value.ToString());
             if(VisibilityTimeout.HasValue) properties.Add(VisibilityTimeoutName, VisibilityTimeout.Value.ToString());
             if(!string.IsNullOrWhiteSpace(RedrivePolicy)) properties.Add(RedrivePolicyName, RedrivePolicy);
-            if(IsFifoQueue) properties.Add(IsFifoQueueName, "true");
+            if (IsFifoQueue)
+            {
+                properties.Add(IsFifoQueueName, "true");
+                properties.Add(FifoContentBasedDeduplicationName, IsFifoContentBasedDeduplication.ToString().ToLower());
+            }
 
             return properties;
         }

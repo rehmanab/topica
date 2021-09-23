@@ -30,7 +30,7 @@ namespace ConsoleApp
             var topicBuilder = host.Services.GetService<ITopicBuilder>();
             var queueBuilder = host.Services.GetService<IQueueBuilder>();
 
-            const int incrementNumber = 1;
+            const int incrementNumber = 2;
             
             // var topicArn = await topicBuilder
             //     .WithTopicName($"ar-sns-test-{incrementNumber}")
@@ -71,8 +71,9 @@ namespace ConsoleApp
                     services.AddTransient<ITopicProvider, TopicProvider>();
                     services.AddTransient(_ => new AwsDefaultAttributeSettings
                     {
-                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600, FifoQueue = true,
-                        VisibilityTimeout = 30
+                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600,
+                        VisibilityTimeout = 30,
+                        FifoSettings = new AwsSqsFifoQueueSettings{IsFifoQueue = true, IsContentBasedDeduplication = true}
                     });
                     services.AddTransient<ITopicBuilder, TopicBuilder>();
                     services.AddTransient<IQueueBuilder, QueueBuilder>();
