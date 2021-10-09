@@ -2,6 +2,8 @@
 using System.IO;
 using System.Threading.Tasks;
 using Amazon;
+using Amazon.Runtime;
+using Amazon.Runtime.CredentialManagement;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Aws.Messaging.Builders;
@@ -19,6 +21,8 @@ namespace ConsoleApp
 {
     public class Program
     {
+        private const string LocalStackServiceUrl = "http://10.211.55.2:4566";
+
         private static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
@@ -42,8 +46,8 @@ namespace ConsoleApp
             // logger.LogInformation(topicArn);
 
             var queueUrls = await queueBuilder
-                .WithQueueName($"ar-sqs-test-{incrementNumber}")
-                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
+                .WithQueueName($"dte-sandbox-manual-1")
+                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(3))
                 .BuildAsync();
             logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
         }
@@ -61,9 +65,8 @@ namespace ConsoleApp
                 )
                 .ConfigureServices(services =>
                 {
-                    var awsRegion = RegionEndpoint.GetBySystemName("eu-west-1");
-                    services.AddTransient<IAmazonSimpleNotificationService>(_ => new AmazonSimpleNotificationServiceClient(awsRegion));
-                    services.AddTransient<IAmazonSQS>(_ => new AmazonSQSClient(awsRegion));
+                    services.AddTransient<IAmazonSimpleNotificationService>(_ => GetSnsClient());
+                    services.AddTransient<IAmazonSQS>(_ => GetSqsClient());
                     services.AddTransient<IQueueProvider, QueueProvider>();
                     services.AddTransient<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
                     services.AddTransient<IQueueCreationFactory, QueueCreationFactory>();
@@ -82,5 +85,43 @@ namespace ConsoleApp
                 {
                     builder.AddConsole();
                 });
+                
+        public static IAmazonSQS GetSqsClient(string profileName = null, string regionEndpoint = "eu-west-1")
+        {
+            var sharedFile = new SharedCredentialsFile();
+            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
+
+            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
+            {
+                Console.WriteLine("Using LocalStack");
+                config.ServiceURL = LocalStackServiceUrl;
+
+                return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
+            }
+
+            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
+
+            Console.WriteLine($"Using AWS profile: {profileName}");
+            return new AmazonSQSClient(credentials, config);
+        }
+        
+        public static IAmazonSimpleNotificationService GetSnsClient(string profileName = null, string regionEndpoint = "eu-west-1")
+        {
+            var sharedFile = new SharedCredentialsFile();
+            var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
+
+            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
+            {
+                Console.WriteLine("Using LocalStack");
+                config.ServiceURL = LocalStackServiceUrl;
+
+                return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
+            }
+
+            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
+
+            Console.WriteLine($"Using AWS profile: {profileName}");
+            return new AmazonSimpleNotificationServiceClient(credentials, config);
+        }
     }
 }
