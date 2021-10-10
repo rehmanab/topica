@@ -39,7 +39,6 @@ namespace Aws.Messaging.Config
         public string Policy { get; set; } 
         public int? ReceiveMessageWaitTimeSeconds { get; set; }
         public int? VisibilityTimeout { get; set; }
-        public string RedrivePolicy { get; set; }
         public bool IsFifoQueue { get; set; }
         public bool IsFifoContentBasedDeduplication { get; set; }
 
@@ -55,7 +54,6 @@ namespace Aws.Messaging.Config
             if(!string.IsNullOrWhiteSpace(Policy)) properties.Add(PolicyName, Policy);
             if(ReceiveMessageWaitTimeSeconds.HasValue) properties.Add(ReceiveMessageWaitTimeSecondsName, ReceiveMessageWaitTimeSeconds.Value.ToString());
             if(VisibilityTimeout.HasValue) properties.Add(VisibilityTimeoutName, VisibilityTimeout.Value.ToString());
-            if(!string.IsNullOrWhiteSpace(RedrivePolicy)) properties.Add(RedrivePolicyName, RedrivePolicy);
             if (IsFifoQueue)
             {
                 properties.Add(IsFifoQueueName, "true");

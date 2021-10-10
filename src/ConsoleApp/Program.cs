@@ -46,7 +46,7 @@ namespace ConsoleApp
             // logger.LogInformation(topicArn);
 
             var queueUrls = await queueBuilder
-                .WithQueueName($"dte-sandbox-manual-1")
+                .WithQueueName($"ar-test-1")
                 .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(3))
                 .BuildAsync();
             logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
