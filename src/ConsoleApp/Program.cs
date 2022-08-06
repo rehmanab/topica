@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica;
 using Topica.Aws.Builders;
 using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
@@ -17,6 +20,10 @@ using Topica.Aws.Factories;
 using Topica.Aws.Queues;
 using Topica.Aws.Settings;
 using Topica.Aws.Topics;
+using Topica.Contracts;
+using Topica.Kafka.Configuration;
+using Topica.Kafka.Topics;
+using Topica.Topics;
 
 namespace ConsoleApp
 {
@@ -32,25 +39,32 @@ namespace ConsoleApp
 
             logger.LogInformation("******* Starting Topic creator ******* ");
 
-            var topicBuilder = host.Services.GetService<ITopicBuilder>();
-            var queueBuilder = host.Services.GetService<IQueueBuilder>();
-
-            const int incrementNumber = 1;
+            const int incrementNumber = 3;
             
-            var topicArn = await topicBuilder
-                .WithTopicName($"ar-sns-test-{incrementNumber}")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_1")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_2")
-                .WithSubscribedQueue($"ar-sqs-test-{incrementNumber}_3")
-                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(5))
-                .BuildAsync();
-            logger.LogInformation(topicArn);
-
-            var queueUrls = await queueBuilder
-                .WithQueueName($"ar-test-2")
-                .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(3))
-                .BuildAsync();
-            logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
+            var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
+            var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
+            var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
+            {
+                TopicName = $"ar-sns-test-{incrementNumber}",
+                WithSubscribedQueues = new List<string>
+                {
+                    $"ar-sqs-test-{incrementNumber}_1",
+                    $"ar-sqs-test-{incrementNumber}_2",
+                    $"ar-sqs-test-{incrementNumber}_3",
+                    $"ar-sqs-test-{incrementNumber}_4",
+                    $"ar-sqs-test-{incrementNumber}_5",
+                    $"ar-sqs-test-{incrementNumber}_6",
+                },
+                BuildWithErrorQueue = true,
+                ErrorQueueMaxReceiveCount = 10
+            });
+            logger.LogInformation($"******* Created Topic: {topicArn}");
+        
+            // var queueUrls = await queueBuilder
+            //     .WithQueueName($"ar-test-2")
+            //     .WithQueueConfiguration(host.Services.GetService<ISqsConfigurationBuilder>().BuildCreateWithErrorQueue(3))
+            //     .BuildAsync();
+            // logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -66,63 +80,29 @@ namespace ConsoleApp
                 )
                 .ConfigureServices(services =>
                 {
-                    services.AddTransient<IAmazonSimpleNotificationService>(_ => GetSnsClient());
-                    services.AddTransient<IAmazonSQS>(_ => GetSqsClient());
-                    services.AddTransient<IQueueProvider, AwsQueueProvider>();
-                    services.AddTransient<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
-                    services.AddTransient<IQueueCreationFactory, QueueCreationFactory>();
-                    services.AddTransient<IAwsPolicyBuilder, AwsPolicyBuilder>();
-                    services.AddTransient<ITopicProvider, AwsTopicProvider>();
-                    services.AddTransient(_ => new AwsDefaultAttributeSettings
-                    {
-                        MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600,
-                        VisibilityTimeout = 30,
-                        FifoSettings = new AwsSqsFifoQueueSettings{IsFifoQueue = true, IsContentBasedDeduplication = true}
-                    });
-                    services.AddTransient<ITopicBuilder, AwsTopicBuilder>();
-                    services.AddTransient<IQueueBuilder, AwsQueueBuilder>();
+                    // Add Topica main dependencies
+                    services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
+                    services.AddScoped<ITopicCreator, AwsTopicCreator>();
+                    services.AddScoped<ITopicCreator, KafkaTopicCreator>();
+
+                    services.AddAwsTopica(LocalStackServiceUrl);
+                    
+                    // services.AddScoped<ITopicCreator, Kaf>();
+
+                    // services.Scan(s => s
+                    //     .FromAssemblies(Assembly.GetExecutingAssembly())
+                    //     .AddClasses(c => c.AssignableTo(typeof(ITopicCreator)))
+                    //     .AsImplementedInterfaces()
+                    //     .WithTransientLifetime());
+
+
+
                 })
                 .ConfigureLogging(builder =>
                 {
                     builder.AddConsole();
                 });
                 
-        public static IAmazonSQS GetSqsClient(string profileName = null, string regionEndpoint = "eu-west-1")
-        {
-            var sharedFile = new SharedCredentialsFile();
-            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
-
-            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
-            {
-                Console.WriteLine("Using LocalStack");
-                config.ServiceURL = LocalStackServiceUrl;
-
-                return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
-            }
-
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-
-            Console.WriteLine($"Using AWS profile: {profileName}");
-            return new AmazonSQSClient(credentials, config);
-        }
         
-        public static IAmazonSimpleNotificationService GetSnsClient(string profileName = null, string regionEndpoint = "eu-west-1")
-        {
-            var sharedFile = new SharedCredentialsFile();
-            var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
-
-            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
-            {
-                Console.WriteLine("Using LocalStack");
-                config.ServiceURL = LocalStackServiceUrl;
-
-                return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
-            }
-
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-
-            Console.WriteLine($"Using AWS profile: {profileName}");
-            return new AmazonSimpleNotificationServiceClient(credentials, config);
-        }
     }
 }

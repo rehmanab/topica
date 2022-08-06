@@ -15,7 +15,6 @@
 
     <ItemGroup>
       <Folder Include="Queues" />
-      <Folder Include="Topics" />
     </ItemGroup>
 
 </Project>

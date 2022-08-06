@@ -5,7 +5,7 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Topics
 {
-    public class TopicOptionalSetting : ITopicOptionalSetting
+    public class AwsTopicOptionalSetting : IAwsTopicOptionalSetting
     {
         private readonly string _topicName;
         private readonly ITopicProvider _topicProvider;
@@ -13,26 +13,26 @@ namespace Topica.Aws.Topics
         private readonly IList<string> _queuesToAdd;
         private QueueConfiguration? _queueConfiguration;
 
-        public TopicOptionalSetting(string topicName, ITopicProvider topicProvider)
+        public AwsTopicOptionalSetting(string topicName, ITopicProvider topicProvider)
         {
             _topicName = topicName;
             _topicProvider = topicProvider;
             _queuesToAdd = new List<string>();
         }
 
-        public ITopicOptionalSetting WithSubscribedQueue(string queueName)
+        public IAwsTopicOptionalSetting WithSubscribedQueue(string queueName)
         {
             _queuesToAdd.Add(queueName);
             return this;
         }
 
-        public ITopicOptionalSetting WithSubscribedQueue(IEnumerable<string> queueNames)
+        public IAwsTopicOptionalSetting WithSubscribedQueue(IEnumerable<string> queueNames)
         {
             queueNames.ToList().ForEach(x => _queuesToAdd.Add(x));
             return this;
         }
 
-        public ITopicOptionalSetting WithQueueConfiguration(QueueConfiguration? sqsConfiguration)
+        public IAwsTopicOptionalSetting WithQueueConfiguration(QueueConfiguration? sqsConfiguration)
         {
             _queueConfiguration = sqsConfiguration;
             return this;
