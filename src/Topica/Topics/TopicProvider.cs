@@ -12,7 +12,7 @@ using Topica.Contracts;
 using Topica.Messages;
 using Topica.Queue;
 
-namespace Topica.Notifications
+namespace Topica.Topics
 {
     public class TopicProvider : ITopicProvider
     {

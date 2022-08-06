@@ -9,13 +9,13 @@ using Amazon.SQS;
 using Topica.Builders;
 using Topica.Contracts;
 using Topica.Factories;
-using Topica.Notifications;
 using Topica.Queue;
 using Topica.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Topics;
 
 namespace ConsoleApp
 {

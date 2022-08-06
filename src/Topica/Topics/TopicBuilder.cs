@@ -1,6 +1,6 @@
 ﻿using Topica.Contracts;
 
-namespace Topica.Notifications
+namespace Topica.Topics
 {
     public interface ITopicBuilder
     {

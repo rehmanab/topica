@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Topica.Config;
 using Topica.Contracts;
 
-namespace Topica.Notifications
+namespace Topica.Topics
 {
     public interface ITopicOptionalSetting
     {
