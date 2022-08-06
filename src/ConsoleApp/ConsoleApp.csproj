@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Topica.Aws\Topica.Aws.csproj" />
       <ProjectReference Include="..\Topica\Topica.csproj" />
     </ItemGroup>
 
