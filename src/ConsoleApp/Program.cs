@@ -6,12 +6,12 @@ using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
-using Aws.Messaging.Builders;
-using Aws.Messaging.Contracts;
-using Aws.Messaging.Factories;
-using Aws.Messaging.Notifications;
-using Aws.Messaging.Queue;
-using Aws.Messaging.Settings;
+using Topica.Builders;
+using Topica.Contracts;
+using Topica.Factories;
+using Topica.Notifications;
+using Topica.Queue;
+using Topica.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +21,7 @@ namespace ConsoleApp
 {
     public class Program
     {
-        private const string LocalStackServiceUrl = "http://10.211.55.2:4566";
+        private const string LocalStackServiceUrl = "http://dockerhost:4566";
 
         private static async Task Main(string[] args)
         {
