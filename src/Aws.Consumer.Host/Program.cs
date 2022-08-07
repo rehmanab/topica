@@ -22,9 +22,9 @@ var host = Host.CreateDefaultBuilder()
         services.AddAwsTopica("http://dockerhost:4566");
         services.AddSingleton(new WorkerConfiguration
         {
-            QueueName = "ar-sqs-test-1_1.fifo", 
+            OrderQueueName = "ar-sqs-test-1_1.fifo", 
             DelayMilliseconds = 2000, 
-            NumberOfThreads = 10
+            NumberOfInstances = 10
         });
         services.AddHostedService<Worker>();
     })

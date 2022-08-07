@@ -3,11 +3,11 @@ using Topica.Contracts;
 
 namespace Aws.Consumer.Host.Handlers;
 
-public class DefaultHandler : IHandler<OrderMessage>
+public class OrderHandler : IHandler<OrderMessage>
 {
     public async Task<bool> Handle(OrderMessage message)
     {
-        Console.WriteLine($"***** Message OrderMessage: {message.Message}");
+        Console.WriteLine($"***** Message OrderMessage: {message.Message} from {message.ConversationId}");
         return await Task.FromResult(true);
     }
 

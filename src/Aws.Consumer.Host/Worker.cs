@@ -1,3 +1,4 @@
+using System.Reflection;
 using Aws.Consumer.Host.Handlers;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Queues;
@@ -15,13 +16,13 @@ public class Worker : BackgroundService
         _config = config;
     }
     
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _awsQueueConsumer.Start(_config.QueueName, _config.NumberOfThreads, () => new DefaultHandler(), stoppingToken);
-        // while (!stoppingToken.IsCancellationRequested)
-        // {
-        //     Console.WriteLine($"hi - {_config.QueueName}");
-        //     await Task.Delay(_config.DelayMilliseconds, stoppingToken);
-        // }
+        Parallel.ForEach(Enumerable.Range(1, _config.NumberOfInstances), index =>
+        {
+            _awsQueueConsumer.StartAsync($"{Assembly.GetExecutingAssembly().GetName().Name}({index})", _config.OrderQueueName, () => new OrderHandler(), stoppingToken);
+        });
+
+        return Task.CompletedTask;
     }
 }
