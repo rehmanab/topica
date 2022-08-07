@@ -35,7 +35,7 @@ namespace ConsoleApp
 
         public static async Task<string> CreateTopic(MessagingPlatform messagingPlatform, ITopicCreatorFactory topicCreatorFactory)
         {
-            const int incrementNumber = 3;
+            const int incrementNumber = 1;
             
             var topicCreator = topicCreatorFactory!.Create(messagingPlatform);
             var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
@@ -43,7 +43,9 @@ namespace ConsoleApp
                 TopicName = $"ar-sns-test-{incrementNumber}",
                 WithSubscribedQueues = new List<string>
                 {
-                    $"ar-sqs-test-{incrementNumber}_1"
+                    $"ar-sqs-test-{incrementNumber}_1",
+                    $"ar-sqs-test-{incrementNumber}_2",
+                    $"ar-sqs-test-{incrementNumber}_3",
                 },
                 BuildWithErrorQueue = true,
                 ErrorQueueMaxReceiveCount = 10

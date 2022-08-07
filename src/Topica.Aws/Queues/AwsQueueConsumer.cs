@@ -12,7 +12,7 @@ namespace Topica.Aws.Queues
         private readonly IQueueProvider _queueProvider;
         private readonly ILogger<AwsQueueConsumer> _logger;
 
-        private const int DefaultNumberOfInstances = 1;
+        private const int DefaultNumberOfThreads = 1;
 
         public AwsQueueConsumer(IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
         {
@@ -22,10 +22,10 @@ namespace Topica.Aws.Queues
 
         public void Start<T>(string queueName, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage
         {
-            Start(queueName, DefaultNumberOfInstances, handlerFactory, cancellationToken);
+            Start(queueName, DefaultNumberOfThreads, handlerFactory, cancellationToken);
         }
 
-        public void Start<T>(string queueName, int numberOfInstances, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage 
+        public void Start<T>(string queueName, int numberOfThreads, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage
         {
             try
             {
@@ -35,37 +35,53 @@ namespace Topica.Aws.Queues
                 {
                     var message = $"SQS: QueueConsumer queue: {queueName} does not exist.";
                     _logger.LogError(message);
-                    
+
                     throw new ApplicationException(message);
                 }
 
                 _logger.LogInformation($"SQS: QueueConsumer Started: {queueName}");
 
-                for (var i = 0; i < numberOfInstances; i++)
+                var rnd = new Random(Guid.NewGuid().GetHashCode());
+
+                for (var i = 0; i < numberOfThreads; i++)
                 {
+                    var threadNumber = i + 1;
                     Task.Run(async () =>
-                    {
-                        var handler = handlerFactory();
-                        await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                         {
-                            if (message == null)
+                            var handler = handlerFactory();
+                            _logger.LogInformation($"SQS: QueueConsumer thread: {threadNumber} started on Queue: {queueName}");
+                            await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                             {
-                                throw new Exception($"Received null message on: {queueName}");
+                                if (message == null)
+                                {
+                                    throw new Exception($"Received null message thread: {threadNumber} on Queue: {queueName}");
+                                }
+
+                                var success = await handler.Handle(message);
+
+                                if (!success) continue;
+
+                                if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
+                                {
+                                    _logger.LogError($"SQS: could not delete message thread: {threadNumber} on Queue: {queueName}");
+                                }
+                                else
+                                {
+                                    _logger.LogDebug($"SQS: Success, deleting message thread: {threadNumber} on Queue: {queueName}");
+                                }
+
+                                await Task.Delay(rnd.Next(500, 3000), cancellationToken);
                             }
-                            
-                            var success = await handler.Handle(message);
 
-                            if (!success) continue;
-
-                            _logger.LogDebug("SQS: Success, deleting message");
-                            if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
+                            _logger.LogInformation($"SQS: QueueConsumer Stopped thread: {threadNumber} on Queue: {queueName}");
+                        }, cancellationToken)
+                        .ContinueWith(x =>
+                        {
+                            if (x.IsFaulted || x.Exception != null)
                             {
-                                _logger.LogError("SQS: could not delete message");
+                                _logger.LogError(x.Exception, $"EXCEPTION: thread: {threadNumber} on Queue: {queueName}");
                             }
-                        }
-
-                        _logger.LogInformation($"SQS: QueueConsumer Stopped: {queueName}");
-                    }, cancellationToken);
+                        }, cancellationToken);
                 }
             }
             catch (AggregateException ex)
@@ -74,6 +90,7 @@ namespace Topica.Aws.Queues
                 {
                     _logger.LogError(inner, "SQS: AggregateException:");
                 }
+
                 throw;
             }
             catch (Exception ex)

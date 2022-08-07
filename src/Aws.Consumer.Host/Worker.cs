@@ -1,3 +1,4 @@
+using Aws.Consumer.Host.Handlers;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Queues;
 
@@ -6,9 +7,9 @@ namespace Aws.Consumer.Host;
 public class Worker : BackgroundService
 {
     private readonly IAwsQueueConsumer _awsQueueConsumer;
-    private readonly IWorkerConfiguration _config;
+    private readonly WorkerConfiguration _config;
 	
-    public Worker(IAwsQueueConsumer awsQueueConsumer, IWorkerConfiguration config)
+    public Worker(IAwsQueueConsumer awsQueueConsumer, WorkerConfiguration config)
     {
         _awsQueueConsumer = awsQueueConsumer;
         _config = config;
@@ -16,10 +17,11 @@ public class Worker : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            Console.WriteLine("hi");
-            await Task.Delay(_config.DelayMilliseconds, stoppingToken);
-        }
+        _awsQueueConsumer.Start(_config.QueueName, _config.NumberOfThreads, () => new DefaultHandler(), stoppingToken);
+        // while (!stoppingToken.IsCancellationRequested)
+        // {
+        //     Console.WriteLine($"hi - {_config.QueueName}");
+        //     await Task.Delay(_config.DelayMilliseconds, stoppingToken);
+        // }
     }
 }
