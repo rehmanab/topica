@@ -11,7 +11,7 @@ namespace Topica.Aws.Messages
         public string? RaisingComponent { get; set; }
         public string? Version { get; set; }
         public string? SourceIp { get; set; }
-        public string? ReceiptHandle { get; set; }
+        public string ReceiptHandle { get; set; }
         public string? QueueUrl { get; set; }
         public string? TopicArn { get; set; }
     }

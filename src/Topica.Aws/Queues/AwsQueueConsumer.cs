@@ -2,30 +2,30 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Topica.Aws.Contracts;
 using Topica.Aws.Messages;
+using Topica.Contracts;
 
 namespace Topica.Aws.Queues
 {
-    public class QueueListener : IQueueListener
+    public class AwsQueueConsumer : IAwsQueueConsumer
     {
         private readonly IQueueProvider _queueProvider;
-        private readonly ILogger<QueueListener> _logger;
+        private readonly ILogger<AwsQueueConsumer> _logger;
 
         private const int DefaultNumberOfInstances = 1;
 
-        public QueueListener(IQueueProvider queueProvider, ILogger<QueueListener> logger)
+        public AwsQueueConsumer(IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
         {
             _queueProvider = queueProvider;
             _logger = logger;
         }
 
-        public void Start<T>(string queueName, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default(CancellationToken)) where T : BaseSqsMessage
+        public void Start<T>(string queueName, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage
         {
             Start(queueName, DefaultNumberOfInstances, handlerFactory, cancellationToken);
         }
 
-        public void Start<T>(string queueName, int numberOfInstances, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default(CancellationToken)) where T : BaseSqsMessage 
+        public void Start<T>(string queueName, int numberOfInstances, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage 
         {
             try
             {
@@ -33,13 +33,13 @@ namespace Topica.Aws.Queues
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    var message = $"SQS: QueueListener queue: {queueName} does not exist.";
+                    var message = $"SQS: QueueConsumer queue: {queueName} does not exist.";
                     _logger.LogError(message);
                     
                     throw new ApplicationException(message);
                 }
 
-                _logger.LogInformation($"SQS: QueueListener Started: {queueName}");
+                _logger.LogInformation($"SQS: QueueConsumer Started: {queueName}");
 
                 for (var i = 0; i < numberOfInstances; i++)
                 {
@@ -48,6 +48,11 @@ namespace Topica.Aws.Queues
                         var handler = handlerFactory();
                         await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                         {
+                            if (message == null)
+                            {
+                                throw new Exception($"Received null message on: {queueName}");
+                            }
+                            
                             var success = await handler.Handle(message);
 
                             if (!success) continue;
@@ -59,7 +64,7 @@ namespace Topica.Aws.Queues
                             }
                         }
 
-                        _logger.LogInformation($"SQS: QueueListener Stopped: {queueName}");
+                        _logger.LogInformation($"SQS: QueueConsumer Stopped: {queueName}");
                     }, cancellationToken);
                 }
             }

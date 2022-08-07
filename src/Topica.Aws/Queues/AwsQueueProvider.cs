@@ -219,7 +219,7 @@ namespace Topica.Aws.Queues
                     if (baseMessage.ConversationId == Guid.Empty)
                     {
                         //Otherwise serialise to an SnsMessage
-                        var snsMessage = Message. ParseMessage(message.Body);
+                        var snsMessage = Message.ParseMessage(message.Body);
                         baseMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
                         if (baseMessage.ConversationId == Guid.Empty)
                         {

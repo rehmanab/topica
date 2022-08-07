@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Topica.Aws.Contracts
+namespace Topica.Contracts
 {
     public interface IHandler<in T>
     {

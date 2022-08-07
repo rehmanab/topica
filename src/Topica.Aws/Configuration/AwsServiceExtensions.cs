@@ -22,21 +22,22 @@ namespace Microsoft.Extensions.DependencyInjection
             var logger = services.BuildServiceProvider().GetService<ILogger<MessagingPlatform>>();
             logger.LogDebug("******* AwsServiceExtensions ******* ");
 
-            services.AddTransient<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, serviceUrl: serviceUrl));
-            services.AddTransient<IAmazonSQS>(_ => GetSqsClient(logger, serviceUrl: serviceUrl));
-            services.AddTransient<IQueueProvider, AwsQueueProvider>();
-            services.AddTransient<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
-            services.AddTransient<IQueueCreationFactory, QueueCreationFactory>();
-            services.AddTransient<IAwsPolicyBuilder, AwsPolicyBuilder>();
-            services.AddTransient<ITopicProvider, AwsTopicProvider>();
-            services.AddTransient(_ => new AwsDefaultAttributeSettings
+            services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, serviceUrl: serviceUrl));
+            services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, serviceUrl: serviceUrl));
+            services.AddScoped<IQueueProvider, AwsQueueProvider>();
+            services.AddScoped<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
+            services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
+            services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
+            services.AddScoped<ITopicProvider, AwsTopicProvider>();
+            services.AddScoped(_ => new AwsDefaultAttributeSettings
             {
                 MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600,
                 VisibilityTimeout = 30,
                 FifoSettings = new AwsSqsFifoQueueSettings{IsFifoQueue = true, IsContentBasedDeduplication = true}
             });
-            services.AddTransient<IAwsTopicBuilder, AwsAwsTopicBuilder>();
-            services.AddTransient<IQueueBuilder, AwsQueueBuilder>();
+            services.AddScoped<IAwsTopicBuilder, AwsAwsTopicBuilder>();
+            services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
+            services.AddScoped<IAwsQueueConsumer, AwsQueueConsumer>();
 
             return services;
         }
