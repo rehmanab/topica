@@ -1,9 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using Aws.Consumer.Host;
+using Aws.Consumer.Host.Handlers;
+using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Topica.Contracts;
 
 Console.WriteLine("******* Starting Aws.Consumer.Host *******");
 
@@ -27,6 +30,9 @@ var host = Host.CreateDefaultBuilder()
             NumberOfInstances = 10
         });
         services.AddHostedService<Worker>();
+        
+        // Handlers
+        services.AddScoped<IHandler<OrderMessage>, OrderHandler>();
     })
     .Build();
 
