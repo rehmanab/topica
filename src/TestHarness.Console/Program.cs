@@ -8,12 +8,16 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Aws.Configuration;
+using Topica.Aws.Settings;
 using Topica.Aws.Topics;
 using Topica.Contracts;
+using Topica.Kafka.Configuration;
+using Topica.Kafka.Settings;
 using Topica.Kafka.Topics;
 using Topica.Topics;
+using ConsumerSettings = Topica.Kafka.Settings.ConsumerSettings;
 
-namespace ConsoleApp
+namespace TestHarness.Console
 {
     public class Program
     {
@@ -26,18 +30,18 @@ namespace ConsoleApp
             logger.LogInformation("******* Starting Topic creator ******* ");
 
             var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
-            
-            const MessagingPlatform messagingPlatform = MessagingPlatform.Aws;
-            var topicArn = await CreateTopic(messagingPlatform, topicCreatorFactory);
+
+            // var topicArn = await AwsCreateTopic(topicCreatorFactory);
+            var topicArn = await KafkaCreateTopic(topicCreatorFactory);
             
             logger.LogInformation($"******* Created Topic: {topicArn}");
         }
 
-        public static async Task<string> CreateTopic(MessagingPlatform messagingPlatform, ITopicCreatorFactory topicCreatorFactory)
+        public static async Task<string> AwsCreateTopic(ITopicCreatorFactory topicCreatorFactory)
         {
             const int incrementNumber = 1;
             
-            var topicCreator = topicCreatorFactory!.Create(messagingPlatform);
+            var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
             var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
             {
                 TopicName = $"ar-sns-test-{incrementNumber}",
@@ -59,6 +63,18 @@ namespace ConsoleApp
 
             return topicArn;
         }
+        
+        public static async Task<string> KafkaCreateTopic(ITopicCreatorFactory topicCreatorFactory)
+        {
+            var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Kafka);
+            var topicArn = await topicCreator.CreateTopic(new KafkaTopicConfiguration
+            {
+                TopicName = "ar-kafka-test-1",
+                NumberOfPartitions = 10
+            });
+
+            return topicArn;
+        }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
@@ -73,13 +89,25 @@ namespace ConsoleApp
                 )
                 .ConfigureServices(services =>
                 {
+                    // Configuration
+                    services.AddSingleton(provider =>
+                    {
+                        var config = provider.GetRequiredService<IConfiguration>();
+                        return config.GetSection(AwsSettings.SectionName).Get<AwsSettings>();
+                    });
+                    services.AddSingleton(provider =>
+                    {
+                        var config = provider.GetRequiredService<IConfiguration>();
+                        return config.GetSection(KafkaSettings.SectionName).Get<KafkaSettings>();
+                    });
+                    
                     // Add Topica main dependencies
                     services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
                     services.AddScoped<ITopicCreator, AwsTopicCreator>();
                     services.AddScoped<ITopicCreator, KafkaTopicCreator>();
 
-                    // services.AddAwsTopica("http://dockerhost:4566");
-                    // services.AddKafkaTopica("http://dockerhost:4566");
+                    services.AddAwsTopica();
+                    services.AddKafkaTopica();
                     
                     // services.AddScoped<ITopicCreator, Kaf>();
 

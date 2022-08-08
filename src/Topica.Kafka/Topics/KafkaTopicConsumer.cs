@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Topica.Contracts;
 using Topica.Kafka.Settings;
 using Topica.Messages;

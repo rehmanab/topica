@@ -7,7 +7,7 @@ ProjectSection(SolutionItems) = preProject
 	..\.gitignore = ..\.gitignore
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{6B5DF787-8617-4524-A552-000DA104B4DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness.Console", "TestHarness.Console\TestHarness.Console.csproj", "{6B5DF787-8617-4524-A552-000DA104B4DB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{79224FA1-FB83-402D-A9CE-78F7712F6A1B}"
 EndProject
