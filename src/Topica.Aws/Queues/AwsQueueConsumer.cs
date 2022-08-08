@@ -14,8 +14,6 @@ namespace Topica.Aws.Queues
         private readonly IQueueProvider _queueProvider;
         private readonly ILogger<AwsQueueConsumer> _logger;
 
-        private const int DefaultNumberOfThreads = 1;
-
         public AwsQueueConsumer(IMessageHandlerExecutor messageHandlerExecutor, IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
         {
             _messageHandlerExecutor = messageHandlerExecutor;

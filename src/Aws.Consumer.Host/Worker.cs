@@ -1,9 +1,7 @@
 using System.Reflection;
-using Aws.Consumer.Host.Handlers;
 using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Queues;
-using Topica.Contracts;
 
 namespace Aws.Consumer.Host;
 
