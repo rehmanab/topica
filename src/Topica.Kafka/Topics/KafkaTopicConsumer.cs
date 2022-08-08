@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Topica.Contracts;
 using Topica.Kafka.Settings;
 using Topica.Messages;
@@ -13,11 +15,13 @@ namespace Topica.Kafka.Topics
 {
     public class KafkaTopicConsumer : IConsumer
     {
+        private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly KafkaSettings _kafkaSettings;
         private readonly ILogger<KafkaTopicConsumer> _logger;
 
-        public KafkaTopicConsumer(KafkaSettings kafkaSettings, ILogger<KafkaTopicConsumer> logger)
+        public KafkaTopicConsumer(IMessageHandlerExecutor messageHandlerExecutor, KafkaSettings kafkaSettings, ILogger<KafkaTopicConsumer> logger)
         {
+            _messageHandlerExecutor = messageHandlerExecutor;
             _kafkaSettings = kafkaSettings;
             _logger = logger;
         }
@@ -39,17 +43,31 @@ namespace Topica.Kafka.Topics
             
             _logger.LogInformation($"Kafka: TopicConsumer Subscribed: {consumerItemSettings.Source}");
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var msg = consumer.Consume();
-                    _logger.LogInformation($"{msg.Message.Timestamp.UtcDateTime} : TopicConsumer: {consumerName} : {msg.TopicPartitionOffset} (topic [partition] @ offset): {msg.Message.Value}");
-                    //await Task.Delay(500);
+                    var message = consumer.Consume();
+                    
+                    if (message == null)
+                    {
+                        throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerItemSettings.Source}");
+                    }
+
+                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message.Message.Value);
+                    _logger.LogDebug($"**** {nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogDebug($"{message.Message.Timestamp.UtcDateTime} : TopicConsumer: {consumerName} : {message.TopicPartitionOffset} (topic [partition] @ offset): {message.Message.Value}");
                 }
 
                 consumer.Dispose();
-            }, cancellationToken);
+            }, cancellationToken)
+                .ContinueWith(x =>
+                {
+                    if (x.IsFaulted || x.Exception != null)
+                    {
+                        _logger.LogError(x.Exception, "{nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: Error");      
+                    }
+                }, cancellationToken);
         }
     }
 }
