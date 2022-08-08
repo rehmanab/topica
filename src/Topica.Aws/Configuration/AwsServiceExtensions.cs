@@ -1,3 +1,4 @@
+using System;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
@@ -18,13 +19,17 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class AwsServiceExtensions
     {
-        public static IServiceCollection AddAwsTopica(this IServiceCollection services, string serviceUrl)
+        public static IServiceCollection AddAwsTopica(this IServiceCollection services)
         {
-            var logger = services.BuildServiceProvider().GetService<ILogger<MessagingPlatform>>();
+            var serviceProvider = services.BuildServiceProvider();
+            
+            var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
             logger.LogDebug("******* AwsServiceExtensions ******* ");
 
-            services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, serviceUrl: serviceUrl));
-            services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, serviceUrl: serviceUrl));
+            var awsSettings = serviceProvider.GetService<AwsSettings>();
+
+            services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, awsSettings));
+            services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, awsSettings));
             services.AddScoped<IQueueProvider, AwsQueueProvider>();
             services.AddScoped<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
             services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
@@ -43,42 +48,70 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
         
-        public static IAmazonSQS GetSqsClient(ILogger<MessagingPlatform> logger, string profileName = null, string regionEndpoint = "eu-west-1", string serviceUrl = null)
+        public static IAmazonSQS GetSqsClient(ILogger<MessagingPlatform> logger, AwsSettings awsSettings)
         {
             var sharedFile = new SharedCredentialsFile();
-            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
+            var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };
 
-            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
+            if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile))
             {
-                logger.LogDebug("Using LocalStack");
-                config.ServiceURL = serviceUrl;
-
-                return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
+                AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
+                logger.LogInformation($"Using AWS profile: {awsSettings.ProfileName} for {nameof(GetSqsClient)}");
+                return new AmazonSQSClient(credentials, config);
             }
+            
+            if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
+            {
+                logger.LogInformation($"Using AccessKey and SecretKey for {nameof(GetSqsClient)}");
 
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-
-            logger.LogDebug($"Using AWS profile: {profileName}");
-            return new AmazonSQSClient(credentials, config);
+                if (!string.IsNullOrEmpty(awsSettings.ServiceUrl))
+                {
+                    config.ServiceURL = awsSettings.ServiceUrl;
+                }
+                return new AmazonSQSClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
+            }
+            
+            if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
+            {
+                throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(GetSqsClient)}");
+            }
+            
+            logger.LogInformation($"Using LocalStack for {nameof(GetSqsClient)}");
+            config.ServiceURL = awsSettings.ServiceUrl;
+            return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
         }
         
-        public static IAmazonSimpleNotificationService GetSnsClient(ILogger<MessagingPlatform> logger, string profileName = null, string regionEndpoint = "eu-west-1", string serviceUrl = null)
+        public static IAmazonSimpleNotificationService GetSnsClient(ILogger<MessagingPlatform> logger, AwsSettings awsSettings)
         {
             var sharedFile = new SharedCredentialsFile();
-            var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint) };
+            var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };
 
-            if (string.IsNullOrWhiteSpace(profileName) || !sharedFile.TryGetProfile(profileName, out var profile))
+            if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile))
             {
-                logger.LogDebug("Using LocalStack");
-                config.ServiceURL = serviceUrl;
-
-                return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
+                AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
+                logger.LogInformation($"Using AWS profile: {awsSettings.ProfileName} for {nameof(GetSnsClient)}");
+                return new AmazonSimpleNotificationServiceClient(credentials, config);
             }
+            
+            if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
+            {
+                logger.LogInformation($"Using AccessKey and SecretKey for {nameof(GetSnsClient)}");
 
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-
-            logger.LogDebug($"Using AWS profile: {profileName}");
-            return new AmazonSimpleNotificationServiceClient(credentials, config);
+                if (!string.IsNullOrEmpty(awsSettings.ServiceUrl))
+                {
+                    config.ServiceURL = awsSettings.ServiceUrl;
+                }
+                return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
+            }
+            
+            if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
+            {
+                throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(GetSnsClient)}");
+            }
+            
+            logger.LogInformation($"Using LocalStack for {nameof(GetSnsClient)}");
+            config.ServiceURL = awsSettings.ServiceUrl;
+            return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
         }
     }
 }

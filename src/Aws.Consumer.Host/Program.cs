@@ -1,12 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using System.Reflection;
+﻿using System.Reflection;
 using Aws.Consumer.Host;
-using Aws.Consumer.Host.Handlers;
-using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Topica.Aws.Settings;
 using Topica.Contracts;
 using Topica.Executors;
 using Topica.Resolvers;
@@ -31,8 +28,14 @@ var host = Host.CreateDefaultBuilder()
             var config = provider.GetRequiredService<IConfiguration>();
             return config.GetSection(ConsumerSettings.SectionName).Get<ConsumerSettings>();
         });
+        services.AddSingleton(provider =>
+        {
+            var config = provider.GetRequiredService<IConfiguration>();
+            return config.GetSection(AwsSettings.SectionName).Get<AwsSettings>();
+        });
         
-        services.AddAwsTopica("http://dockerhost:4566");
+        // Add MessagingPlatform Components
+        services.AddAwsTopica();
         services.AddHostedService<Worker>();
         
         // Handlers

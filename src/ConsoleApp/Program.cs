@@ -78,8 +78,8 @@ namespace ConsoleApp
                     services.AddScoped<ITopicCreator, AwsTopicCreator>();
                     services.AddScoped<ITopicCreator, KafkaTopicCreator>();
 
-                    services.AddAwsTopica("http://dockerhost:4566");
-                    services.AddKafkaTopica("http://dockerhost:4566");
+                    // services.AddAwsTopica("http://dockerhost:4566");
+                    // services.AddKafkaTopica("http://dockerhost:4566");
                     
                     // services.AddScoped<ITopicCreator, Kaf>();
 

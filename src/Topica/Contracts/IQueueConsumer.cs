@@ -6,6 +6,6 @@ namespace Topica.Contracts
 {
     public interface IQueueConsumer
     {
-        Task StartAsync<T>(string consumerName, string queueName, CancellationToken cancellationToken = default) where T : Message;
+        Task StartAsync<T>(string consumerName, string source, CancellationToken cancellationToken = default) where T : Message;
     }
 }
