@@ -203,7 +203,7 @@ namespace Topica.Aws.Queues
         {
             var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl };
 
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 var receiveMessageResponse = await _client.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
 
@@ -236,8 +236,6 @@ namespace Topica.Aws.Queues
 
                     yield return (T)baseMessage;
                 }
-
-                if (cancellationToken.IsCancellationRequested) break;
             }
         }
 

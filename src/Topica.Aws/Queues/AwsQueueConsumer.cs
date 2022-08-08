@@ -5,10 +5,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Contracts;
 using Topica.Messages;
+using Topica.Settings;
 
 namespace Topica.Aws.Queues
 {
-    public class AwsQueueConsumer : IQueueConsumer
+    public class AwsQueueConsumer : IConsumer
     {
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IQueueProvider _queueProvider;
@@ -21,28 +22,28 @@ namespace Topica.Aws.Queues
             _logger = logger;
         }
 
-        public async Task StartAsync<T>(string consumerName, string source, CancellationToken cancellationToken = default) where T : Message
+        public async Task StartAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
         {
             try
             {
-                var queueUrl = _queueProvider.GetQueueUrlAsync(source).Result;
+                var queueUrl = _queueProvider.GetQueueUrlAsync(consumerItemSettings.Source).Result;
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    var message = $"SQS: QueueConsumer queue: {source} does not exist.";
+                    var message = $"SQS: QueueConsumer queue: {consumerItemSettings.Source} does not exist.";
                     _logger.LogError(message);
 
                     throw new ApplicationException(message);
                 }
 
-                _logger.LogInformation($"SQS: QueueConsumer Started: {source}");
+                _logger.LogInformation($"SQS: QueueConsumer Started: {consumerItemSettings.Source}");
 
-                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {source}");
+                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {consumerItemSettings.Source}");
                 await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                 {
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {source}");
+                        throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {consumerItemSettings.Source}");
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, JsonConvert.SerializeObject(message));
@@ -52,15 +53,15 @@ namespace Topica.Aws.Queues
 
                     if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptReference))
                     {
-                        _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {source}");
+                        _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {consumerItemSettings.Source}");
                     }
                     else
                     {
-                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Success, deleting message on Queue: {source}");
+                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Success, deleting message on Queue: {consumerItemSettings.Source}");
                     }
                 }
 
-                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Stopped on Queue: {source}");
+                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Stopped on Queue: {consumerItemSettings.Source}");
             }
             catch (AggregateException ex)
             {

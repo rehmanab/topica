@@ -1,15 +1,14 @@
 ﻿using System.Reflection;
-using Aws.Consumer.Host;
+using Kafka.Consumer.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Topica.Aws.Settings;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Kafka.Settings;
 using Topica.Resolvers;
-using Topica.Settings;
 
-Console.WriteLine("******* Starting Aws.Consumer.Host *******");
+Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(builder =>
@@ -32,11 +31,11 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(AwsSettings.SectionName).Get<AwsSettings>();
+            return config.GetSection(KafkaSettings.SectionName).Get<KafkaSettings>();
         });
         
         // Add MessagingPlatform Components
-        services.AddAwsTopica();
+        services.AddKafkaTopica();
         services.AddHostedService<Worker>();
         
         // Handlers

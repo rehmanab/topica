@@ -1,18 +1,19 @@
 using System.Reflection;
 using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Hosting;
+using Topica.Aws.Settings;
 using Topica.Contracts;
 
 namespace Aws.Consumer.Host;
 
 public class Worker : BackgroundService
 {
-    private readonly IQueueConsumer _awsQueueConsumer;
+    private readonly IConsumer _awsConsumer;
     private readonly ConsumerSettings _consumerSettings;
 
-    public Worker(IQueueConsumer awsQueueConsumer, ConsumerSettings consumerSettings)
+    public Worker(IConsumer awsConsumer, ConsumerSettings consumerSettings)
     {
-        _awsQueueConsumer = awsQueueConsumer;
+        _awsConsumer = awsConsumer;
         _consumerSettings = consumerSettings;
     }
 
@@ -20,8 +21,8 @@ public class Worker : BackgroundService
     {
         Parallel.ForEach(Enumerable.Range(1, _consumerSettings.NumberOfInstancesPerConsumer), index =>
         {
-            _awsQueueConsumer.StartAsync<OrderCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(OrderCreatedV1)}-({index})", _consumerSettings.OrderCreated.QueueName, stoppingToken);
-            _awsQueueConsumer.StartAsync<CustomerCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(CustomerCreatedV1)}-({index})", _consumerSettings.CustomerCreated.QueueName, stoppingToken);
+            _awsConsumer.StartAsync<OrderCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(OrderCreatedV1)}-({index})", _consumerSettings.OrderCreated, stoppingToken);
+            _awsConsumer.StartAsync<CustomerCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(CustomerCreatedV1)}-({index})", _consumerSettings.CustomerCreated, stoppingToken);
         });
 
         return Task.CompletedTask;
