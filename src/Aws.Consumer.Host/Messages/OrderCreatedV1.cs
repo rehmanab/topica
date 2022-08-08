@@ -1,5 +1,4 @@
 using Topica.Aws.Messages;
-using Topica.Messages;
 
 namespace Aws.Consumer.Host.Messages
 {

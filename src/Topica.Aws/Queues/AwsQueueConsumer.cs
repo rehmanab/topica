@@ -50,7 +50,7 @@ namespace Topica.Aws.Queues
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, JsonConvert.SerializeObject(message));
-                    _logger.LogInformation($"**** {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogInformation($"**** {nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
 
                     if (!success) continue;
 

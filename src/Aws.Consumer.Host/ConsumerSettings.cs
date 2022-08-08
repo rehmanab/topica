@@ -1,16 +1,14 @@
-using Aws.Consumer.Host.Handlers;
-
 namespace Aws.Consumer.Host;
 
 public class ConsumerSettings
 {
     public static string SectionName => nameof (ConsumerSettings);
-    public ConsumerItems[] Consumers { get; set; }
+    public ConsumerItem OrderCreated { get; set; }
+    public ConsumerItem CustomerCreated { get; set; }
+    public int NumberOfInstancesPerConsumer { get; set; }
 }
 
-public class ConsumerItems
+public class ConsumerItem
 {
-    public string Type { get; set; }
     public string QueueName{ get; set; }
-    public int NumberOfInstances { get; set; }
 }

@@ -23,11 +23,11 @@ namespace Topica.Executors
             var validated = (bool)methodToValidate;
             if (!validated)
             {
-                _logger.LogInformation($"**** {handlerImpl.GetType().Name} Validation FAILED ****");
+                _logger.LogWarning($"**** {handlerImpl.GetType().Name} Validation FAILED ****");
                 return (handlerImpl.GetType().Name, false);
             }
             
-            _logger.LogInformation($"**** {handlerImpl.GetType().Name} Execution STARTED ****");
+            _logger.LogDebug($"**** {handlerImpl.GetType().Name} Execution STARTED ****");
             return (handlerImpl.GetType().Name, await (Task<bool>)methodToExecute);
         }
     }

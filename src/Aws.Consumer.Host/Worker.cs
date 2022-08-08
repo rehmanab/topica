@@ -22,13 +22,11 @@ public class Worker : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var consumer in _consumerSettings.Consumers)
+        Parallel.ForEach(Enumerable.Range(1, _consumerSettings.NumberOfInstancesPerConsumer), index =>
         {
-            Parallel.ForEach(Enumerable.Range(1, consumer.NumberOfInstances), index =>
-            {
-                _awsQueueConsumer.StartAsync<OrderCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{consumer.Type}-({index})", consumer.QueueName, stoppingToken);
-            });
-        }
+            _awsQueueConsumer.StartAsync<OrderCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(OrderCreatedV1)}-({index})", _consumerSettings.OrderCreated.QueueName, stoppingToken);
+            _awsQueueConsumer.StartAsync<CustomerCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(CustomerCreatedV1)}-({index})", _consumerSettings.CustomerCreated.QueueName, stoppingToken);
+        });
 
         return Task.CompletedTask;
     }

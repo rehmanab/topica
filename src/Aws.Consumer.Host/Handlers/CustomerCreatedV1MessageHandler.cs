@@ -1,6 +1,5 @@
 using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Topica.Contracts;
 
 namespace Aws.Consumer.Host.Handlers
@@ -16,7 +15,7 @@ namespace Aws.Consumer.Host.Handlers
 
         public async Task<bool> HandleAsync(CustomerCreatedV1 source)
         {
-            _logger.LogInformation(JsonConvert.SerializeObject(source));
+            _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Customer: {CustomerName}", nameof(CustomerCreatedV1), source.ConversationId, source.CustomerName);
             
             return await Task.FromResult(true);
         }
