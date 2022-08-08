@@ -10,7 +10,7 @@ public class ConsumerSettings
 
 public class ConsumerItems
 {
-    public HandlerType Type{ get; set; }
+    public string Type { get; set; }
     public string QueueName{ get; set; }
     public int NumberOfInstances { get; set; }
 }

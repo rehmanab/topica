@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Topica.Aws.Messages;
 using Topica.Contracts;
 
@@ -9,18 +10,20 @@ namespace Topica.Aws.Queues
 {
     public class AwsQueueConsumer : IAwsQueueConsumer
     {
+        private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IQueueProvider _queueProvider;
         private readonly ILogger<AwsQueueConsumer> _logger;
 
         private const int DefaultNumberOfThreads = 1;
 
-        public AwsQueueConsumer(IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
+        public AwsQueueConsumer(IMessageHandlerExecutor messageHandlerExecutor, IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
         {
+            _messageHandlerExecutor = messageHandlerExecutor;
             _queueProvider = queueProvider;
             _logger = logger;
         }
 
-        public async Task StartAsync<T>(string consumerName, string queueName, Func<IHandler<T>> handlerFactory, CancellationToken cancellationToken = default) where T : BaseSqsMessage
+        public async Task StartAsync<T>(string consumerName, string queueName, CancellationToken cancellationToken = default) where T : BaseAwsMessage
         {
             try
             {
@@ -37,8 +40,7 @@ namespace Topica.Aws.Queues
                 _logger.LogInformation($"SQS: QueueConsumer Started: {queueName}");
 
                 var rnd = new Random(Guid.NewGuid().GetHashCode());
-
-                var handler = handlerFactory();
+                
                 _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {queueName}");
                 await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                 {
@@ -47,7 +49,8 @@ namespace Topica.Aws.Queues
                         throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {queueName}");
                     }
 
-                    var success = await handler.Handle(message);
+                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, JsonConvert.SerializeObject(message));
+                    _logger.LogInformation($"**** {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
 
                     if (!success) continue;
 

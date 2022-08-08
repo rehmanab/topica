@@ -12,8 +12,8 @@ namespace Topica.Aws.Topics
         Task AuthorizeS3ToPublishByTopicNameAsync(string topicName, string bucketName);
         Task AuthorizeS3ToPublishByTopicArnAsync(string topicArn, string bucketName);
         Task<string?> CreateTopicArnAsync(string topicName, bool? isFifoQueue);
-        Task SendToTopicAsync(string topicArn, BaseSqsMessage message);
-        Task SendToTopicByTopicNameAsync(string topicName, BaseSqsMessage message);
+        Task SendToTopicAsync(string topicArn, BaseAwsMessage message);
+        Task SendToTopicByTopicNameAsync(string topicName, BaseAwsMessage message);
         Task<bool> SubscriptionExistsAsync(string topicArn, string endpointArn);
         Task<IEnumerable<string>> ListTopicSubscriptionsAsync(string topicArn);
         Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames);

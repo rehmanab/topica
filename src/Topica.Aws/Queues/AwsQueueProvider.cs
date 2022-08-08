@@ -200,7 +200,7 @@ namespace Topica.Aws.Queues
             return false;
         }
 
-        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : BaseSqsMessage
+        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : BaseAwsMessage
         {
             var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl };
 
@@ -213,30 +213,30 @@ namespace Topica.Aws.Queues
                     _logger.LogDebug($"SQS: Original Message from AWS: {JsonConvert.SerializeObject(message)}");
 
                     //Serialise normal SQS message body
-                    BaseSqsMessage baseMessage = JsonConvert.DeserializeObject<T>(message.Body)!;
-                    baseMessage!.Type = "Queue";
+                    BaseAwsMessage baseAwsMessage = JsonConvert.DeserializeObject<T>(message.Body)!;
+                    baseAwsMessage.Type = "Queue";
 
-                    if (baseMessage.ConversationId == Guid.Empty)
+                    if (baseAwsMessage.ConversationId == Guid.Empty)
                     {
                         //Otherwise serialise to an SnsMessage
                         var snsMessage = Message.ParseMessage(message.Body);
-                        baseMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
-                        if (baseMessage.ConversationId == Guid.Empty)
+                        baseAwsMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
+                        if (baseAwsMessage.ConversationId == Guid.Empty)
                         {
                             _logger.LogError("SQS: Error: could not convert message to base message");
                             continue;
                         }
 
-                        baseMessage.Type = snsMessage.Type;
-                        baseMessage.TopicArn = snsMessage.TopicArn;
+                        baseAwsMessage.Type = snsMessage.Type;
+                        baseAwsMessage.TopicArn = snsMessage.TopicArn;
                     }
                     
-                    _logger.LogDebug($"SQS: baseMessage: {JsonConvert.SerializeObject(baseMessage)}");
+                    _logger.LogDebug($"SQS: baseMessage: {JsonConvert.SerializeObject(baseAwsMessage)}");
 
-                    baseMessage.MessageId = message.MessageId;
-                    baseMessage.ReceiptHandle = message.ReceiptHandle;
+                    baseAwsMessage.MessageId = message.MessageId;
+                    baseAwsMessage.ReceiptHandle = message.ReceiptHandle;
 
-                    yield return (T)baseMessage;
+                    yield return (T)baseAwsMessage;
                 }
 
                 if (cancellationToken.IsCancellationRequested) break;

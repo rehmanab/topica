@@ -71,7 +71,7 @@ namespace Topica.Aws.Topics
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
 
-        public async Task SendToTopicAsync(string? topicArn, BaseSqsMessage message)
+        public async Task SendToTopicAsync(string? topicArn, BaseAwsMessage message)
         {
             var request = new PublishRequest
             {
@@ -85,7 +85,7 @@ namespace Topica.Aws.Topics
             _logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
         }
 
-        public async Task SendToTopicByTopicNameAsync(string topicName, BaseSqsMessage message)
+        public async Task SendToTopicByTopicNameAsync(string topicName, BaseAwsMessage message)
         {
             var topicArn = await GetTopicArnAsync(topicName);
 

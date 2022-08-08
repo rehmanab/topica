@@ -20,7 +20,7 @@ namespace Topica.Aws.Queues
         Task<bool> UpdateQueueAttributesAsync(string queueUrl, QueueConfiguration configuration);
         Task<bool> SendSingleAsync<T>(string queueUrl, T message);
         Task<bool> SendMultipleAsync<T>(string queueUrl, IEnumerable<T> messages);
-        IAsyncEnumerable<T> StartReceive<T>(string queueUrl, CancellationToken cancellationToken = default) where T : BaseSqsMessage;
+        IAsyncEnumerable<T> StartReceive<T>(string queueUrl, CancellationToken cancellationToken = default) where T : BaseAwsMessage;
         Task<bool> DeleteMessageAsync(string queueUrl, string receiptHandle);
     }
 }

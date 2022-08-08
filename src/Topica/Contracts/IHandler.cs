@@ -2,9 +2,9 @@
 
 namespace Topica.Contracts
 {
-    public interface IHandler<in T>
+    public interface IHandler<in TMessage>
     {
-        Task<bool> Handle(T message);
-        bool ValidateMessage(T message);
+        Task<bool> HandleAsync(TMessage source);
+        bool ValidateMessage(TMessage message);
     }
 }
