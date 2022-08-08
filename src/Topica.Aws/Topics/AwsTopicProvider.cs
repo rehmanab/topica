@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
-using Topica.Aws.Messages;
 using Topica.Aws.Queues;
+using Topica.Messages;
 
 namespace Topica.Aws.Topics
 {
@@ -71,7 +71,7 @@ namespace Topica.Aws.Topics
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
 
-        public async Task SendToTopicAsync(string? topicArn, BaseAwsMessage message)
+        public async Task SendToTopicAsync(string? topicArn, Message message)
         {
             var request = new PublishRequest
             {
@@ -85,7 +85,7 @@ namespace Topica.Aws.Topics
             _logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
         }
 
-        public async Task SendToTopicByTopicNameAsync(string topicName, BaseAwsMessage message)
+        public async Task SendToTopicByTopicNameAsync(string topicName, Message message)
         {
             var topicArn = await GetTopicArnAsync(topicName);
 

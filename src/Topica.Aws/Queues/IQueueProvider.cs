@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Topica.Aws.Messages;
+using Topica.Messages;
 
 namespace Topica.Aws.Queues
 {
@@ -20,7 +20,7 @@ namespace Topica.Aws.Queues
         Task<bool> UpdateQueueAttributesAsync(string queueUrl, QueueConfiguration configuration);
         Task<bool> SendSingleAsync<T>(string queueUrl, T message);
         Task<bool> SendMultipleAsync<T>(string queueUrl, IEnumerable<T> messages);
-        IAsyncEnumerable<T> StartReceive<T>(string queueUrl, CancellationToken cancellationToken = default) where T : BaseAwsMessage;
+        IAsyncEnumerable<T> StartReceive<T>(string queueUrl, CancellationToken cancellationToken = default) where T : Message;
         Task<bool> DeleteMessageAsync(string queueUrl, string receiptHandle);
     }
 }

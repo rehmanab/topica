@@ -12,6 +12,7 @@ using Topica.Aws.Factories;
 using Topica.Aws.Queues;
 using Topica.Aws.Settings;
 using Topica.Aws.Topics;
+using Topica.Contracts;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -37,7 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             services.AddScoped<IAwsTopicBuilder, AwsAwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
-            services.AddScoped<IAwsQueueConsumer, AwsQueueConsumer>();
+            services.AddScoped<IQueueConsumer, AwsQueueConsumer>();
 
             return services;
         }

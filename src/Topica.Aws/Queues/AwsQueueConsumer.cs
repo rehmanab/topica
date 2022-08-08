@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Topica.Aws.Messages;
 using Topica.Contracts;
+using Topica.Messages;
 
 namespace Topica.Aws.Queues
 {
-    public class AwsQueueConsumer : IAwsQueueConsumer
+    public class AwsQueueConsumer : IQueueConsumer
     {
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IQueueProvider _queueProvider;
@@ -21,7 +21,7 @@ namespace Topica.Aws.Queues
             _logger = logger;
         }
 
-        public async Task StartAsync<T>(string consumerName, string queueName, CancellationToken cancellationToken = default) where T : BaseAwsMessage
+        public async Task StartAsync<T>(string consumerName, string queueName, CancellationToken cancellationToken = default) where T : Message
         {
             try
             {
@@ -52,7 +52,7 @@ namespace Topica.Aws.Queues
 
                     if (!success) continue;
 
-                    if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
+                    if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptReference))
                     {
                         _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {queueName}");
                     }

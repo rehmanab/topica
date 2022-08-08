@@ -1,8 +1,8 @@
-using Topica.Aws.Messages;
+using Topica.Messages;
 
 namespace Aws.Consumer.Host.Messages
 {
-    public class CustomerCreatedV1 : BaseAwsMessage
+    public class CustomerCreatedV1 : Message
     {
         public string CustomerName { get; set; }        
     }

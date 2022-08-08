@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
-using Topica.Aws.Messages;
 using Message = Amazon.SimpleNotificationService.Util.Message;
 
 namespace Topica.Aws.Queues
@@ -200,7 +199,7 @@ namespace Topica.Aws.Queues
             return false;
         }
 
-        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : BaseAwsMessage
+        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : Messages.Message
         {
             var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl };
 
@@ -213,30 +212,29 @@ namespace Topica.Aws.Queues
                     _logger.LogDebug($"SQS: Original Message from AWS: {JsonConvert.SerializeObject(message)}");
 
                     //Serialise normal SQS message body
-                    BaseAwsMessage baseAwsMessage = JsonConvert.DeserializeObject<T>(message.Body)!;
-                    baseAwsMessage.Type = "Queue";
+                    Messages.Message baseMessage = JsonConvert.DeserializeObject<T>(message.Body)!;
+                    baseMessage.Type = "Queue";
 
-                    if (baseAwsMessage.ConversationId == Guid.Empty)
+                    if (baseMessage.ConversationId == Guid.Empty)
                     {
                         //Otherwise serialise to an SnsMessage
                         var snsMessage = Message.ParseMessage(message.Body);
-                        baseAwsMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
-                        if (baseAwsMessage.ConversationId == Guid.Empty)
+                        baseMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
+                        if (baseMessage.ConversationId == Guid.Empty)
                         {
                             _logger.LogError("SQS: Error: could not convert message to base message");
                             continue;
                         }
 
-                        baseAwsMessage.Type = snsMessage.Type;
-                        baseAwsMessage.TopicArn = snsMessage.TopicArn;
+                        baseMessage.Type = snsMessage.Type;
                     }
                     
-                    _logger.LogDebug($"SQS: baseMessage: {JsonConvert.SerializeObject(baseAwsMessage)}");
+                    _logger.LogDebug($"SQS: baseMessage: {JsonConvert.SerializeObject(baseMessage)}");
 
-                    baseAwsMessage.MessageId = message.MessageId;
-                    baseAwsMessage.ReceiptHandle = message.ReceiptHandle;
+                    baseMessage.Id = message.MessageId;
+                    baseMessage.ReceiptReference = message.ReceiptHandle;
 
-                    yield return (T)baseAwsMessage;
+                    yield return (T)baseMessage;
                 }
 
                 if (cancellationToken.IsCancellationRequested) break;

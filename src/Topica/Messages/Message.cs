@@ -7,10 +7,11 @@ namespace Topica.Messages
         protected Message()
         {
             TimeStampUtc = DateTime.UtcNow;
-            Id = Guid.NewGuid();
+            Id = Guid.NewGuid().ToString();
         }
 
-        public Guid Id { get; set; }
+        public string Id { get; set; }
+        public string Type { get; set; }
         public Guid ConversationId { get; set; }
         public DateTime TimeStampUtc { get; set; }
         public string RaisingComponent { get; set; }
@@ -18,6 +19,7 @@ namespace Topica.Messages
         public string SourceIp { get; private set; }
         public string Tenant { get; set; }
         public string Conversation { get; set; }
-        public virtual string UniqueKey() => Id.ToString();
+        public string ReceiptReference { get; set; }
+        public virtual string UniqueKey() => Id;
     }
 }

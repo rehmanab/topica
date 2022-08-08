@@ -2,15 +2,16 @@ using System.Reflection;
 using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Queues;
+using Topica.Contracts;
 
 namespace Aws.Consumer.Host;
 
 public class Worker : BackgroundService
 {
-    private readonly IAwsQueueConsumer _awsQueueConsumer;
+    private readonly IQueueConsumer _awsQueueConsumer;
     private readonly ConsumerSettings _consumerSettings;
 
-    public Worker(IAwsQueueConsumer awsQueueConsumer,
+    public Worker(IQueueConsumer awsQueueConsumer,
         ConsumerSettings consumerSettings
     )
     {
