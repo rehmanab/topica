@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Kafka.Consumer.Host" type="docker-deploy" factoryName="dockerfile" server-name="DOCKERHOST">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="rehmanab/kafka-consumer" />
+        <option name="containerName" value="kafka-consumer" />
+        <option name="contextFolderPath" value="." />
+        <option name="sourceFilePath" value="Kafka.Consumer.Host/Dockerfile" />
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isPublishEnabled="true" />
+    <method v="2" />
+  </configuration>
+</component>

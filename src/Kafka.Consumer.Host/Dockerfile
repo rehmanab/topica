@@ -3,6 +3,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
+RUN echo what
 COPY ["Kafka.Consumer.Host/Kafka.Consumer.Host.csproj", "Kafka.Consumer.Host/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.Kafka/Topica.Kafka.csproj", "Topica.Kafka/"]
