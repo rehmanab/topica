@@ -109,7 +109,7 @@ namespace Topica.Aws.Queues
             return await CreateQueueAsync(queueName, configuration);
         }
 
-        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, QueueConfiguration? queueConfiguration)
+        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, QueueConfiguration queueConfiguration)
         {
             foreach (var queueName in queueNames)
             {
@@ -117,7 +117,7 @@ namespace Topica.Aws.Queues
             }
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, QueueConfiguration? queueConfiguration)
+        public async Task<string> CreateQueueAsync(string queueName, QueueConfiguration queueConfiguration)
         {
             var createQueueType = queueConfiguration.CreateErrorQueue.HasValue && queueConfiguration.CreateErrorQueue.Value
                 ? QueueCreationType.WithErrorQueue

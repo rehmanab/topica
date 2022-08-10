@@ -116,7 +116,7 @@ namespace Topica.Aws.Topics
 
         public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, QueueConfiguration? queueConfiguration)
         {
-            queueConfiguration ??= _sqsConfigurationBuilder.BuildDefaultQueue();
+            queueConfiguration ??= _sqsConfigurationBuilder.BuildQueue();
             
             var topicArn = await GetTopicArnAsync(topicName);
 

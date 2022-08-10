@@ -1,58 +1,51 @@
 ﻿using Topica.Aws.Configuration;
 using Topica.Aws.Queues;
-using Topica.Aws.Settings;
 
 namespace Topica.Aws.Builders
 {
     public class SqsConfigurationBuilder : ISqsConfigurationBuilder
     {
         private const int DefaultMaxReceiveCount = 3;
-        private readonly AwsDefaultAttributeSettings? _awsDefaultAttributeSettings;
 
-        public SqsConfigurationBuilder(AwsDefaultAttributeSettings? awsDefaultAttributeSettings)
-        {
-            _awsDefaultAttributeSettings = awsDefaultAttributeSettings;
-        }
-
-        public QueueConfiguration? BuildDefaultQueue()
+        public QueueConfiguration BuildQueue()
         {
             return BuildQueue(GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration? BuildQueue(AwsQueueAttributes awsQueueAttributes)
+        public QueueConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes)
         {
-            return new QueueConfiguration { QueueAttributes = awsQueueAttributes };
+            return new QueueConfiguration { QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes) };
         }
 
-        public QueueConfiguration? BuildDefaultQueueWithErrorQueue()
+        public QueueConfiguration BuildDefaultQueueWithErrorQueue()
         {
             return BuildQueueWithErrorQueue(DefaultMaxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration? BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
+        public QueueConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
         {
             return BuildQueueWithErrorQueue(maxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration? BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
+        public QueueConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
         {
             var config = new QueueConfiguration
             {
                 CreateErrorQueue = true,
                 MaxReceiveCount = maxReceiveCount,
-                QueueAttributes = awsQueueAttributes
+                QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes)
             };
 
             return config;
         }
 
-        public QueueConfiguration? BuildWithCreationTypeQueue(QueueCreationType queueCreationType)
+        public QueueConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType)
         {
-            QueueConfiguration? configuration;
+            QueueConfiguration configuration;
             switch (queueCreationType)
             {
                 case QueueCreationType.SoleQueue:
-                    configuration = BuildDefaultQueue();
+                    configuration = BuildQueue();
                     break;
                 case QueueCreationType.WithErrorQueue:
                     configuration = BuildDefaultQueueWithErrorQueue();
@@ -69,17 +62,17 @@ namespace Topica.Aws.Builders
             return new QueueConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
         }
 
-        private AwsQueueAttributes GetDefaultQueueAttributes()
+        private static AwsQueueAttributes GetDefaultQueueAttributes(AwsQueueAttributes? awsQueueAttributeOverrides = null)
         {
             return new AwsQueueAttributes
             {
-                VisibilityTimeout = _awsDefaultAttributeSettings?.VisibilityTimeout ?? 30,
-                IsFifoQueue = _awsDefaultAttributeSettings?.FifoSettings?.IsFifoQueue ?? true,
-                IsFifoContentBasedDeduplication = _awsDefaultAttributeSettings?.FifoSettings?.IsContentBasedDeduplication ?? true,
-                MaximumMessageSize = _awsDefaultAttributeSettings?.MaximumMessageSize ?? AwsQueueAttributes.MaximumMessageSizeMax,
-                MessageRetentionPeriod = _awsDefaultAttributeSettings?.MessageRetentionPeriod ?? AwsQueueAttributes.MessageRetentionPeriodMax,
-                DelaySeconds = _awsDefaultAttributeSettings?.DelayInSeconds ?? 0,
-                ReceiveMessageWaitTimeSeconds = _awsDefaultAttributeSettings?.ReceiveMessageWaitTimeSeconds ?? 0
+                VisibilityTimeout = awsQueueAttributeOverrides?.VisibilityTimeout ?? 30,
+                IsFifoQueue = awsQueueAttributeOverrides?.IsFifoQueue ?? false,
+                IsFifoContentBasedDeduplication = awsQueueAttributeOverrides?.IsFifoContentBasedDeduplication ?? false,
+                MaximumMessageSize = awsQueueAttributeOverrides?.MaximumMessageSize ?? AwsQueueAttributes.MaximumMessageSizeMax,
+                MessageRetentionPeriod = awsQueueAttributeOverrides?.MessageRetentionPeriod ?? AwsQueueAttributes.MessageRetentionPeriodMax,
+                DelaySeconds = awsQueueAttributeOverrides?.DelaySeconds ?? 0,
+                ReceiveMessageWaitTimeSeconds = awsQueueAttributeOverrides?.ReceiveMessageWaitTimeSeconds ?? 0
             };
         }
     }

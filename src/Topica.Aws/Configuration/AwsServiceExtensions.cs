@@ -39,13 +39,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
             services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
-            services.AddScoped(_ => new AwsDefaultAttributeSettings
-            {
-                MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax, 
-                MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
-                VisibilityTimeout = 30,
-                FifoSettings = new AwsSqsFifoQueueSettings{IsFifoQueue = true, IsContentBasedDeduplication = true}
-            });
             services.AddScoped<IAwsTopicBuilder, AwsAwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();

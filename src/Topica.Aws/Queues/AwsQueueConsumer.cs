@@ -26,7 +26,7 @@ namespace Topica.Aws.Queues
         {
             try
             {
-                var queueUrl = _queueProvider.GetQueueUrlAsync(consumerItemSettings.Source).Result;
+                var queueUrl = await _queueProvider.GetQueueUrlAsync(consumerItemSettings.Source);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
@@ -36,12 +36,12 @@ namespace Topica.Aws.Queues
                     throw new ApplicationException(message);
                 }
 
-                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {consumerItemSettings.Source}");
+                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {queueUrl}");
                 await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                 {
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {consumerItemSettings.Source}");
+                        throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {queueUrl}");
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, JsonConvert.SerializeObject(message));
@@ -51,11 +51,11 @@ namespace Topica.Aws.Queues
 
                     if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptReference))
                     {
-                        _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {consumerItemSettings.Source}");
+                        _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {queueUrl}");
                     }
                     else
                     {
-                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Success, deleting message on Queue: {consumerItemSettings.Source}");
+                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Success, deleting message on Queue: {queueUrl}");
                     }
                 }
 

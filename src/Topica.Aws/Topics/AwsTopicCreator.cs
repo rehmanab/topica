@@ -9,8 +9,10 @@ namespace Topica.Aws.Topics
 {
     public class AwsTopicCreator : ITopicCreator
     {
+        private const int ErrorQueueMaxReceiveCountDefault = 5;
         private readonly IAwsTopicBuilder _awsTopicBuilder;
         private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
+        
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Aws;
 
         public AwsTopicCreator(IAwsTopicBuilder awsTopicBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder)
@@ -34,22 +36,23 @@ namespace Topica.Aws.Topics
                 creator = creator.WithSubscribedQueue(subscribedQueueName);
             }
 
-            var attributes = new AwsQueueAttributes
+            var awsQueueAttributes = new AwsQueueAttributes
             {
-                VisibilityTimeout = 30,
-                IsFifoQueue = true,
-                IsFifoContentBasedDeduplication = true,
-                MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax,
-                MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
-                DelaySeconds = 0,
-                ReceiveMessageWaitTimeSeconds = 0
+                VisibilityTimeout = config.VisibilityTimeout,
+                IsFifoQueue = config.IsFifoQueue,
+                IsFifoContentBasedDeduplication = config.IsFifoContentBasedDeduplication,
+                MaximumMessageSize = config.MaximumMessageSize,
+                MessageRetentionPeriod = config.MessageRetentionPeriod,
+                DelaySeconds = config.DelaySeconds,
+                ReceiveMessageWaitTimeSeconds = config.ReceiveMessageWaitTimeSeconds
             };
             
-            var queueConfiguration = _sqsConfigurationBuilder.BuildDefaultQueue();
+            var queueConfiguration = _sqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
             
             if (config.BuildWithErrorQueue)
             {
-                queueConfiguration = _sqsConfigurationBuilder.BuildDefaultQueueWithErrorQueue(config.ErrorQueueMaxReceiveCount ?? 5);
+                queueConfiguration.CreateErrorQueue = true;
+                queueConfiguration.MaxReceiveCount = config.ErrorQueueMaxReceiveCount ?? ErrorQueueMaxReceiveCountDefault;
             }
             
             return await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();

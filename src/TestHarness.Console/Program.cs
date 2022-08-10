@@ -30,8 +30,8 @@ namespace TestHarness.Console
 
             var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
 
-            var topicArn = await AwsCreateTopic($"ar-orders_{2}", topicCreatorFactory);
-            topicArn += ", " + await AwsCreateTopic($"ar-customers_{2}", topicCreatorFactory);
+            var topicArn = await AwsCreateTopic($"ar-orders_{4}", topicCreatorFactory);
+            topicArn += ", " + await AwsCreateTopic($"ar-customers_{4}", topicCreatorFactory);
             // var topicArn = await KafkaCreateTopic(topicCreatorFactory);
             
             logger.LogInformation($"******* Created Topic: {topicArn}");
@@ -39,8 +39,6 @@ namespace TestHarness.Console
 
         public static async Task<string> AwsCreateTopic(string sourceName, ITopicCreatorFactory topicCreatorFactory)
         {
-            const int incrementNumber = 1;
-            
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
             var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
             {
@@ -50,7 +48,10 @@ namespace TestHarness.Console
                     sourceName
                 },
                 BuildWithErrorQueue = true,
-                ErrorQueueMaxReceiveCount = 10
+                ErrorQueueMaxReceiveCount = 10,
+                VisibilityTimeout = 30,
+                IsFifoQueue = true,
+                IsFifoContentBasedDeduplication = true
             });
             
             // var queueUrls = await queueBuilder
