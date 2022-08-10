@@ -30,13 +30,11 @@ namespace Topica.Aws.Queues
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    var message = $"SQS: QueueConsumer queue: {consumerItemSettings.Source} does not exist.";
+                    var message = $"{nameof(AwsQueueConsumer)}: QueueConsumer queue: {consumerItemSettings.Source} does not exist.";
                     _logger.LogError(message);
 
                     throw new ApplicationException(message);
                 }
-
-                _logger.LogInformation($"SQS: QueueConsumer Started: {consumerItemSettings.Source}");
 
                 _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {consumerItemSettings.Source}");
                 await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
