@@ -1,13 +1,8 @@
-﻿using System.Reflection;
-using Aws.Consumer.Host;
+﻿using Aws.Consumer.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Settings;
-using Topica.Contracts;
-using Topica.Executors;
-using Topica.Resolvers;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting Aws.Consumer.Host *******");
 
@@ -38,16 +33,6 @@ var host = Host.CreateDefaultBuilder()
         // Add MessagingPlatform Components
         services.AddAwsTopica();
         services.AddHostedService<Worker>();
-        
-        // Handlers
-        services.AddTransient<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), Assembly.GetExecutingAssembly()));
-        services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
-            
-        services.Scan(s => s
-            .FromAssemblies(Assembly.GetExecutingAssembly())
-            .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
-            .AsImplementedInterfaces()
-            .WithTransientLifetime());
     })
     .Build();
 

@@ -1,12 +1,8 @@
-﻿using System.Reflection;
-using Kafka.Consumer.Host;
+﻿using Kafka.Consumer.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Topica.Contracts;
-using Topica.Executors;
 using Topica.Kafka.Settings;
-using Topica.Resolvers;
 
 Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
 
@@ -37,16 +33,6 @@ var host = Host.CreateDefaultBuilder()
         // Add MessagingPlatform Components
         services.AddKafkaTopica();
         services.AddHostedService<Worker>();
-        
-        // Handlers
-        services.AddTransient<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), Assembly.GetExecutingAssembly()));
-        services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
-            
-        services.Scan(s => s
-            .FromAssemblies(Assembly.GetExecutingAssembly())
-            .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
-            .AsImplementedInterfaces()
-            .WithTransientLifetime());
     })
     .Build();
 

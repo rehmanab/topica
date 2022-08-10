@@ -62,7 +62,7 @@ namespace Topica.Kafka.Topics
                 {
                     if (x.IsFaulted || x.Exception != null)
                     {
-                        _logger.LogError(x.Exception, "{nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: Error");      
+                        _logger.LogError(x.Exception, "{ClassName}: TopicConsumer: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);      
                     }
                 }, cancellationToken);
         }

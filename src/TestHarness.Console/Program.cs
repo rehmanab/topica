@@ -15,7 +15,6 @@ using Topica.Kafka.Configuration;
 using Topica.Kafka.Settings;
 using Topica.Kafka.Topics;
 using Topica.Topics;
-using ConsumerSettings = Topica.Kafka.Settings.ConsumerSettings;
 
 namespace TestHarness.Console
 {
@@ -31,25 +30,24 @@ namespace TestHarness.Console
 
             var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
 
-            // var topicArn = await AwsCreateTopic(topicCreatorFactory);
-            var topicArn = await KafkaCreateTopic(topicCreatorFactory);
+            var topicArn = await AwsCreateTopic($"ar-orders_{1}", topicCreatorFactory);
+            topicArn += ", " + await AwsCreateTopic($"ar-customers_{1}", topicCreatorFactory);
+            // var topicArn = await KafkaCreateTopic(topicCreatorFactory);
             
             logger.LogInformation($"******* Created Topic: {topicArn}");
         }
 
-        public static async Task<string> AwsCreateTopic(ITopicCreatorFactory topicCreatorFactory)
+        public static async Task<string> AwsCreateTopic(string sourceName, ITopicCreatorFactory topicCreatorFactory)
         {
             const int incrementNumber = 1;
             
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
             var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
             {
-                TopicName = $"ar-sns-test-{incrementNumber}",
+                TopicName = sourceName,
                 WithSubscribedQueues = new List<string>
                 {
-                    $"ar-sqs-test-{incrementNumber}_1",
-                    $"ar-sqs-test-{incrementNumber}_2",
-                    $"ar-sqs-test-{incrementNumber}_3",
+                    sourceName
                 },
                 BuildWithErrorQueue = true,
                 ErrorQueueMaxReceiveCount = 10
@@ -108,17 +106,6 @@ namespace TestHarness.Console
 
                     services.AddAwsTopica();
                     services.AddKafkaTopica();
-                    
-                    // services.AddScoped<ITopicCreator, Kaf>();
-
-                    // services.Scan(s => s
-                    //     .FromAssemblies(Assembly.GetExecutingAssembly())
-                    //     .AddClasses(c => c.AssignableTo(typeof(ITopicCreator)))
-                    //     .AsImplementedInterfaces()
-                    //     .WithTransientLifetime());
-
-
-
                 })
                 .ConfigureLogging(builder =>
                 {

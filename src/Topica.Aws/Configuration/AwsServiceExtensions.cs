@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
@@ -14,6 +15,8 @@ using Topica.Aws.Queues;
 using Topica.Aws.Settings;
 using Topica.Aws.Topics;
 using Topica.Contracts;
+using Topica.Executors;
+using Topica.Resolvers;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -45,6 +48,22 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAwsTopicBuilder, AwsAwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
+            
+            var entryAssembly = Assembly.GetEntryAssembly();
+            if (entryAssembly == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
+            
+            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
+            services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
+            
+            // Scan for IHandlers from Entry assembly
+            services.Scan(s => s
+                .FromAssemblies(entryAssembly!)
+                .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
+                .AsImplementedInterfaces()
+                .WithScopedLifetime());
 
             return services;
         }
