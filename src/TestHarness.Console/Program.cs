@@ -30,8 +30,8 @@ namespace TestHarness.Console
 
             var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
 
-            var topicArn = await AwsCreateTopic($"ar-orders_{1}", topicCreatorFactory);
-            topicArn += ", " + await AwsCreateTopic($"ar-customers_{1}", topicCreatorFactory);
+            var topicArn = await AwsCreateTopic($"ar-orders_{2}", topicCreatorFactory);
+            topicArn += ", " + await AwsCreateTopic($"ar-customers_{2}", topicCreatorFactory);
             // var topicArn = await KafkaCreateTopic(topicCreatorFactory);
             
             logger.LogInformation($"******* Created Topic: {topicArn}");

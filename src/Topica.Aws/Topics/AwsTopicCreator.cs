@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Topica.Aws.Configuration;
+using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Topics;
 
@@ -33,12 +34,25 @@ namespace Topica.Aws.Topics
                 creator = creator.WithSubscribedQueue(subscribedQueueName);
             }
 
+            var attributes = new AwsQueueAttributes
+            {
+                VisibilityTimeout = 30,
+                IsFifoQueue = true,
+                IsFifoContentBasedDeduplication = true,
+                MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax,
+                MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
+                DelaySeconds = 0,
+                ReceiveMessageWaitTimeSeconds = 0
+            };
+            
+            var queueConfiguration = _sqsConfigurationBuilder.BuildDefaultQueue();
+            
             if (config.BuildWithErrorQueue)
             {
-                creator = creator.WithQueueConfiguration(_sqsConfigurationBuilder.BuildCreateWithErrorQueue(config.ErrorQueueMaxReceiveCount ?? 5));
+                queueConfiguration = _sqsConfigurationBuilder.BuildDefaultQueueWithErrorQueue(config.ErrorQueueMaxReceiveCount ?? 5);
             }
             
-            return await creator.BuildAsync();
+            return await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
         }
     }
 }

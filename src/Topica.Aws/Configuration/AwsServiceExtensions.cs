@@ -41,7 +41,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
             services.AddScoped(_ => new AwsDefaultAttributeSettings
             {
-                MaximumMessageSize = 262144, MessageRetentionPeriod = 1209600,
+                MaximumMessageSize = AwsQueueAttributes.MaximumMessageSizeMax, 
+                MessageRetentionPeriod = AwsQueueAttributes.MessageRetentionPeriodMax,
                 VisibilityTimeout = 30,
                 FifoSettings = new AwsSqsFifoQueueSettings{IsFifoQueue = true, IsContentBasedDeduplication = true}
             });
