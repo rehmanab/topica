@@ -7,6 +7,7 @@ using Topica.Executors;
 using Topica.Kafka.Settings;
 using Topica.Kafka.Topics;
 using Topica.Resolvers;
+using Topica.Topics;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -29,6 +30,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             
             services.AddScoped<IConsumer, KafkaTopicConsumer>();
+            services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
+            services.AddScoped<ITopicCreator, KafkaTopicCreator>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
             services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             

@@ -1,30 +1,41 @@
 using System.Reflection;
 using Kafka.Consumer.Host.Messages;
 using Microsoft.Extensions.Hosting;
+using Topica;
 using Topica.Contracts;
+using Topica.Kafka.Configuration;
 using Topica.Kafka.Settings;
+using Topica.Messages;
+using Topica.Settings;
 
 namespace Kafka.Consumer.Host;
 
 public class Worker : BackgroundService
 {
-    private readonly IConsumer _kafkaConsumer;
+    private readonly ITopicCreatorFactory _topicCreatorFactory;
     private readonly ConsumerSettings _consumerSettings;
 
-    public Worker(IConsumer kafkaConsumer, ConsumerSettings consumerSettings)
+    public Worker(ITopicCreatorFactory topicCreatorFactory, ConsumerSettings consumerSettings)
     {
-        _kafkaConsumer = kafkaConsumer;
+        _topicCreatorFactory = topicCreatorFactory;
         _consumerSettings = consumerSettings;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Parallel.ForEach(Enumerable.Range(1, _consumerSettings.NumberOfInstancesPerConsumer), index =>
+        await KafkaCreateTopic<PlaceCreatedV1>(_consumerSettings.PlaceCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await KafkaCreateTopic<PersonCreatedV1>(_consumerSettings.PersonCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+    }
+    
+    public async Task KafkaCreateTopic<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
+    {
+        var topicCreator = _topicCreatorFactory.Create(MessagingPlatform.Kafka);
+        var consumer = await topicCreator.CreateTopic(new KafkaTopicConfiguration
         {
-            _kafkaConsumer.StartAsync<PlaceCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(PlaceCreatedV1)}-({index})", _consumerSettings.PlaceCreated, stoppingToken);
-            _kafkaConsumer.StartAsync<PersonCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(PersonCreatedV1)}-({index})", _consumerSettings.PersonCreated, stoppingToken);
+            TopicName = consumerItemSettings.Source,
+            NumberOfPartitions = consumerItemSettings.NumberOfTopicPartitions
         });
 
-        return Task.CompletedTask;
+        await consumer.ConsumeAsync<T>($"{Assembly.GetExecutingAssembly().GetName().Name}-{typeof(T).Name})", consumerItemSettings, numberOfInstances, stoppingToken);
     }
 }

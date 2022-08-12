@@ -1,10 +1,10 @@
 ﻿namespace Topica.Aws.Topics
 {
-    public class AwsAwsTopicBuilder : IAwsTopicBuilder
+    public class AwsTopicBuilder : IAwsTopicBuilder
     {
         private readonly ITopicProvider _topicProvider;
 
-        public AwsAwsTopicBuilder(ITopicProvider topicProvider)
+        public AwsTopicBuilder(ITopicProvider topicProvider)
         {
             _topicProvider = topicProvider;
         }

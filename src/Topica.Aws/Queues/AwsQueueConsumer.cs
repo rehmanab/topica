@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -22,7 +24,17 @@ namespace Topica.Aws.Queues
             _logger = logger;
         }
 
-        public async Task StartAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
+        public Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken cancellationToken = default) where T : Message
+        {
+            Parallel.ForEach(Enumerable.Range(1, numberOfInstances), index =>
+            {
+                ConsumeAsync<T>($"{consumerName}-({index})", consumerItemSettings, cancellationToken);
+            });
+            
+            return Task.CompletedTask;
+        }
+
+        public async Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
         {
             try
             {

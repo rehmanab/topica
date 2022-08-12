@@ -60,13 +60,18 @@ namespace Topica.Aws.Topics
         {
             var topicArn = await GetTopicArnAsync(topicName);
 
-            if (!string.IsNullOrWhiteSpace(topicArn)) return topicArn;
-
-            var response = await _snsClient.CreateTopicAsync(new CreateTopicRequest
+            if (!string.IsNullOrWhiteSpace(topicArn))
             {
-                Name = $"{topicName}{(isFifoQueue.HasValue && isFifoQueue.Value ? ".fifo" : "")}",
+                _logger.LogInformation("SNS: CreateTopicArnAsync topic {Name} already exists!", topicName);
+                return topicArn;
+            }
+
+            var createTopicRequest = new CreateTopicRequest
+            {
+                Name = $"{topicName}{(isFifoQueue.HasValue && isFifoQueue.Value && !topicName.EndsWith(".fifo") ? ".fifo" : "")}",
                 Attributes = new Dictionary<string, string>{{"FifoTopic", isFifoQueue.HasValue && isFifoQueue.Value ? "true" : "false"}}
-            });
+            };
+            var response = await _snsClient.CreateTopicAsync(createTopicRequest);
 
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
@@ -118,13 +123,7 @@ namespace Topica.Aws.Topics
         {
             queueConfiguration ??= _sqsConfigurationBuilder.BuildQueue();
             
-            var topicArn = await GetTopicArnAsync(topicName);
-
-            if (string.IsNullOrWhiteSpace(topicArn))
-            {
-                _logger.LogDebug($"SNS: Topic does not exist, creating topic: {topicName}");
-                topicArn = await CreateTopicArnAsync(topicName, queueConfiguration.QueueAttributes.IsFifoQueue);
-            }
+            var topicArn = await CreateTopicArnAsync(topicName, queueConfiguration.QueueAttributes.IsFifoQueue);
 
             foreach (var queueName in queueNames)
             {

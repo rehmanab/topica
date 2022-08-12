@@ -30,17 +30,17 @@ namespace TestHarness.Console
 
             var topicCreatorFactory = host.Services.GetService<ITopicCreatorFactory>();
 
-            var topicArn = await AwsCreateTopic($"ar-orders_{4}", topicCreatorFactory);
-            topicArn += ", " + await AwsCreateTopic($"ar-customers_{4}", topicCreatorFactory);
+            await AwsCreateTopicAndConsume($"ar-orders_{4}", 2, topicCreatorFactory);
+            await AwsCreateTopicAndConsume($"ar-customers_{4}", 2, topicCreatorFactory);
             // var topicArn = await KafkaCreateTopic(topicCreatorFactory);
             
-            logger.LogInformation($"******* Created Topic: {topicArn}");
+            logger.LogInformation("******* Created Topics");
         }
 
-        public static async Task<string> AwsCreateTopic(string sourceName, ITopicCreatorFactory topicCreatorFactory)
+        public static async Task AwsCreateTopicAndConsume(string sourceName, int numberOfInstances, ITopicCreatorFactory topicCreatorFactory)
         {
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
-            var topicArn = await topicCreator.CreateTopic(new AwsTopicConfiguration
+            var consumer = await topicCreator.CreateTopic(new AwsTopicConfiguration
             {
                 TopicName = sourceName,
                 WithSubscribedQueues = new List<string>
@@ -60,19 +60,19 @@ namespace TestHarness.Console
             //     .BuildAsync();
             // logger.LogInformation($"QueueUrls: {string.Join(", ", queueUrls)}");
 
-            return topicArn;
+            await Task.CompletedTask;
         }
         
-        public static async Task<string> KafkaCreateTopic(ITopicCreatorFactory topicCreatorFactory)
+        public static async Task<IConsumer> KafkaCreateTopic(ITopicCreatorFactory topicCreatorFactory)
         {
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Kafka);
-            var topicArn = await topicCreator.CreateTopic(new KafkaTopicConfiguration
+            var consumer = await topicCreator.CreateTopic(new KafkaTopicConfiguration
             {
                 TopicName = "ar-kafka-test-1",
                 NumberOfPartitions = 10
             });
 
-            return topicArn;
+            return consumer;
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>

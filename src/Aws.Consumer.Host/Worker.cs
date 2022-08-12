@@ -1,30 +1,49 @@
 using System.Reflection;
 using Aws.Consumer.Host.Messages;
 using Microsoft.Extensions.Hosting;
+using Topica;
+using Topica.Aws.Configuration;
 using Topica.Aws.Settings;
 using Topica.Contracts;
+using Topica.Messages;
+using Topica.Settings;
 
 namespace Aws.Consumer.Host;
 
 public class Worker : BackgroundService
 {
-    private readonly IConsumer _awsConsumer;
+    private readonly ITopicCreatorFactory _topicCreatorFactory;
     private readonly ConsumerSettings _consumerSettings;
 
-    public Worker(IConsumer awsConsumer, ConsumerSettings consumerSettings)
+    public Worker(ITopicCreatorFactory topicCreatorFactory, ConsumerSettings consumerSettings)
     {
-        _awsConsumer = awsConsumer;
+        _topicCreatorFactory = topicCreatorFactory;
         _consumerSettings = consumerSettings;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Parallel.ForEach(Enumerable.Range(1, _consumerSettings.NumberOfInstancesPerConsumer), index =>
+        await AwsCreateTopicAndConsume<OrderCreatedV1>(_consumerSettings.OrderCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await AwsCreateTopicAndConsume<CustomerCreatedV1>(_consumerSettings.CustomerCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+    }
+
+    public async Task AwsCreateTopicAndConsume<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
+    {
+        var topicCreator = _topicCreatorFactory.Create(MessagingPlatform.Aws);
+        var consumer = await topicCreator.CreateTopic(new AwsTopicConfiguration
         {
-            _awsConsumer.StartAsync<OrderCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(OrderCreatedV1)}-({index})", _consumerSettings.OrderCreated, stoppingToken);
-            _awsConsumer.StartAsync<CustomerCreatedV1>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(CustomerCreatedV1)}-({index})", _consumerSettings.CustomerCreated, stoppingToken);
+            TopicName = consumerItemSettings.Source,
+            WithSubscribedQueues = new List<string>
+            {
+                consumerItemSettings.Source
+            },
+            BuildWithErrorQueue = true,
+            ErrorQueueMaxReceiveCount = 10,
+            VisibilityTimeout = 30,
+            IsFifoQueue = true,
+            IsFifoContentBasedDeduplication = true
         });
 
-        return Task.CompletedTask;
+        await consumer.ConsumeAsync<T>($"{Assembly.GetExecutingAssembly().GetName().Name}-{typeof(T).Name})", consumerItemSettings, numberOfInstances, stoppingToken);
     }
 }

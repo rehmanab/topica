@@ -17,6 +17,7 @@ using Topica.Aws.Topics;
 using Topica.Contracts;
 using Topica.Executors;
 using Topica.Resolvers;
+using Topica.Topics;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -39,9 +40,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
             services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
-            services.AddScoped<IAwsTopicBuilder, AwsAwsTopicBuilder>();
+            services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
+            services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
+            services.AddScoped<ITopicCreator, AwsTopicCreator>();
             
             var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly == null)

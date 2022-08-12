@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -22,8 +24,18 @@ namespace Topica.Kafka.Topics
             _kafkaSettings = kafkaSettings;
             _logger = logger;
         }
-        
-        public async Task StartAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
+
+        public Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken cancellationToken = default) where T : Message
+        {
+            Parallel.ForEach(Enumerable.Range(1, numberOfInstances), index =>
+            {
+                ConsumeAsync<T>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(T)}-({index})", consumerItemSettings, cancellationToken);
+            });
+            
+            return Task.CompletedTask;
+        }
+
+        public async Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
         {
             var config = new ConsumerConfig
             {
@@ -52,7 +64,7 @@ namespace Topica.Kafka.Topics
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message.Message.Value);
-                    _logger.LogDebug($"**** {nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogInformation($"**** {nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
                     _logger.LogDebug($"{message.Message.Timestamp.UtcDateTime} : TopicConsumer: {consumerName} : {message.TopicPartitionOffset} (topic [partition] @ offset): {message.Message.Value}");
                 }
 

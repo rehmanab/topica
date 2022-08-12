@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Topica.Aws.Configuration;
 using Topica.Aws.Queues;
 using Topica.Contracts;
@@ -12,16 +13,23 @@ namespace Topica.Aws.Topics
         private const int ErrorQueueMaxReceiveCountDefault = 5;
         private readonly IAwsTopicBuilder _awsTopicBuilder;
         private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
-        
+        private readonly IConsumer _consumer;
+        private readonly ILogger<AwsTopicCreator> _logger;
+
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Aws;
 
-        public AwsTopicCreator(IAwsTopicBuilder awsTopicBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder)
+        public AwsTopicCreator(IAwsTopicBuilder awsTopicBuilder,
+            ISqsConfigurationBuilder sqsConfigurationBuilder,
+            IConsumer consumer,
+            ILogger<AwsTopicCreator> logger)
         {
             _awsTopicBuilder = awsTopicBuilder;
             _sqsConfigurationBuilder = sqsConfigurationBuilder;
+            _consumer = consumer;
+            _logger = logger;
         }
 
-        public async Task<string> CreateTopic(TopicConfigurationBase configuration)
+        public async Task<IConsumer> CreateTopic(TopicConfigurationBase configuration)
         {
             var config = configuration as AwsTopicConfiguration;
 
@@ -54,8 +62,12 @@ namespace Topica.Aws.Topics
                 queueConfiguration.CreateErrorQueue = true;
                 queueConfiguration.MaxReceiveCount = config.ErrorQueueMaxReceiveCount ?? ErrorQueueMaxReceiveCountDefault;
             }
+
+            var topic = await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
             
-            return await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
+            _logger.LogInformation("Created topic {Topic}", topic);
+
+            return _consumer;
         }
     }
 }
