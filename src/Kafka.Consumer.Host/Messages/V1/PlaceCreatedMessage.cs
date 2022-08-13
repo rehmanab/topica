@@ -1,8 +1,8 @@
 using Topica.Messages;
 
-namespace Kafka.Consumer.Host.Messages;
+namespace Kafka.Consumer.Host.Messages.V1;
 
-public class PlaceCreatedV1 : Message
+public class PlaceCreatedMessage : Message
 {
     public long Id { get; set; }
     public string PlaceName { get; set; }

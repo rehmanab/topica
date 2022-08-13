@@ -1,5 +1,6 @@
 using System.Reflection;
 using Aws.Consumer.Host.Messages;
+using Aws.Consumer.Host.Messages.V1;
 using Microsoft.Extensions.Hosting;
 using Topica;
 using Topica.Aws.Configuration;
@@ -23,8 +24,8 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await AwsCreateTopicAndConsume<OrderCreatedV1>(_consumerSettings.OrderCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
-        await AwsCreateTopicAndConsume<CustomerCreatedV1>(_consumerSettings.CustomerCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await AwsCreateTopicAndConsume<OrderCreatedMessage>(_consumerSettings.OrderCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await AwsCreateTopicAndConsume<CustomerCreatedMessage>(_consumerSettings.CustomerCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
     }
 
     public async Task AwsCreateTopicAndConsume<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message

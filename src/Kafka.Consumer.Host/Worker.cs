@@ -1,5 +1,6 @@
 using System.Reflection;
 using Kafka.Consumer.Host.Messages;
+using Kafka.Consumer.Host.Messages.V1;
 using Microsoft.Extensions.Hosting;
 using Topica;
 using Topica.Contracts;
@@ -23,8 +24,8 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await KafkaCreateTopic<PlaceCreatedV1>(_consumerSettings.PlaceCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
-        await KafkaCreateTopic<PersonCreatedV1>(_consumerSettings.PersonCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await KafkaCreateTopic<PlaceCreatedMessage>(_consumerSettings.PlaceCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await KafkaCreateTopic<PersonCreatedMessage>(_consumerSettings.PersonCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
     }
     
     public async Task KafkaCreateTopic<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message

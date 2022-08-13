@@ -1,8 +1,8 @@
 using Topica.Messages;
 
-namespace Aws.Consumer.Host.Messages
+namespace Aws.Consumer.Host.Messages.V1
 {
-    public class CustomerCreatedV1 : Message
+    public class CustomerCreatedMessage : Message
     {
         public string CustomerName { get; set; }        
     }
