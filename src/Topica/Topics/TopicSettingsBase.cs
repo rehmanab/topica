@@ -1,6 +1,6 @@
 namespace Topica.Topics
 {
-    public class TopicConfigurationBase
+    public class TopicSettingsBase
     {
         public string TopicName { get; set; }
     }

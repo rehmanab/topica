@@ -3,7 +3,7 @@ using Topica.Topics;
 
 namespace Topica.Aws.Configuration
 {
-    public class AwsTopicConfiguration : TopicConfigurationBase
+    public class AwsTopicSettings : TopicSettingsBase
     {
         public IEnumerable<string> WithSubscribedQueues { get; set; } = null!;
         public bool BuildWithErrorQueue { get; set; }

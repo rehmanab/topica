@@ -31,7 +31,7 @@ public class Worker : BackgroundService
     public async Task KafkaCreateTopic<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
     {
         var topicCreator = _topicCreatorFactory.Create(MessagingPlatform.Kafka);
-        var consumer = await topicCreator.CreateTopic(new KafkaTopicConfiguration
+        var consumer = await topicCreator.CreateTopic(new KafkaTopicSettings
         {
             TopicName = consumerItemSettings.Source,
             NumberOfPartitions = consumerItemSettings.NumberOfTopicPartitions

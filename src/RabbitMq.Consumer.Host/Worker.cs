@@ -4,7 +4,6 @@ using RabbitMq.Consumer.Host.Messages.V1;
 using Topica;
 using Topica.Contracts;
 using Topica.Messages;
-using Topica.RabbitMq.Configuration;
 using Topica.RabbitMq.Settings;
 using Topica.Settings;
 
@@ -30,7 +29,7 @@ public class Worker : BackgroundService
     public async Task RabbitMqCreateExchange<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
     {
         var topicCreator = _topicCreatorFactory.Create(MessagingPlatform.RabbitMq);
-        var consumer = await topicCreator.CreateTopic(new RabbitMqTopicConfiguration
+        var consumer = await topicCreator.CreateTopic(new RabbitMqTopicSettings
         {
             TopicName = consumerItemSettings.Source,
             WithSubscribedQueues = new List<string>{ consumerItemSettings.Source }

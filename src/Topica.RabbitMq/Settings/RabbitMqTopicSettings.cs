@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Topica.Topics;
 
-namespace Topica.RabbitMq.Configuration
+namespace Topica.RabbitMq.Settings
 {
-    public class RabbitMqTopicConfiguration : TopicConfigurationBase
+    public class RabbitMqTopicSettings : TopicSettingsBase
     {
         public IEnumerable<string> WithSubscribedQueues { get; set; }
     }

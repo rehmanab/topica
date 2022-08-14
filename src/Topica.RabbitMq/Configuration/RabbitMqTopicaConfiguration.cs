@@ -1,9 +1,7 @@
-namespace Topica.RabbitMq.Settings
+namespace Microsoft.Extensions.DependencyInjection
 {
-    public class RabbitMqSettings
+    public class RabbitMqTopicaConfiguration
     {
-        public static string SectionName => nameof (RabbitMqSettings);
-        
         public string Scheme { get; set; } = null!;
         public string Hostname { get; set; } = null!;
         public string Password { get; set; } = null!;

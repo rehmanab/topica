@@ -31,7 +31,7 @@ public class Worker : BackgroundService
     public async Task AwsCreateTopicAndConsume<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
     {
         var topicCreator = _topicCreatorFactory.Create(MessagingPlatform.Aws);
-        var consumer = await topicCreator.CreateTopic(new AwsTopicConfiguration
+        var consumer = await topicCreator.CreateTopic(new AwsTopicSettings
         {
             TopicName = consumerItemSettings.Source,
             WithSubscribedQueues = new List<string>

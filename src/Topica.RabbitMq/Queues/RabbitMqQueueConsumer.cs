@@ -9,22 +9,21 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Topica.Contracts;
 using Topica.Messages;
-using Topica.RabbitMq.Settings;
 using Topica.Settings;
 
 namespace Topica.RabbitMq.Queues
 {
     public class RabbitMqQueueConsumer : IConsumer, IDisposable
     {
+        private readonly ConnectionFactory _rabbitMqConnectionFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
-        private readonly RabbitMqSettings _settings;
         private readonly ILogger<RabbitMqQueueConsumer> _logger;
         private IModel _channel;
 
-        public RabbitMqQueueConsumer(IMessageHandlerExecutor messageHandlerExecutor, RabbitMqSettings settings, ILogger<RabbitMqQueueConsumer> logger)
+        public RabbitMqQueueConsumer(ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<RabbitMqQueueConsumer> logger)
         {
+            _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _messageHandlerExecutor = messageHandlerExecutor;
-            _settings = settings;
             _logger = logger;
         }
         
@@ -40,15 +39,7 @@ namespace Topica.RabbitMq.Queues
 
         public async Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
         {
-            var factory = new ConnectionFactory
-            {
-                Uri = new Uri($"{_settings.Scheme}{Uri.SchemeDelimiter}{_settings.UserName}:{_settings.Password}@{_settings.Hostname}:{_settings.Port}/{_settings.VHost}"),
-                DispatchConsumersAsync = true,
-                RequestedHeartbeat = TimeSpan.FromSeconds(10),
-                AutomaticRecoveryEnabled = true
-            };
-            
-            var connection = factory.CreateConnection();
+            var connection = _rabbitMqConnectionFactory.CreateConnection();
             _channel = connection.CreateModel();
             
             var consumer = new AsyncEventingBasicConsumer(_channel);

@@ -6,6 +6,6 @@ namespace Topica.Contracts
     public interface ITopicCreator
     {
         MessagingPlatform MessagingPlatform { get; }
-        Task<IConsumer> CreateTopic(TopicConfigurationBase configuration);
+        Task<IConsumer> CreateTopic(TopicSettingsBase settings);
     }
 }

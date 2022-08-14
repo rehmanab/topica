@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
 
-namespace Topica.RabbitMq.Services
+namespace Topica.RabbitMq.Clients
 {
-    public interface IRabbitMqManagementService
+    public interface IRabbitMqManagementApiClient
     {
-        string VHost { get; }
         Task<ExchangeBinding> GetAsync(string name);
         Task CreateAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues);
         Task DeleteAsync(params string[] exchangeNames);

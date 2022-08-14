@@ -29,16 +29,16 @@ namespace Topica.Aws.Topics
             _logger = logger;
         }
 
-        public async Task<IConsumer> CreateTopic(TopicConfigurationBase configuration)
+        public async Task<IConsumer> CreateTopic(TopicSettingsBase settings)
         {
-            var config = configuration as AwsTopicConfiguration;
+            var config = settings as AwsTopicSettings;
 
             if (config == null)
             {
-                throw new Exception($"{nameof(AwsTopicCreator)}.{nameof(CreateTopic)} needs an {nameof(AwsTopicConfiguration)} ");
+                throw new Exception($"{nameof(AwsTopicCreator)}.{nameof(CreateTopic)} needs an {nameof(AwsTopicSettings)} ");
             }
             
-            var creator = _awsTopicBuilder.WithTopicName(configuration.TopicName);
+            var creator = _awsTopicBuilder.WithTopicName(settings.TopicName);
             foreach (var subscribedQueueName in config.WithSubscribedQueues)
             {
                 creator = creator.WithSubscribedQueue(subscribedQueueName);

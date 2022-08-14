@@ -2,19 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
-using Topica.RabbitMq.Settings;
 
-namespace Topica.RabbitMq.Services
+namespace Topica.RabbitMq.Clients
 {
-    public class RabbitMqManagementService : IRabbitMqManagementService
+    public class RabbitMqManagementApiClient : IRabbitMqManagementApiClient
     {
-        private readonly RabbitMqSettings _settings;
+        private readonly string _vhost;
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
@@ -26,11 +24,9 @@ namespace Topica.RabbitMq.Services
         private const string ExchangesPath = "/exchanges";
         private const string BindingsPath = "/bindings";
 
-        private readonly string _authorizationHeaderValue;
-
-        public RabbitMqManagementService(RabbitMqSettings settings, HttpClient httpClient)
+        public RabbitMqManagementApiClient(string vhost, HttpClient httpClient)
         {
-            _settings = settings;
+            _vhost = !string.IsNullOrWhiteSpace(vhost) ? HttpUtility.UrlEncode(vhost) : vhost;
             _httpClient = httpClient;
 
             _jsonSerializerOptions = new JsonSerializerOptions
@@ -39,13 +35,7 @@ namespace Topica.RabbitMq.Services
                 PropertyNameCaseInsensitive = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-
-            var basicAuthBytes = Encoding.UTF8.GetBytes($"{_settings.UserName}:{_settings.Password}");
-            var basicAuthBase64 = Convert.ToBase64String(basicAuthBytes);
-            _authorizationHeaderValue = $"Basic {basicAuthBase64}";
         }
-
-        public string VHost => !string.IsNullOrWhiteSpace(_settings.VHost) ? HttpUtility.UrlEncode(_settings.VHost) : _settings.VHost;
 
         // Get Exchange with queues and bindings
         public async Task<ExchangeBinding> GetAsync(string name)
@@ -103,18 +93,18 @@ namespace Topica.RabbitMq.Services
 
         public async Task SetUserPermissionsAsync(SetUserPermissionsRequest body)
         {
-            await SendAsync($"{PermissionsPath}/{VHost}/{body.Username}", HttpMethod.Put, body);
+            await SendAsync($"{PermissionsPath}/{_vhost}/{body.Username}", HttpMethod.Put, body);
         }
 
         // Exchanges
         public async Task<Exchange> GetExchangeAsync(string name)
         {
-            return await SendAsync<Exchange>($"{ExchangesPath}/{VHost}/{name}", HttpMethod.Get, null);
+            return await SendAsync<Exchange>($"{ExchangesPath}/{_vhost}/{name}", HttpMethod.Get, null);
         }
 
         public async Task<IEnumerable<Exchange>> GetExchangesAsync(bool includeSystemExchanges = false)
         {
-            var exchanges = await SendAsync<IEnumerable<Exchange>>($"{ExchangesPath}/{VHost}", HttpMethod.Get, null);
+            var exchanges = await SendAsync<IEnumerable<Exchange>>($"{ExchangesPath}/{_vhost}", HttpMethod.Get, null);
 
             return exchanges
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name))
@@ -128,7 +118,7 @@ namespace Topica.RabbitMq.Services
 
             foreach (var name in exchangeNames.Where(x => !names.Contains(x)))
             {
-                await SendAsync($"{ExchangesPath}/{VHost}/{name}", HttpMethod.Put, new { Type = exchangeType.ToString().ToLower(), Durable = durable });
+                await SendAsync($"{ExchangesPath}/{_vhost}/{name}", HttpMethod.Put, new { Type = exchangeType.ToString().ToLower(), Durable = durable });
             }
         }
 
@@ -139,18 +129,18 @@ namespace Topica.RabbitMq.Services
 
             foreach (var name in names.Where(x => exchangeNames.Contains(x)))
             {
-                await SendAsync($"{ExchangesPath}/{VHost}/{name}", HttpMethod.Delete, null);
+                await SendAsync($"{ExchangesPath}/{_vhost}/{name}", HttpMethod.Delete, null);
             }
         }
 
         public async Task<IEnumerable<Binding>> GetExchangeInSourceBindingsAsync(string name)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{VHost}/{name}/bindings/source", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/source", HttpMethod.Get, null);
         }
 
         public async Task<IEnumerable<Binding>> GetExchangeInDestinationBindingsAsync(string name)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{VHost}/{name}/bindings/destination", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/destination", HttpMethod.Get, null);
         }
 
         // Nodes
@@ -162,12 +152,12 @@ namespace Topica.RabbitMq.Services
         // Queues
         public async Task<IEnumerable<RabbitMqQueue>> GetQueuesAsync()
         {
-            return await SendAsync<IEnumerable<RabbitMqQueue>>($"{QueuesPath}/{VHost}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<RabbitMqQueue>>($"{QueuesPath}/{_vhost}", HttpMethod.Get, null);
         }
 
         public async Task CreateQueueAsync(string name, bool durable)
         {
-            await SendAsync($"{QueuesPath}/{VHost}/{name}", HttpMethod.Put, new { Durable = durable });
+            await SendAsync($"{QueuesPath}/{_vhost}/{name}", HttpMethod.Put, new { Durable = durable });
         }
 
         public async Task DeleteQueuesAsync(IEnumerable<string> names)
@@ -177,14 +167,14 @@ namespace Topica.RabbitMq.Services
 
             foreach (var name in names.Where(x => queueNames.Contains(x)))
             {
-                await SendAsync($"{QueuesPath}/{VHost}/{name}", HttpMethod.Delete, null);
+                await SendAsync($"{QueuesPath}/{_vhost}/{name}", HttpMethod.Delete, null);
             }
         }
 
         // Bindings
         public async Task<IEnumerable<Binding>> GetAllBindingAsync()
         {
-            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{VHost}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}", HttpMethod.Get, null);
         }
 
         public async Task<Binding> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey)
@@ -192,24 +182,24 @@ namespace Topica.RabbitMq.Services
             var bindings = await GetExchangeQueueBindingAsync(exchangeName, queueName);
 
             // Possible more than 1 because can have binding with same routing key but different Arguments Dictionary.
-            // can call /api/bindings/vhost/e/exchange/q/queue/props where props = {routingKey}~{hashOfArguments} e.g. Customer~0e5q5A
+            // can call /api/bindings/_vhost/e/exchange/q/queue/props where props = {routingKey}~{hashOfArguments} e.g. Customer~0e5q5A
             // Dont know what hashing algo to use, should be in documents
             return bindings.FirstOrDefault(x => x.RoutingKey == routingKey);
         }
 
         public async Task<IEnumerable<Binding>> GetExchangeQueueBindingAsync(string exchangeName, string queueName)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{VHost}/e/{exchangeName}/q/{queueName}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}/e/{exchangeName}/q/{queueName}", HttpMethod.Get, null);
         }
 
         public async Task CreateExchangeQueueBindingAsync(CreateExchangeQueueBindingRequest request)
         {
-            await SendAsync($"{BindingsPath}/{VHost}/e/{request.ExchangeName}/q/{request.QueueName}", HttpMethod.Post, request);
+            await SendAsync($"{BindingsPath}/{_vhost}/e/{request.ExchangeName}/q/{request.QueueName}", HttpMethod.Post, request);
         }
 
         public async Task CreateExchangeToExchangeBindingAsync(CreateExchangeToExchangeBindingRequest request)
         {
-            await SendAsync($"{BindingsPath}/{VHost}/e/{request.SourceExchangeName}/e/{request.DestinationExchangeName}", HttpMethod.Post, request);
+            await SendAsync($"{BindingsPath}/{_vhost}/e/{request.SourceExchangeName}/e/{request.DestinationExchangeName}", HttpMethod.Post, request);
         }
 
         public async Task DeleteExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey = null)
@@ -227,7 +217,7 @@ namespace Topica.RabbitMq.Services
 
             foreach (var binding in bindings)
             {
-                await SendAsync($"{BindingsPath}/{VHost}/e/{binding.Source}/q/{binding.Destination}/{binding.PropertiesKey}", HttpMethod.Delete, null);
+                await SendAsync($"{BindingsPath}/{_vhost}/e/{binding.Source}/q/{binding.Destination}/{binding.PropertiesKey}", HttpMethod.Delete, null);
             }
         }
 
@@ -248,7 +238,6 @@ namespace Topica.RabbitMq.Services
             var url = $"{ApiBasePath}{path}";
 
             var message = new HttpRequestMessage(httpMethod, url);
-            message.Headers.Add("Authorization", _authorizationHeaderValue);
 
             if (body != null)
             {

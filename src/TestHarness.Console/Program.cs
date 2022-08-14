@@ -40,7 +40,7 @@ namespace TestHarness.Console
         public static async Task AwsCreateTopicAndConsume(string sourceName, int numberOfInstances, ITopicCreatorFactory topicCreatorFactory)
         {
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Aws);
-            var consumer = await topicCreator.CreateTopic(new AwsTopicConfiguration
+            var consumer = await topicCreator.CreateTopic(new AwsTopicSettings
             {
                 TopicName = sourceName,
                 WithSubscribedQueues = new List<string>
@@ -66,7 +66,7 @@ namespace TestHarness.Console
         public static async Task<IConsumer> KafkaCreateTopic(ITopicCreatorFactory topicCreatorFactory)
         {
             var topicCreator = topicCreatorFactory!.Create(MessagingPlatform.Kafka);
-            var consumer = await topicCreator.CreateTopic(new KafkaTopicConfiguration
+            var consumer = await topicCreator.CreateTopic(new KafkaTopicSettings
             {
                 TopicName = "ar-kafka-test-1",
                 NumberOfPartitions = 10

@@ -26,13 +26,13 @@ namespace Topica.Kafka.Topics
         
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
         
-        public async Task<IConsumer> CreateTopic(TopicConfigurationBase configuration)
+        public async Task<IConsumer> CreateTopic(TopicSettingsBase settings)
         {
-            var config = configuration as KafkaTopicConfiguration;
+            var config = settings as KafkaTopicSettings;
 
             if (config == null)
             {
-                throw new Exception($"{nameof(KafkaTopicCreator)}.{nameof(CreateTopic)} needs an {nameof(KafkaTopicConfiguration)} ");
+                throw new Exception($"{nameof(KafkaTopicCreator)}.{nameof(CreateTopic)} needs an {nameof(KafkaTopicSettings)} ");
             }
 
             using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", _kafkaSettings.BootstrapServers) }).Build();
