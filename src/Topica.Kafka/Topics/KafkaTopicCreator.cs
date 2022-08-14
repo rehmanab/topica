@@ -52,7 +52,7 @@ namespace Topica.Kafka.Topics
                     new TopicSpecification { Name = config.TopicName, ReplicationFactor = 1, NumPartitions = config.NumberOfPartitions } 
                 });
                 
-                _logger.LogInformation("Created topic {Topic}", config.TopicName);
+                _logger.LogInformation($"{nameof(KafkaTopicCreator)}.{nameof(CreateTopic)}: Created topic {config.TopicName}");
 
                 return _consumer;
             }

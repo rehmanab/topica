@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RabbitMq.Consumer.Host.Messages.V1;
 using Topica.Contracts;
 
@@ -16,8 +15,7 @@ public class ItemPostedMessageHandler : IHandler<ItemPostedMessage>
 
     public async Task<bool> HandleAsync(ItemPostedMessage source)
     {
-        // _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Person: {PersonName}", nameof(ItemDeliveredMessage), source.ConversationId, source.);
-        _logger.LogInformation(JsonConvert.SerializeObject(source));
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for PostTown: {PostTown}", nameof(ItemDeliveredMessage), source.ConversationId, source.PostTown);
         return await Task.FromResult(true);
     }
 

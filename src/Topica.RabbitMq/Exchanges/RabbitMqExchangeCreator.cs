@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -44,7 +42,9 @@ namespace Topica.RabbitMq.Exchanges
 
             await _managementService.CreateAsync(config.TopicName, true, ExchangeTypes.Fanout, queues);
             
-            return await Task.FromResult(_consumer);
+            _logger.LogInformation($"{nameof(RabbitMqExchangeCreator)}.{nameof(CreateTopic)}: Created exchange {config.TopicName}");
+            
+            return _consumer;
         }
     }
 }

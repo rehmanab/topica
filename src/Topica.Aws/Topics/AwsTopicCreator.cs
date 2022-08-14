@@ -65,7 +65,7 @@ namespace Topica.Aws.Topics
 
             var topic = await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
             
-            _logger.LogInformation("Created topic {Topic}", topic);
+            _logger.LogInformation($"{nameof(AwsTopicCreator)}.{nameof(CreateTopic)}: Created topic {topic}");
 
             return _consumer;
         }

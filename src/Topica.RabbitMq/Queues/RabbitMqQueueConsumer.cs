@@ -63,6 +63,8 @@ namespace Topica.RabbitMq.Queues
 
             await Task.Run(() =>
             {
+                _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {consumerItemSettings.Source}");
+
                 _channel.BasicConsume(consumerItemSettings.Source, true, consumer);
             }, cancellationToken)
                 .ContinueWith(x =>
