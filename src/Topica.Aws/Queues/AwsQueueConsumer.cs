@@ -41,49 +41,49 @@ namespace Topica.Aws.Queues
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    var message = $"{nameof(AwsQueueConsumer)}: QueueConsumer queue: {consumerItemSettings.Source} does not exist.";
+                    var message = $"{nameof(AwsQueueConsumer)}: queue: {consumerItemSettings.Source} does not exist.";
                     _logger.LogError(message);
 
                     throw new ApplicationException(message);
                 }
 
-                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {queueUrl}");
+                _logger.LogInformation($"{nameof(AwsQueueConsumer)}:: {consumerName} started on Queue: {queueUrl}");
                 await foreach (var message in _queueProvider.StartReceive<T>(queueUrl, cancellationToken))
                 {
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName} - Received null message on Queue: {queueUrl}");
+                        throw new Exception($"{nameof(AwsQueueConsumer)}: {consumerName} - Received null message on Queue: {queueUrl}");
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, JsonConvert.SerializeObject(message));
-                    _logger.LogInformation($"**** {nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogInformation($"**** {nameof(AwsQueueConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
 
                     if (!success) continue;
 
                     if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptReference))
                     {
-                        _logger.LogError($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: could not delete message on Queue: {queueUrl}");
+                        _logger.LogError($"{nameof(AwsQueueConsumer)}: {consumerName}: could not delete message on Queue: {queueUrl}");
                     }
                     else
                     {
-                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Success, deleting message on Queue: {queueUrl}");
+                        _logger.LogDebug($"{nameof(AwsQueueConsumer)}: {consumerName}: Success, deleting message on Queue: {queueUrl}");
                     }
                 }
 
-                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Stopped on Queue: {consumerItemSettings.Source}");
+                _logger.LogInformation($"{nameof(AwsQueueConsumer)}: {consumerName}: Stopped on Queue: {consumerItemSettings.Source}");
             }
             catch (AggregateException ex)
             {
                 foreach (var inner in ex.Flatten().InnerExceptions)
                 {
-                    _logger.LogError(inner, $"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: AggregateException:");
+                    _logger.LogError(inner, $"{nameof(AwsQueueConsumer)}: {consumerName}: AggregateException:");
                 }
 
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{nameof(AwsQueueConsumer)}: QueueConsumer: {consumerName}: Exception:");
+                _logger.LogError(ex, $"{nameof(AwsQueueConsumer)}: {consumerName}: Exception:");
                 throw;
             }
         }

@@ -22,8 +22,8 @@ public class Worker : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await RabbitMqCreateExchange<ItemPostedMessage>(_consumerSettings.ItemPosted, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
-        await RabbitMqCreateExchange<ItemDeliveredMessage>(_consumerSettings.ItemDelivered, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await RabbitMqCreateExchange<ItemPostedMessage>(_consumerSettings.ItemPosted, _consumerSettings.ItemPosted.NumberOfInstances, stoppingToken);
+        await RabbitMqCreateExchange<ItemDeliveredMessage>(_consumerSettings.ItemDelivered, _consumerSettings.ItemDelivered.NumberOfInstances, stoppingToken);
     }
     
     public async Task RabbitMqCreateExchange<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message

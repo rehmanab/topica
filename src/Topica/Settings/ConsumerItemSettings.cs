@@ -6,5 +6,6 @@ namespace Topica.Settings
         public string ConsumerGroup { get; set; }
         public bool StartFromEarliestMessages { get; set; }
         public int NumberOfTopicPartitions { get; set; }
+        public int NumberOfInstances { get; set; }
     }
 }

@@ -50,7 +50,7 @@ namespace Topica.Kafka.Topics
             
             consumer.Subscribe(consumerItemSettings.Source);
             
-            _logger.LogInformation($"Kafka: TopicConsumer Subscribed: {consumerItemSettings.Source}");
+            _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Subscribed: {consumerItemSettings.Source}");
 
             await Task.Run(async () =>
             {
@@ -64,8 +64,8 @@ namespace Topica.Kafka.Topics
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message.Message.Value);
-                    _logger.LogInformation($"**** {nameof(KafkaTopicConsumer)}: TopicConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
-                    _logger.LogDebug($"{message.Message.Timestamp.UtcDateTime} : TopicConsumer: {consumerName} : {message.TopicPartitionOffset} (topic [partition] @ offset): {message.Message.Value}");
+                    _logger.LogInformation($"**** {nameof(KafkaTopicConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogDebug($"{message.Message.Timestamp.UtcDateTime}: {consumerName} : {message.TopicPartitionOffset} (topic [partition] @ offset): {message.Message.Value}");
                 }
 
                 consumer.Dispose();
@@ -74,7 +74,7 @@ namespace Topica.Kafka.Topics
                 {
                     if (x.IsFaulted || x.Exception != null)
                     {
-                        _logger.LogError(x.Exception, "{ClassName}: TopicConsumer: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);      
+                        _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);      
                     }
                 }, cancellationToken);
         }

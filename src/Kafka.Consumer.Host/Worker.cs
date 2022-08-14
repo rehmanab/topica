@@ -24,8 +24,8 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await KafkaCreateTopic<PlaceCreatedMessage>(_consumerSettings.PlaceCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
-        await KafkaCreateTopic<PersonCreatedMessage>(_consumerSettings.PersonCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await KafkaCreateTopic<PlaceCreatedMessage>(_consumerSettings.PlaceCreated, _consumerSettings.PlaceCreated.NumberOfInstances, stoppingToken);
+        await KafkaCreateTopic<PersonCreatedMessage>(_consumerSettings.PersonCreated, _consumerSettings.PersonCreated.NumberOfInstances, stoppingToken);
     }
     
     public async Task KafkaCreateTopic<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message

@@ -49,12 +49,12 @@ namespace Topica.RabbitMq.Queues
                 var message = Encoding.UTF8.GetString(body);
 
                 var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message);
-                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: QueueConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
             };
 
             await Task.Run(() =>
             {
-                _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: QueueConsumer: {consumerName} started on Queue: {consumerItemSettings.Source}");
+                _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: {consumerName} started on Queue: {consumerItemSettings.Source}");
 
                 _channel.BasicConsume(consumerItemSettings.Source, true, consumer);
             }, cancellationToken)
@@ -62,7 +62,7 @@ namespace Topica.RabbitMq.Queues
                 {
                     if (x.IsFaulted || x.Exception != null)
                     {
-                        _logger.LogError(x.Exception, "{ClassName}: TopicConsumer: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);      
+                        _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);      
                     }
                 }, cancellationToken);
         }

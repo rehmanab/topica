@@ -24,8 +24,8 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await AwsCreateTopicAndConsume<OrderCreatedMessage>(_consumerSettings.OrderCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
-        await AwsCreateTopicAndConsume<CustomerCreatedMessage>(_consumerSettings.CustomerCreated, _consumerSettings.NumberOfInstancesPerConsumer, stoppingToken);
+        await AwsCreateTopicAndConsume<OrderCreatedMessage>(_consumerSettings.OrderCreated, _consumerSettings.OrderCreated.NumberOfInstances, stoppingToken);
+        await AwsCreateTopicAndConsume<CustomerCreatedMessage>(_consumerSettings.CustomerCreated, _consumerSettings.CustomerCreated.NumberOfInstances, stoppingToken);
     }
 
     public async Task AwsCreateTopicAndConsume<T>(ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken stoppingToken) where T : Message
