@@ -1,8 +1,8 @@
 namespace RabbitMq.Consumer.Host.Settings
 {
-    public class RabbitMqSettings
+    public class RabbitMqHostSettings
     {
-        public static string SectionName => nameof(RabbitMqSettings);
+        public static string SectionName => nameof(RabbitMqHostSettings);
 
         public string Scheme { get; set; } = null!;
         public string Hostname { get; set; } = null!;

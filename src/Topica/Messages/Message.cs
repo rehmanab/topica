@@ -2,7 +2,7 @@ using System;
 
 namespace Topica.Messages
 {
-    public abstract class Message
+    public class Message
     {
         protected Message()
         {

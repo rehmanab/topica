@@ -12,7 +12,6 @@ using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
 using Topica.Aws.Factories;
 using Topica.Aws.Queues;
-using Topica.Aws.Settings;
 using Topica.Aws.Topics;
 using Topica.Contracts;
 using Topica.Executors;
@@ -24,17 +23,18 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class AwsServiceExtensions
     {
-        public static IServiceCollection AddAwsTopica(this IServiceCollection services)
+        public static IServiceCollection AddAwsTopica(this IServiceCollection services, Action<AwsTopicaConfiguration> configuration)
         {
+            var config = new AwsTopicaConfiguration();
+            configuration(config);
+            
             var serviceProvider = services.BuildServiceProvider();
             
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
             logger.LogDebug("******* Aws Service Extensions ******* ");
 
-            var awsSettings = serviceProvider.GetService<AwsSettings>();
-
-            services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, awsSettings));
-            services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, awsSettings));
+            services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, config));
+            services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, config));
             services.AddScoped<IQueueProvider, AwsQueueProvider>();
             services.AddScoped<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
             services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
         
-        public static IAmazonSQS GetSqsClient(ILogger<MessagingPlatform> logger, AwsSettings awsSettings)
+        public static IAmazonSQS GetSqsClient(ILogger<MessagingPlatform> logger, AwsTopicaConfiguration awsSettings)
         {
             var sharedFile = new SharedCredentialsFile();
             var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };
@@ -98,7 +98,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
         }
         
-        public static IAmazonSimpleNotificationService GetSnsClient(ILogger<MessagingPlatform> logger, AwsSettings awsSettings)
+        public static IAmazonSimpleNotificationService GetSnsClient(ILogger<MessagingPlatform> logger, AwsTopicaConfiguration awsSettings)
         {
             var sharedFile = new SharedCredentialsFile();
             var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };

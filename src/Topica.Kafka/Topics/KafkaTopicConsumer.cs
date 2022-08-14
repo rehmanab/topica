@@ -1,13 +1,10 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
-using Topica.Kafka.Settings;
-using Topica.Messages;
 using Topica.Settings;
 
 namespace Topica.Kafka.Topics
@@ -15,42 +12,40 @@ namespace Topica.Kafka.Topics
     public class KafkaTopicConsumer : IConsumer
     {
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
-        private readonly KafkaSettings _kafkaSettings;
         private readonly ILogger<KafkaTopicConsumer> _logger;
 
-        public KafkaTopicConsumer(IMessageHandlerExecutor messageHandlerExecutor, KafkaSettings kafkaSettings, ILogger<KafkaTopicConsumer> logger)
+        public KafkaTopicConsumer(IMessageHandlerExecutor messageHandlerExecutor, ILogger<KafkaTopicConsumer> logger)
         {
             _messageHandlerExecutor = messageHandlerExecutor;
-            _kafkaSettings = kafkaSettings;
             _logger = logger;
         }
 
-        public Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken cancellationToken = default) where T : Message
+        public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
-            Parallel.ForEach(Enumerable.Range(1, numberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
-                ConsumeAsync<T>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(T)}-({index})", consumerItemSettings, cancellationToken);
+                StartAsync($"{consumerName}-({index})", consumerSettings, cancellationToken);
             });
             
             return Task.CompletedTask;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
+        public async Task StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = string.Join(",", _kafkaSettings.BootstrapServers),
-                GroupId = consumerItemSettings.ConsumerGroup,
-                AutoOffsetReset = consumerItemSettings.StartFromEarliestMessages ? AutoOffsetReset.Earliest : AutoOffsetReset.Latest,
+                BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers),
+                GroupId = consumerSettings.KafkaConsumerGroup,
+                AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages ? AutoOffsetReset.Earliest : AutoOffsetReset.Latest,
                 SaslMechanism = SaslMechanism.Plain
                 //SecurityProtocol = SecurityProtocol.Ssl
             };
             
             using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
             
-            consumer.Subscribe(consumerItemSettings.Source);
+            consumer.Subscribe(consumerSettings.Source);
             
-            _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Subscribed: {consumerItemSettings.Source}");
+            _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Subscribed: {consumerSettings.Source}");
 
             await Task.Run(async () =>
             {
@@ -60,10 +55,10 @@ namespace Topica.Kafka.Topics
                     
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerItemSettings.Source}");
+                        throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerSettings.Source}");
                     }
 
-                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message.Message.Value);
+                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, message.Message.Value);
                     _logger.LogInformation($"**** {nameof(KafkaTopicConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
                     _logger.LogDebug($"{message.Message.Timestamp.UtcDateTime}: {consumerName} : {message.TopicPartitionOffset} (topic [partition] @ offset): {message.Message.Value}");
                 }

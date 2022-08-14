@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Topica.Kafka.Settings;
+using Topica.Settings;
 
 Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
 
@@ -22,12 +22,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<ConsumerSettings>();
-        });
-        services.AddSingleton(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(KafkaSettings.SectionName).Get<KafkaSettings>();
+            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>();
         });
         
         // Add MessagingPlatform Components

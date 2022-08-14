@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Topica.Contracts;
-using Topica.Messages;
 using Topica.Settings;
 
 namespace Topica.RabbitMq.Queues
@@ -27,17 +25,17 @@ namespace Topica.RabbitMq.Queues
             _logger = logger;
         }
         
-        public Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, int numberOfInstances, CancellationToken cancellationToken = default) where T : Message
+        public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
-            Parallel.ForEach(Enumerable.Range(1, numberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
-                ConsumeAsync<T>($"{Assembly.GetExecutingAssembly().GetName().Name}-{nameof(T)}-({index})", consumerItemSettings, cancellationToken);
+                StartAsync($"{consumerName}-({index})", consumerSettings, cancellationToken);
             });
             
             return Task.CompletedTask;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerItemSettings consumerItemSettings, CancellationToken cancellationToken = default) where T : Message
+        private async Task StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             var connection = _rabbitMqConnectionFactory.CreateConnection();
             _channel = connection.CreateModel();
@@ -48,15 +46,15 @@ namespace Topica.RabbitMq.Queues
                 var body = e.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
 
-                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message);
-                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, message);
+                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: {consumerName}: {handlerName}: Queue: {consumerSettings.SubscribeToSource}: {(success ? "SUCCEEDED" : "FAILED")} ****");
             };
 
             await Task.Run(() =>
             {
-                _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: {consumerName} started on Queue: {consumerItemSettings.Source}");
+                _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: {consumerName} started on Queue: {consumerSettings.SubscribeToSource}");
 
-                _channel.BasicConsume(consumerItemSettings.Source, true, consumer);
+                _channel.BasicConsume(consumerSettings.SubscribeToSource, true, consumer);
             }, cancellationToken)
                 .ContinueWith(x =>
                 {
@@ -69,7 +67,7 @@ namespace Topica.RabbitMq.Queues
 
         public void Dispose()
         {
-            _channel.Dispose();
+            _channel?.Dispose();
         }
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
-using Topica.Kafka.Settings;
 using Topica.Kafka.Topics;
 using Topica.Resolvers;
 using Topica.Topics;
@@ -20,8 +19,6 @@ namespace Microsoft.Extensions.DependencyInjection
             
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
             logger.LogDebug("******* Kafka Service Extensions ******* ");
-            
-            var kafkaSettings = serviceProvider.GetService<KafkaSettings>();
 
             var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly == null)

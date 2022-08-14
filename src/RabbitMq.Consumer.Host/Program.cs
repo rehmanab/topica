@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMq.Consumer.Host;
 using RabbitMq.Consumer.Host.Settings;
-using Topica.RabbitMq.Settings;
+using Topica.Settings;
 
 Console.WriteLine("******* Starting RabbitMq.Consumer.Host *******");
 
@@ -20,9 +20,14 @@ var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
     {
         // Configuration
-        var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var rabbitMqSettings = config.GetSection(RabbitMqSettings.SectionName).Get<RabbitMqSettings>();
-        services.AddSingleton(provider => provider.GetRequiredService<IConfiguration>().GetSection(ConsumerSettings.SectionName).Get<ConsumerSettings>());
+        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var rabbitMqSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
+        
+        services.AddSingleton(provider =>
+        {
+            var config = provider.GetRequiredService<IConfiguration>();
+            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>();
+        });
         
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>

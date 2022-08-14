@@ -1,8 +1,7 @@
-namespace Topica.Aws.Settings;
+namespace Topica.Aws.Configuration;
 
-public class AwsSettings
+public class AwsTopicaConfiguration
 {
-    public static string SectionName => nameof (AwsSettings);
     public string? ProfileName { get; set; }
     public string? AccessKey { get; set; }
     public string? SecretKey { get; set; }
