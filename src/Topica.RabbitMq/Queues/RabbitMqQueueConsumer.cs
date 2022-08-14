@@ -16,12 +16,14 @@ namespace Topica.RabbitMq.Queues
 {
     public class RabbitMqQueueConsumer : IConsumer, IDisposable
     {
+        private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly RabbitMqSettings _settings;
         private readonly ILogger<RabbitMqQueueConsumer> _logger;
         private IModel _channel;
 
-        public RabbitMqQueueConsumer(RabbitMqSettings settings, ILogger<RabbitMqQueueConsumer> logger)
+        public RabbitMqQueueConsumer(IMessageHandlerExecutor messageHandlerExecutor, RabbitMqSettings settings, ILogger<RabbitMqQueueConsumer> logger)
         {
+            _messageHandlerExecutor = messageHandlerExecutor;
             _settings = settings;
             _logger = logger;
         }
@@ -50,19 +52,26 @@ namespace Topica.RabbitMq.Queues
             _channel = connection.CreateModel();
             
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += (sender, e) =>
+            consumer.Received += async (sender, e) =>
             {
                 var body = e.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: QueueConsumer: {consumerName}: MESSAGE: {message}");
-		
-                return Task.CompletedTask;
+
+                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(typeof(T).Name, message);
+                _logger.LogInformation($"**** {nameof(RabbitMqQueueConsumer)}: QueueConsumer: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
             };
 
             await Task.Run(() =>
             {
                 _channel.BasicConsume(consumerItemSettings.Source, true, consumer);
-            }, cancellationToken);
+            }, cancellationToken)
+                .ContinueWith(x =>
+                {
+                    if (x.IsFaulted || x.Exception != null)
+                    {
+                        _logger.LogError(x.Exception, "{ClassName}: TopicConsumer: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);      
+                    }
+                }, cancellationToken);
         }
 
         public void Dispose()
