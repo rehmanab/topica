@@ -11,20 +11,20 @@ using Topica.Contracts;
 using Topica.Settings;
 using Message = Topica.Messages.Message;
 
-namespace Topica.Aws.Queues
+namespace Topica.Aws.Consumers
 {
     public class AwsQueueConsumer : IConsumer
     {
         private readonly IAmazonSQS _client;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
-        private readonly IQueueProvider _queueProvider;
+        private readonly IAwsQueueService _awsQueueService;
         private readonly ILogger<AwsQueueConsumer> _logger;
 
-        public AwsQueueConsumer(IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IQueueProvider queueProvider, ILogger<AwsQueueConsumer> logger)
+        public AwsQueueConsumer(IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, ILogger<AwsQueueConsumer> logger)
         {
             _client = client;
             _messageHandlerExecutor = messageHandlerExecutor;
-            _queueProvider = queueProvider;
+            _awsQueueService = awsQueueService;
             _logger = logger;
         }
 
@@ -42,7 +42,7 @@ namespace Topica.Aws.Queues
         {
             try
             {
-                var queueUrl = await _queueProvider.GetQueueUrlAsync(consumerSettings.SubscribeToSource);
+                var queueUrl = await _awsQueueService.GetQueueUrlAsync(consumerSettings.SubscribeToSource);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
@@ -87,7 +87,7 @@ namespace Topica.Aws.Queues
                         
                         if (!success) continue;
 
-                        if (!await _queueProvider.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
+                        if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {
                             _logger.LogError($"{nameof(AwsQueueConsumer)}: {consumerName}: could not delete message on Queue: {consumerSettings.SubscribeToSource}");
                         }

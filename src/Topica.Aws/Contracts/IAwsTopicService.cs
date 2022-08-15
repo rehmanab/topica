@@ -5,7 +5,7 @@ using Topica.Messages;
 
 namespace Topica.Aws.Contracts
 {
-    public interface ITopicProvider
+    public interface IAwsTopicService
     {
         Task<string?> GetTopicArnAsync(string topicName);
         Task<bool> TopicExistsAsync(string topicName);

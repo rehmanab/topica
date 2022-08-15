@@ -6,7 +6,7 @@ using Topica.Messages;
 
 namespace Topica.Aws.Contracts
 {
-    public interface IQueueProvider
+    public interface IAwsQueueService
     {
         Task<bool> QueueExistsByNameAsync(string queueName);
         Task<bool> QueueExistsByUrlAsync(string queueUrl);

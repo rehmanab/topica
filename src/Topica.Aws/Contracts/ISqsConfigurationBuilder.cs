@@ -1,6 +1,6 @@
 ﻿using Topica.Aws.Queues;
 
-namespace Topica.Aws.Configuration
+namespace Topica.Aws.Contracts
 {
     public interface ISqsConfigurationBuilder
     {

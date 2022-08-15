@@ -11,19 +11,20 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
+using Topica.Aws.Queues;
 using Message = Amazon.SimpleNotificationService.Util.Message;
 
-namespace Topica.Aws.Queues
+namespace Topica.Aws.Services
 {
-    public class AwsQueueProvider : IQueueProvider
+    public class AwsQueueService : IAwsQueueService
     {
         private const string AwsNonExistentQueue = "AWS.SimpleQueueService.NonExistentQueue";
         private readonly IAmazonSQS _client;
         private readonly IQueueCreationFactory _queueCreationFactory;
-        private readonly ILogger<AwsQueueProvider> _logger;
+        private readonly ILogger<AwsQueueService> _logger;
         private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
 
-        public AwsQueueProvider(IAmazonSQS client, IQueueCreationFactory queueCreationFactory, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsQueueProvider> logger)
+        public AwsQueueService(IAmazonSQS client, IQueueCreationFactory queueCreationFactory, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsQueueService> logger)
         {
             _client = client;
             _queueCreationFactory = queueCreationFactory;

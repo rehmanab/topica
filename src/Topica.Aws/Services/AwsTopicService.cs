@@ -12,21 +12,21 @@ using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Topica.Messages;
 
-namespace Topica.Aws.Topics
+namespace Topica.Aws.Services
 {
-    public class AwsTopicProvider : ITopicProvider
+    public class AwsTopicService : IAwsTopicService
     {
         private readonly IAwsPolicyBuilder _awsPolicyBuilder;
         private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
-        private readonly ILogger<AwsTopicProvider> _logger;
+        private readonly ILogger<AwsTopicService> _logger;
         private readonly IAmazonSimpleNotificationService _snsClient;
-        private readonly IQueueProvider _queueProvider;
+        private readonly IAwsQueueService _awsQueueService;
 
-        public AwsTopicProvider(IAmazonSimpleNotificationService snsClient, IQueueProvider queueProvider, 
-            IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicProvider> logger)
+        public AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, 
+            IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicService> logger)
         {
             _snsClient = snsClient;
-            _queueProvider = queueProvider;
+            _awsQueueService = awsQueueService;
             _awsPolicyBuilder = awsPolicyBuilder;
             _sqsConfigurationBuilder = sqsConfigurationBuilder;
             _logger = logger;
@@ -128,16 +128,16 @@ namespace Topica.Aws.Topics
             foreach (var queueName in queueNames)
             {
                 _logger.LogDebug($"SNS: getting queueUrl for: {queueName}");
-                var queueUrl = await _queueProvider.GetQueueUrlAsync(queueName);
+                var queueUrl = await _awsQueueService.GetQueueUrlAsync(queueName);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
                     _logger.LogDebug("SNS: queue does not exist, creating queue");
-                    queueUrl = await _queueProvider.CreateQueueAsync(queueName, queueConfiguration);
+                    queueUrl = await _awsQueueService.CreateQueueAsync(queueName, queueConfiguration);
                     _logger.LogDebug($"SNS: queue created, queueUrl: {queueUrl}");
                 }
 
-                var properties = await _queueProvider.GetAttributesByQueueUrl(queueUrl, new List<string> { AwsQueueAttributes.QueueArnName });
+                var properties = await _awsQueueService.GetAttributesByQueueUrl(queueUrl, new List<string> { AwsQueueAttributes.QueueArnName });
 
                 var queueArn = properties[AwsQueueAttributes.QueueArnName];
                 _logger.LogDebug($"SNS: got queue Arn: {queueArn}");
@@ -155,7 +155,7 @@ namespace Topica.Aws.Topics
                 //TODO - Get properties from above and create method to parse policy, check if already has allow all users to send message from topic?
                 //Set access policy
                 var accessPolicy = _awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
-                if(await _queueProvider.UpdateQueueAttributesAsync(queueUrl, _sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
+                if(await _awsQueueService.UpdateQueueAttributesAsync(queueUrl, _sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
                     _logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
                 else
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");

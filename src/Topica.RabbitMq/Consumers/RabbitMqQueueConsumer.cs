@@ -9,7 +9,7 @@ using RabbitMQ.Client.Events;
 using Topica.Contracts;
 using Topica.Settings;
 
-namespace Topica.RabbitMq.Queues
+namespace Topica.RabbitMq.Consumers
 {
     public class RabbitMqQueueConsumer : IConsumer, IDisposable
     {

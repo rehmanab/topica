@@ -9,9 +9,12 @@ using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Aws.Builders;
 using Topica.Aws.Configuration;
+using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
+using Topica.Aws.Creators;
 using Topica.Aws.Factories;
 using Topica.Aws.Queues;
+using Topica.Aws.Services;
 using Topica.Aws.Topics;
 using Topica.Contracts;
 using Topica.Executors;
@@ -35,11 +38,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, config));
             services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, config));
-            services.AddScoped<IQueueProvider, AwsQueueProvider>();
+            services.AddScoped<IAwsQueueService, AwsQueueService>();
             services.AddScoped<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
             services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
             services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
-            services.AddScoped<ITopicProvider, AwsTopicProvider>();
+            services.AddScoped<IAwsTopicService, AwsTopicService>();
             services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();

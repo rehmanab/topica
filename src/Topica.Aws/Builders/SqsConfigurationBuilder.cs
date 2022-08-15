@@ -1,4 +1,5 @@
 ﻿using Topica.Aws.Configuration;
+using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 
 namespace Topica.Aws.Builders

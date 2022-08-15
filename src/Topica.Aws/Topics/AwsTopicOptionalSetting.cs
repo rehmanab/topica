@@ -9,15 +9,15 @@ namespace Topica.Aws.Topics
     public class AwsTopicOptionalSetting : IAwsTopicOptionalSetting
     {
         private readonly string _topicName;
-        private readonly ITopicProvider _topicProvider;
+        private readonly IAwsTopicService _awsTopicService;
 
         private readonly IList<string> _queuesToAdd;
         private QueueConfiguration? _queueConfiguration;
 
-        public AwsTopicOptionalSetting(string topicName, ITopicProvider topicProvider)
+        public AwsTopicOptionalSetting(string topicName, IAwsTopicService awsTopicService)
         {
             _topicName = topicName;
-            _topicProvider = topicProvider;
+            _awsTopicService = awsTopicService;
             _queuesToAdd = new List<string>();
         }
 
@@ -41,7 +41,7 @@ namespace Topica.Aws.Topics
 
         public async Task<string> BuildAsync()
         {
-            return await _topicProvider.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _queueConfiguration);
+            return await _awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _queueConfiguration);
         }
     }
 }

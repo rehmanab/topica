@@ -8,18 +8,18 @@ namespace Topica.Aws.Queues
     public class AwsQueueOptionalSettings : IQueueOptionalSettings
     {
         private readonly IEnumerable<string> _queueNames;
-        private readonly IQueueProvider _queueProvider;
+        private readonly IAwsQueueService _awsQueueService;
         private QueueConfiguration? _queueConfiguration = null!;
 
-        public AwsQueueOptionalSettings(IQueueProvider queueProvider, IEnumerable<string> queueNames)
+        public AwsQueueOptionalSettings(IAwsQueueService awsQueueService, IEnumerable<string> queueNames)
         {
-            _queueProvider = queueProvider;
+            _awsQueueService = awsQueueService;
             _queueNames = queueNames;
         }
         
-        public AwsQueueOptionalSettings(IQueueProvider queueProvider, string queueName)
+        public AwsQueueOptionalSettings(IAwsQueueService awsQueueService, string queueName)
         {
-            _queueProvider = queueProvider;
+            _awsQueueService = awsQueueService;
             _queueNames = new []{ queueName };
         }
 
@@ -31,7 +31,7 @@ namespace Topica.Aws.Queues
 
         public async Task<IEnumerable<string>> BuildAsync()
         {
-            return await _queueProvider.CreateQueuesAsync(_queueNames, _queueConfiguration ?? new QueueConfiguration()).ToListAsync();
+            return await _awsQueueService.CreateQueuesAsync(_queueNames, _queueConfiguration ?? new QueueConfiguration()).ToListAsync();
         }
     }
 }
