@@ -15,7 +15,7 @@ public class MatchStartedMessageHandler : IHandler<MatchStartedMessage>
 
     public async Task<bool> HandleAsync(MatchStartedMessage source)
     {
-        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Match: {PersonName}", nameof(DataSentMessage), source.ConversationId, source.Name);
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Match: {PersonName}", nameof(MatchStartedMessage), source.ConversationId, source.Name);
             
         return await Task.FromResult(true);
     }

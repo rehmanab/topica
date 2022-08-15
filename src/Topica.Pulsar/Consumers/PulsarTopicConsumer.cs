@@ -64,6 +64,7 @@ namespace Topica.Pulsar.Consumers
                     if (success)
                     {
                         await _consumer.AcknowledgeAsync(message.MessageId);
+                        _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}: Ack Message ****");
                     }
                 }
 

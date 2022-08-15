@@ -24,7 +24,7 @@ namespace Topica.RabbitMq.Consumers
             _messageHandlerExecutor = messageHandlerExecutor;
             _logger = logger;
         }
-        
+
         public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>

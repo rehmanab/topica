@@ -47,8 +47,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
 
             services.AddScoped<IConsumer, RabbitMqQueueConsumer>();
-            services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
-            services.AddScoped<ITopicCreator, RabbitMqExchangeCreator>();
+            services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
+            services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
             services.AddScoped<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new ConnectionFactory

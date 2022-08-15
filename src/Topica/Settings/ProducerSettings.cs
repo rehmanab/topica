@@ -1,15 +1,12 @@
 namespace Topica.Settings
 {
-    public class ConsumerSettings
+    public class ProducerSettings
     {
-        public static string SectionName => nameof(ConsumerSettings);
-        
-        public string MessageToHandle{ get; set; }
-        public string Source{ get; set; }
-        public string SubscribeToSource{ get; set; }
+        public static string SectionName => nameof(ProducerSettings);
+
+        public string Source { get; set; }
         public string[] WithSubscribedQueues { get; set; }
-        public int NumberOfInstances { get; set; }
-        
+
         // Aws
         public bool AwsBuildWithErrorQueue { get; set; }
         public int? AwsErrorQueueMaxReceiveCount { get; set; }
@@ -31,6 +28,12 @@ namespace Topica.Settings
         // Pulsar
         public string PulsarTenant { get; set; }
         public string PulsarNamespace { get; set; }
-        public bool PulsarStartFromEarliestUnAcknowledgeMessages { get; set; }
+        public bool PulsarBlockIfQueueFull { get; set; }
+        public int PulsarMaxPendingMessages { get; set; }
+        public int PulsarMaxPendingMessagesAcrossPartitions { get; set; }
+        public bool PulsarEnableBatching { get; set; }
+        public bool PulsarEnableChunking { get; set; }
+        public int PulsarBatchingMaxMessages { get; set; }
+        public long PulsarBatchingMaxPublishDelayMilliseconds { get; set; }
     }
 }

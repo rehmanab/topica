@@ -28,8 +28,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             
             services.AddScoped<IConsumer, KafkaTopicConsumer>();
-            services.AddScoped<ITopicCreatorFactory, TopicCreatorFactory>();
-            services.AddScoped<ITopicCreator, KafkaTopicCreator>();
+            services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
+            services.AddScoped<ITopicProvider, KafkaTopicProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
             services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             
