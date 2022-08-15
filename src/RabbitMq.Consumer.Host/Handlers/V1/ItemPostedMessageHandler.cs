@@ -15,7 +15,7 @@ public class ItemPostedMessageHandler : IHandler<ItemPostedMessage>
 
     public async Task<bool> HandleAsync(ItemPostedMessage source)
     {
-        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for PostTown: {PostTown}", nameof(ItemDeliveredMessage), source.ConversationId, source.PostTown);
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for PostTown: {PostTown}", nameof(ItemDeliveredMessage), source.ConversationId, source.Name);
         return await Task.FromResult(true);
     }
 

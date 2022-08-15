@@ -15,7 +15,7 @@ public class PersonCreatedMessageHandler : IHandler<PersonCreatedMessage>
 
     public async Task<bool> HandleAsync(PersonCreatedMessage source)
     {
-        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Person: {PersonName}", nameof(PersonCreatedMessage), source.ConversationId, source.PersonName);
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Person: {PersonName}", nameof(PersonCreatedMessage), source.ConversationId, source.Name);
             
         return await Task.FromResult(true);
     }

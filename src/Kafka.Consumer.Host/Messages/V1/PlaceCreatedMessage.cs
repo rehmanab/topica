@@ -5,5 +5,5 @@ namespace Kafka.Consumer.Host.Messages.V1;
 public class PlaceCreatedMessage : Message
 {
     public long Id { get; set; }
-    public string PlaceName { get; set; }
+    public string Name { get; set; }
 }

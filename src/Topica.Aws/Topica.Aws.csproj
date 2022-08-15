@@ -7,11 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Topica\Topica.csproj" />
+        <ProjectReference Include="..\Topica\Topica.csproj"/>
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.3.92"/>
+        <PackageReference Include="AWSSDK.SQS" Version="3.7.2.89"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Scrutor" Version="4.2.0" />
+        <PackageReference Include="Scrutor" Version="4.2.0"/>
     </ItemGroup>
 
 </Project>

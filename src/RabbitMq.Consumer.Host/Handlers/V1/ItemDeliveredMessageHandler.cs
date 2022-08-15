@@ -15,7 +15,7 @@ public class ItemDeliveredMessageHandler : IHandler<ItemDeliveredMessage>
 
     public async Task<bool> HandleAsync(ItemDeliveredMessage source)
     {
-        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Handed to Resident: {HandedToResident}", nameof(ItemDeliveredMessage), source.ConversationId, source.HandedToResident);
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Handed to Resident: {HandedToResident}", nameof(ItemDeliveredMessage), source.ConversationId, source.Name);
 
         return await Task.FromResult(true);
     }

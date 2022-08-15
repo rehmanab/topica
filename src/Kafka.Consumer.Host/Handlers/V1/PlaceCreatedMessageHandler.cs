@@ -15,7 +15,7 @@ public class PlaceCreatedMessageHandler : IHandler<PlaceCreatedMessage>
 
     public async Task<bool> HandleAsync(PlaceCreatedMessage source)
     {
-        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Place: {PlaceName}", nameof(PlaceCreatedMessage), source.ConversationId, source.PlaceName);
+        _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Place: {PlaceName}", nameof(PlaceCreatedMessage), source.ConversationId, source.Name);
             
         return await Task.FromResult(true);
     }
