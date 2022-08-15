@@ -19,10 +19,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class RabbitMqServiceExtensions
     {
-        public static IServiceCollection AddRabbitMqTopica(this IServiceCollection services, Action<RabbitMqTopicaConfiguration> configuration)
+        public static IServiceCollection AddRabbitMqTopica(this IServiceCollection services, Action<RabbitMqTopicaConfiguration> configurationFactory)
         {
             var config = new RabbitMqTopicaConfiguration();
-            configuration(config);
+            configurationFactory(config);
 
             var serviceProvider = services.BuildServiceProvider();
 

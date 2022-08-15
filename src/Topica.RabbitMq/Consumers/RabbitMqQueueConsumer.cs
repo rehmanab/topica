@@ -67,7 +67,9 @@ namespace Topica.RabbitMq.Consumers
 
         public void Dispose()
         {
-            _channel?.Dispose();
+            _channel.Dispose();
+            _logger.LogInformation($"{nameof(RabbitMqQueueConsumer)}: Disposed");
+
         }
     }
 }

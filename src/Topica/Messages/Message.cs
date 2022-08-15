@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Topica.Messages
 {
@@ -10,6 +11,8 @@ namespace Topica.Messages
             Id = Guid.NewGuid().ToString();
         }
 
+        public virtual string UniqueKey() => Id;
+
         public string Id { get; set; }
         public string Type { get; set; }
         public Guid ConversationId { get; set; }
@@ -20,6 +23,6 @@ namespace Topica.Messages
         public string Tenant { get; set; }
         public string Conversation { get; set; }
         public string ReceiptReference { get; set; }
-        public virtual string UniqueKey() => Id;
+        public IReadOnlyDictionary<string, string> AdditionalProperties { get; set; }
     }
 }

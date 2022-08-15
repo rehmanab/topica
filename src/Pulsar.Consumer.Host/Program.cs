@@ -1,10 +1,11 @@
-﻿using Kafka.Consumer.Host;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Pulsar.Consumer.Host;
+using Pulsar.Consumer.Host.Settings;
 using Topica.Settings;
 
-Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
+Console.WriteLine("******* Starting Pulsar.Consumer.Host *******");
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(builder =>
@@ -19,6 +20,9 @@ var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
     {
         // Configuration
+        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
+
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -26,7 +30,12 @@ var host = Host.CreateDefaultBuilder()
         });
         
         // Add MessagingPlatform Components
-        services.AddKafkaTopica();
+        services.AddPulsarTopica(c =>
+        {
+            c.ServiceUrl = pulsarHostSettings.ServiceUrl;
+            c.PulsarManagerBaseUrl = pulsarHostSettings.PulsarManagerBaseUrl;
+            c.PulsarAdminBaseUrl = pulsarHostSettings.PulsarAdminBaseUrl;
+        });
         
         services.AddHostedService<Worker>();
     })

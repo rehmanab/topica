@@ -27,5 +27,10 @@ namespace Topica.Settings
         public bool KafkaStartFromEarliestMessages { get; set; }
         public int KafkaNumberOfTopicPartitions { get; set; }
         public string[] KafkaBootstrapServers { get; set; }
+        
+        // Pulsar
+        public string PulsarTenant { get; set; }
+        public string PulsarNamespace { get; set; }
+        public bool PulsarStartFromEarliestUnAcknowledgeMessages { get; set; }
     }
 }

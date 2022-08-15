@@ -64,6 +64,8 @@ namespace Topica.Kafka.Consumers
                 }
 
                 consumer.Dispose();
+                _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Disposed");
+
             }, cancellationToken)
                 .ContinueWith(x =>
                 {

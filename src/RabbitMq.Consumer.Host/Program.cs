@@ -21,7 +21,7 @@ var host = Host.CreateDefaultBuilder()
     {
         // Configuration
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var rabbitMqSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
+        var rabbitMqHostSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
         
         services.AddSingleton(provider =>
         {
@@ -32,14 +32,14 @@ var host = Host.CreateDefaultBuilder()
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>
         {
-            c.Hostname = rabbitMqSettings.Hostname;
-            c.UserName = rabbitMqSettings.UserName;
-            c.Password = rabbitMqSettings.Password;
-            c.Scheme = rabbitMqSettings.Scheme;
-            c.Port = rabbitMqSettings.Port;
-            c.ManagementPort = rabbitMqSettings.ManagementPort;
-            c.ManagementScheme = rabbitMqSettings.ManagementScheme;
-            c.VHost = rabbitMqSettings.VHost;
+            c.Hostname = rabbitMqHostSettings.Hostname;
+            c.UserName = rabbitMqHostSettings.UserName;
+            c.Password = rabbitMqHostSettings.Password;
+            c.Scheme = rabbitMqHostSettings.Scheme;
+            c.Port = rabbitMqHostSettings.Port;
+            c.ManagementPort = rabbitMqHostSettings.ManagementPort;
+            c.ManagementScheme = rabbitMqHostSettings.ManagementScheme;
+            c.VHost = rabbitMqHostSettings.VHost;
         });
         
         services.AddHostedService<Worker>();
