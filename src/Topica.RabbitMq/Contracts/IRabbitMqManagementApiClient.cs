@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
 
-namespace Topica.RabbitMq.Clients
+namespace Topica.RabbitMq.Contracts
 {
     public interface IRabbitMqManagementApiClient
     {

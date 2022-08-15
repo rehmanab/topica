@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Topica.Aws.Contracts;
 
 namespace Topica.Aws.Queues
 {

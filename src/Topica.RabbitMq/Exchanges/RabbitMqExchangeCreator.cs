@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
 using Topica.RabbitMq.Clients;
+using Topica.RabbitMq.Contracts;
 using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
 using Topica.Settings;

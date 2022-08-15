@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Topica.Aws.Queues;
 
-namespace Topica.Aws.Topics
+namespace Topica.Aws.Contracts
 {
     public interface IAwsTopicOptionalSetting
     {

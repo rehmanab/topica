@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Configuration;
+using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Settings;

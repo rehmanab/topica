@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json;
+using Topica.Aws.Contracts;
 using Topica.Aws.Policies;
 using Topica.Aws.Queues;
 

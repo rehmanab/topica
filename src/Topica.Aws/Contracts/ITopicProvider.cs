@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Topica.Aws.Queues;
 using Topica.Messages;
 
-namespace Topica.Aws.Topics
+namespace Topica.Aws.Contracts
 {
     public interface ITopicProvider
     {

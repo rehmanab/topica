@@ -1,4 +1,4 @@
-namespace Topica.Aws.Topics
+namespace Topica.Aws.Contracts
 {
     public interface IAwsTopicBuilder
     {

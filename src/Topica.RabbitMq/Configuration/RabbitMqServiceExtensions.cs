@@ -7,6 +7,8 @@ using Topica;
 using Topica.Contracts;
 using Topica.Executors;
 using Topica.RabbitMq.Clients;
+using Topica.RabbitMq.Configuration;
+using Topica.RabbitMq.Contracts;
 using Topica.RabbitMq.Exchanges;
 using Topica.RabbitMq.Queues;
 using Topica.Resolvers;

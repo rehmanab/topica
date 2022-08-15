@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Topica.Aws.Queues
+namespace Topica.Aws.Contracts
 {
     public interface IQueueBuilder
     {

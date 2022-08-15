@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Topica.RabbitMq.Contracts;
 using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
 

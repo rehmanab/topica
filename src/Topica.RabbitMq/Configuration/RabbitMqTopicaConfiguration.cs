@@ -1,4 +1,4 @@
-namespace Microsoft.Extensions.DependencyInjection
+namespace Topica.RabbitMq.Configuration
 {
     public class RabbitMqTopicaConfiguration
     {

@@ -1,4 +1,6 @@
-﻿namespace Topica.Aws.Topics
+﻿using Topica.Aws.Contracts;
+
+namespace Topica.Aws.Topics
 {
     public class AwsTopicBuilder : IAwsTopicBuilder
     {

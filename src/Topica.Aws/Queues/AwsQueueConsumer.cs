@@ -6,6 +6,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Topica.Aws.Contracts;
 using Topica.Contracts;
 using Topica.Settings;
 using Message = Topica.Messages.Message;

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Topica.Aws.Queues;
 using Topica.Messages;
 
-namespace Topica.Aws.Queues
+namespace Topica.Aws.Contracts
 {
     public interface IQueueProvider
     {
