@@ -4,7 +4,7 @@ using Topica.Contracts;
 using Topica.Pulsar.Contracts;
 using Topica.Settings;
 
-namespace Topica.Pulsar.Creators
+namespace Topica.Pulsar.Providers
 {
     public class PulsarTopicProvider : ITopicProvider
     {

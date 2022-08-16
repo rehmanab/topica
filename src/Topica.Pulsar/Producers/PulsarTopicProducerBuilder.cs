@@ -1,23 +1,20 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Pulsar.Client.Api;
 using Topica.Contracts;
 using Topica.Settings;
 
-namespace Topica.Pulsar.Consumers
+namespace Topica.Pulsar.Producers
 {
     public class PulsarTopicProducerBuilder : IProducerBuilder, IDisposable
     {
         private readonly PulsarClientBuilder _clientBuilder;
-        private readonly ILogger<PulsarTopicProducerBuilder> _logger;
         private IProducer<byte[]>? _producer;
 
-        public PulsarTopicProducerBuilder(PulsarClientBuilder clientBuilder, ILogger<PulsarTopicProducerBuilder> logger)
+        public PulsarTopicProducerBuilder(PulsarClientBuilder clientBuilder)
         {
             _clientBuilder = clientBuilder;
-            _logger = logger;
         }
 
         public async Task<T> BuildProducerAsync<T>(string producerName, ProducerSettings producerSettings, CancellationToken cancellationToken)

@@ -5,7 +5,7 @@ using Topica;
 using Topica.Contracts;
 using Topica.Executors;
 using Topica.Kafka.Consumers;
-using Topica.Kafka.Creators;
+using Topica.Kafka.Providers;
 using Topica.Resolvers;
 using Topica.Topics;
 

@@ -5,7 +5,7 @@ using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Settings;
 
-namespace Topica.Aws.Creators
+namespace Topica.Aws.Providers
 {
     public class AwsTopicProvider : ITopicProvider
     {

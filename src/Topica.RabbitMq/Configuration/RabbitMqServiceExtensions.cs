@@ -10,7 +10,8 @@ using Topica.RabbitMq.Clients;
 using Topica.RabbitMq.Configuration;
 using Topica.RabbitMq.Consumers;
 using Topica.RabbitMq.Contracts;
-using Topica.RabbitMq.Creators;
+using Topica.RabbitMq.Producers;
+using Topica.RabbitMq.Providers;
 using Topica.Resolvers;
 using Topica.Topics;
 
@@ -47,6 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
 
             services.AddScoped<IConsumer, RabbitMqQueueConsumer>();
+            services.AddScoped<IProducerBuilder, RabbitMqProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Topica.Contracts;
 using Topica.Settings;
 
-namespace Topica.Kafka.Creators
+namespace Topica.Kafka.Providers
 {
     public class KafkaTopicProvider : ITopicProvider
     {

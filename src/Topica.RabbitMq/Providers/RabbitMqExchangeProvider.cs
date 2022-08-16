@@ -7,7 +7,7 @@ using Topica.RabbitMq.Models;
 using Topica.RabbitMq.Requests;
 using Topica.Settings;
 
-namespace Topica.RabbitMq.Creators
+namespace Topica.RabbitMq.Providers
 {
     public class RabbitMqExchangeProvider : ITopicProvider
     {
