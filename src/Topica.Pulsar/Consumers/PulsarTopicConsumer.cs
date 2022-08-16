@@ -39,11 +39,11 @@ namespace Topica.Pulsar.Consumers
             var client = await _clientBuilder.BuildAsync();
             var consumer = await client.NewConsumer()
                 .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
-                .SubscriptionName(consumerName)
+                .SubscriptionName(consumerSettings.PulsarConsumerGroup)
                 .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest ? SubscriptionInitialPosition.Earliest : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                 .SubscribeAsync();
 
-            _logger.LogInformation($"{nameof(PulsarTopicConsumer)}: Subscribed: {consumerSettings.Source}");
+            _logger.LogInformation($"{nameof(PulsarTopicConsumer)}: Subscribed: {consumerSettings.Source}:{consumerSettings.PulsarConsumerGroup}");
 
             await Task.Run(async () =>
             {
@@ -53,11 +53,11 @@ namespace Topica.Pulsar.Consumers
 
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}) - Received null message on Topic: {consumerSettings.Source}");
+                        throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}):{consumerSettings.PulsarConsumerGroup} - Received null message on Topic: {consumerSettings.Source}");
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, Encoding.UTF8.GetString(message.Data));
-                    _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}): {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}):{consumerSettings.PulsarConsumerGroup}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
 
                     if (success)
                     {
@@ -70,7 +70,7 @@ namespace Topica.Pulsar.Consumers
             {
                 if (x.IsFaulted || x.Exception != null)
                 {
-                    _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
+                    _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}-({instanceIndex}):{consumerSettings.PulsarConsumerGroup}");
                 }
             }, cancellationToken);
         }

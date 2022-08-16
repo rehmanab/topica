@@ -31,6 +31,10 @@ namespace Topica.Settings
         // Pulsar
         public string PulsarTenant { get; set; }
         public string PulsarNamespace { get; set; }
+        // Each unique name will start cursor at earliest or latest, then read from that position
+        // will read all un-acknowledge per consumer group (actually pulsar uses consumer name).
+        // i.e. each consumer name is an independent subscription and acknowledges messages per subscription
+        public string PulsarConsumerGroup { get; set; }
         // Sets any NEW consumers only to earliest cursor position (can't be changed for existing subscription)
         public bool PulsarStartNewConsumerEarliest { get; set; }
     }
