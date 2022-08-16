@@ -31,6 +31,7 @@ namespace Topica.Settings
         // Pulsar
         public string PulsarTenant { get; set; }
         public string PulsarNamespace { get; set; }
-        public bool PulsarStartFromEarliestUnAcknowledgeMessages { get; set; }
+        // Sets any NEW consumers only to earliest cursor position (can't be changed for existing subscription)
+        public bool PulsarStartNewConsumerEarliest { get; set; }
     }
 }

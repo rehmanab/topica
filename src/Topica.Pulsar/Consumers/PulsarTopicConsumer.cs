@@ -11,12 +11,11 @@ using Topica.Settings;
 
 namespace Topica.Pulsar.Consumers
 {
-    public class PulsarTopicConsumer : IConsumer, IDisposable
+    public class PulsarTopicConsumer : IConsumer
     {
         private readonly PulsarClientBuilder _clientBuilder;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly ILogger<PulsarTopicConsumer> _logger;
-        private IConsumer<byte[]>? _consumer;
 
         public PulsarTopicConsumer(PulsarClientBuilder clientBuilder, IMessageHandlerExecutor messageHandlerExecutor, ILogger<PulsarTopicConsumer> logger)
         {
@@ -27,22 +26,21 @@ namespace Topica.Pulsar.Consumers
 
         public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), instanceIndex =>
             {
-                StartAsync($"{consumerName}-({index})", consumerSettings, cancellationToken);
+                StartAsync($"{consumerName}", instanceIndex, consumerSettings, cancellationToken);
             });
 
             return Task.CompletedTask;
         }
 
-        private async Task StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
+        private async Task StartAsync(string consumerName, int instanceIndex, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             var client = await _clientBuilder.BuildAsync();
-            _consumer = await client.NewConsumer()
+            var consumer = await client.NewConsumer()
                 .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
                 .SubscriptionName(consumerName)
-                .AcknowledgementsGroupTime(TimeSpan.FromSeconds(0))
-                .SubscriptionInitialPosition(consumerSettings.PulsarStartFromEarliestUnAcknowledgeMessages ? SubscriptionInitialPosition.Earliest : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
+                .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest ? SubscriptionInitialPosition.Earliest : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                 .SubscribeAsync();
 
             _logger.LogInformation($"{nameof(PulsarTopicConsumer)}: Subscribed: {consumerSettings.Source}");
@@ -51,20 +49,19 @@ namespace Topica.Pulsar.Consumers
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var message = await _consumer.ReceiveAsync(cancellationToken);
+                    var message = await consumer.ReceiveAsync(cancellationToken);
 
                     if (message == null)
                     {
-                        throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerSettings.Source}");
+                        throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}) - Received null message on Topic: {consumerSettings.Source}");
                     }
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, Encoding.UTF8.GetString(message.Data));
-                    _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}: {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
+                    _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}-({instanceIndex}): {handlerName} {(success ? "SUCCEEDED" : "FAILED")} ****");
 
                     if (success)
                     {
-                        await _consumer.AcknowledgeAsync(message.MessageId);
-                        _logger.LogInformation($"**** {nameof(PulsarTopicConsumer)}: {consumerName}: Ack Message ****");
+                        await consumer.AcknowledgeAsync(message.MessageId);
                     }
                 }
 
@@ -76,11 +73,6 @@ namespace Topica.Pulsar.Consumers
                     _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
                 }
             }, cancellationToken);
-        }
-
-        public void Dispose()
-        {
-            _consumer?.DisposeAsync().GetAwaiter().GetResult();
         }
     }
 }

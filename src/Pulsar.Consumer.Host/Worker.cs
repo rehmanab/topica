@@ -24,6 +24,7 @@ public class Worker : BackgroundService
             var topicCreator = _topicProviderFactory.Create(MessagingPlatform.Pulsar);
             var consumer = await topicCreator.CreateTopicAsync(consumerSetting);
 
+            // Pulsar different consumer names will read the topic from the start and independently - i.e consumer name is like a consumer group
             var consumerName = $"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSetting.MessageToHandle}";
             await consumer.ConsumeAsync(consumerName, consumerSetting, stoppingToken);
         }
