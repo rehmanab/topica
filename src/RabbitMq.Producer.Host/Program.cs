@@ -58,11 +58,15 @@ var topicProvider = topicProviderFactory.Create(MessagingPlatform.RabbitMq);
 var producerBuilder = await topicProvider.CreateTopicAsync(producerSettings);
 var producer = await producerBuilder.BuildProducerAsync<IModel>(null, producerSettings, cts.Token);
 
-foreach (var index in Enumerable.Range(1, 10))
+foreach (var index in Enumerable.Range(1, 100))
 {
     var message = new ItemDeliveredMessage{ConversationId = Guid.NewGuid(), Name = "Delivered"};
     var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
     producer.BasicPublish("item-posted", "", null, body);
+    
+    Console.WriteLine($"Produced message to {producerSettings.Source}: {message.ConversationId}");
+    
+    await Task.Delay(1000);
 }
 
 producer.Dispose();

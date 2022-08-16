@@ -21,7 +21,6 @@ namespace Topica.Messages
         public string Version { get; private set; }
         public string SourceIp { get; private set; }
         public string Tenant { get; set; }
-        public string Conversation { get; set; }
         public string ReceiptReference { get; set; }
         public IReadOnlyDictionary<string, string> AdditionalProperties { get; set; }
     }
