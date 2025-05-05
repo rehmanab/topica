@@ -28,7 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var serviceProvider = services.BuildServiceProvider();
 
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
-            logger.LogDebug("******* RabbitMq Service Extensions ******* ");
+            logger?.LogDebug("******* RabbitMq Service Extensions ******* ");
 
             var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly == null)
