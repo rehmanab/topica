@@ -33,6 +33,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulsar.Producer.Host", "Pul
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Producer.Host", "RabbitMq.Producer.Host\RabbitMq.Producer.Host.csproj", "{D9414D74-796D-4864-8D98-658853DD5B07}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{61A51C6C-9886-457E-9F71-7E41B7909B54}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kafka", "Kafka", "{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose-kafka.yml = ..\docker-compose-kafka.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,5 +103,7 @@ Global
 		{39EE32E9-9144-4B9A-A0AE-BDF4BEBCB196} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
 		{CEF24FAE-D43C-4DB4-B262-CC7E695344A7} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
 		{D9414D74-796D-4864-8D98-658853DD5B07} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
+		{61A51C6C-9886-457E-9F71-7E41B7909B54} = {20DB8CF9-8622-46DF-9C2B-E6521D772169}
+		{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 	EndGlobalSection
 EndGlobal
