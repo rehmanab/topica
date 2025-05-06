@@ -5,6 +5,7 @@ using Topica;
 using Topica.Contracts;
 using Topica.Executors;
 using Topica.Kafka.Consumers;
+using Topica.Kafka.Producers;
 using Topica.Kafka.Providers;
 using Topica.Resolvers;
 using Topica.Topics;
@@ -28,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             
             services.AddScoped<IConsumer, KafkaTopicConsumer>();
+            services.AddScoped<IProducerBuilder, KafkaProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, KafkaTopicProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
