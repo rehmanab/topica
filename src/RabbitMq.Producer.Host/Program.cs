@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMq.Producer.Host.Messages.V1;
 using RabbitMq.Producer.Host.Settings;
-using Topica;
 using Topica.Contracts;
 using Topica.Settings;
 
@@ -34,7 +33,7 @@ var host = Host.CreateDefaultBuilder()
         
         // Configuration
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var rabbitMqHostSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
+        var rabbitMqHostSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>() ?? throw new InvalidOperationException("RabbitMqHostSettings not found");
 
         services.AddSingleton(provider =>
         {
@@ -59,11 +58,9 @@ var host = Host.CreateDefaultBuilder()
 
 var cts = new CancellationTokenSource();
 
-var producerSettings = host.Services.GetService<ProducerSettings>();
-var topicProviderFactory = host.Services.GetService<ITopicProviderFactory>();
+var producerSettings = host.Services.GetService<ProducerSettings>() ?? throw new InvalidOperationException("RabbitMq ProducerSettings not found");
+var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("RabbitMq ProducerBuilder not found");
 
-var topicProvider = topicProviderFactory.Create(MessagingPlatform.RabbitMq);
-var producerBuilder = await topicProvider.CreateTopicAsync(producerSettings);
 var producer = await producerBuilder.BuildProducerAsync<IModel>(null, producerSettings, cts.Token);
 
 foreach (var index in Enumerable.Range(1, 100))

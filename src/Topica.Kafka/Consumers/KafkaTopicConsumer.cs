@@ -11,11 +11,13 @@ namespace Topica.Kafka.Consumers
 {
     public class KafkaTopicConsumer : IConsumer
     {
+        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly ILogger<KafkaTopicConsumer> _logger;
 
-        public KafkaTopicConsumer(IMessageHandlerExecutor messageHandlerExecutor, ILogger<KafkaTopicConsumer> logger)
+        public KafkaTopicConsumer(ITopicProviderFactory topicProviderFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<KafkaTopicConsumer> logger)
         {
+            _topicProviderFactory = topicProviderFactory;
             _messageHandlerExecutor = messageHandlerExecutor;
             _logger = logger;
         }
@@ -40,6 +42,8 @@ namespace Topica.Kafka.Consumers
                 SaslMechanism = SaslMechanism.Plain
                 //SecurityProtocol = SecurityProtocol.Ssl
             };
+
+            await _topicProviderFactory.Create(MessagingPlatform.Kafka).CreateTopicAsync(consumerSettings);
             
             using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
             

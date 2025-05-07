@@ -13,12 +13,14 @@ namespace Topica.Pulsar.Consumers
 {
     public class PulsarTopicConsumer : IConsumer
     {
+        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly PulsarClientBuilder _clientBuilder;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly ILogger<PulsarTopicConsumer> _logger;
 
-        public PulsarTopicConsumer(PulsarClientBuilder clientBuilder, IMessageHandlerExecutor messageHandlerExecutor, ILogger<PulsarTopicConsumer> logger)
+        public PulsarTopicConsumer(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder, IMessageHandlerExecutor messageHandlerExecutor, ILogger<PulsarTopicConsumer> logger)
         {
+            _topicProviderFactory = topicProviderFactory;
             _clientBuilder = clientBuilder;
             _messageHandlerExecutor = messageHandlerExecutor;
             _logger = logger;
@@ -36,6 +38,8 @@ namespace Topica.Pulsar.Consumers
 
         private async Task StartAsync(string consumerName, int instanceIndex, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
+            await _topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(consumerSettings);
+            
             var client = await _clientBuilder.BuildAsync();
             var consumer = await client.NewConsumer()
                 .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")

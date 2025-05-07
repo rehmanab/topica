@@ -1,31 +1,18 @@
 using System.Reflection;
 using Microsoft.Extensions.Hosting;
-using Topica;
 using Topica.Contracts;
 using Topica.Settings;
 
 namespace Kafka.Consumer.Host;
 
-public class Worker : BackgroundService
+public class Worker(IConsumer consumer, IEnumerable<ConsumerSettings> consumerSettingsList) : BackgroundService
 {
-    private readonly ITopicProviderFactory _topicProviderFactory;
-    private readonly IEnumerable<ConsumerSettings> _consumerSettings;
-
-    public Worker(ITopicProviderFactory topicProviderFactory, IEnumerable<ConsumerSettings> consumerSettings)
-    {
-        _topicProviderFactory = topicProviderFactory;
-        _consumerSettings = consumerSettings;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var consumerSetting in _consumerSettings)
+        foreach (var consumerSettings in consumerSettingsList)
         {
-            var topicCreator = _topicProviderFactory.Create(MessagingPlatform.Kafka);
-            var consumer = await topicCreator.CreateTopicAsync(consumerSetting);
-
-            var consumerName = $"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSetting.MessageToHandle}";
-            await consumer.ConsumeAsync(consumerName, consumerSetting, stoppingToken);
+            var consumerName = $"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSettings.MessageToHandle}";
+            await consumer.ConsumeAsync(consumerName, consumerSettings, stoppingToken);
         }
     }
 }

@@ -13,13 +13,15 @@ namespace Topica.RabbitMq.Consumers
 {
     public class RabbitMqQueueConsumer : IConsumer, IDisposable
     {
+        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly ConnectionFactory _rabbitMqConnectionFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly ILogger<RabbitMqQueueConsumer> _logger;
         private IModel _channel;
 
-        public RabbitMqQueueConsumer(ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<RabbitMqQueueConsumer> logger)
+        public RabbitMqQueueConsumer(ITopicProviderFactory topicProviderFactory, ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<RabbitMqQueueConsumer> logger)
         {
+            _topicProviderFactory = topicProviderFactory;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _messageHandlerExecutor = messageHandlerExecutor;
             _logger = logger;
@@ -37,6 +39,8 @@ namespace Topica.RabbitMq.Consumers
 
         private async Task StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
+            await _topicProviderFactory.Create(MessagingPlatform.RabbitMq).CreateTopicAsync(consumerSettings);
+            
             var connection = _rabbitMqConnectionFactory.CreateConnection();
             _channel = connection.CreateModel();
             

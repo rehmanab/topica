@@ -11,41 +11,23 @@ namespace Topica.Kafka.Providers
 {
     public class KafkaTopicProvider : ITopicProvider
     {
-        private readonly IConsumer _consumer;
-        private readonly IProducerBuilder _producerBuilder;
         private readonly ILogger<KafkaTopicProvider> _logger;
 
-        public KafkaTopicProvider(IConsumer consumer, IProducerBuilder producerBuilder, ILogger<KafkaTopicProvider> logger)
+        public KafkaTopicProvider(ILogger<KafkaTopicProvider> logger)
         {
-            _consumer = consumer;
-            _producerBuilder = producerBuilder;
             _logger = logger;
         }
         
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
         
-        public async Task<IConsumer> CreateTopicAsync(ConsumerSettings settings)
+        public async Task CreateTopicAsync(ConsumerSettings settings)
         {
             await CreateTopicAsync(settings.Source, settings.KafkaBootstrapServers, settings.KafkaNumberOfTopicPartitions);
-
-            return _consumer;
         }
 
-        public async Task<IProducerBuilder> CreateTopicAsync(ProducerSettings settings)
+        public async Task CreateTopicAsync(ProducerSettings settings)
         {
             await CreateTopicAsync(settings.Source, settings.KafkaBootstrapServers, settings.KafkaNumberOfTopicPartitions);
-
-            return _producerBuilder;
-        }
-
-        public IConsumer GetConsumer()
-        {
-            return _consumer;
-        }
-
-        public IProducerBuilder GetProducerBuilder()
-        {
-            return _producerBuilder;
         }
         
         private async Task CreateTopicAsync(string source, string[] kafkaBootstrapServers, int kafkaNumberOfTopicPartitions)

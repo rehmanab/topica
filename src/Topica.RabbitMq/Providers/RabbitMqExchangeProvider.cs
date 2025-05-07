@@ -12,45 +12,28 @@ namespace Topica.RabbitMq.Providers
     public class RabbitMqExchangeProvider : ITopicProvider
     {
         private readonly IRabbitMqManagementApiClient _managementApiClient;
-        private readonly IConsumer _consumer;
-        private readonly IProducerBuilder _producerBuilder;
         private readonly ILogger<RabbitMqExchangeProvider> _logger;
 
-        public RabbitMqExchangeProvider(IRabbitMqManagementApiClient managementApiClient, IConsumer consumer, IProducerBuilder producerBuilder, ILogger<RabbitMqExchangeProvider> logger)
+        public RabbitMqExchangeProvider(IRabbitMqManagementApiClient managementApiClient,
+            ILogger<RabbitMqExchangeProvider> logger)
         {
             _managementApiClient = managementApiClient;
-            _consumer = consumer;
-            _producerBuilder = producerBuilder;
             _logger = logger;
         }
         
         public MessagingPlatform MessagingPlatform => MessagingPlatform.RabbitMq;
 
-        public async Task<IConsumer> CreateTopicAsync(ConsumerSettings settings)
+        public async Task CreateTopicAsync(ConsumerSettings settings)
         {
             await CreateTopicAsync(settings.Source, settings.WithSubscribedQueues);
-            
-            return _consumer;
         }
 
-        public async Task<IProducerBuilder> CreateTopicAsync(ProducerSettings settings)
+        public async Task CreateTopicAsync(ProducerSettings settings)
         {
             await CreateTopicAsync(settings.Source, settings.WithSubscribedQueues);
-            
-            return _producerBuilder;
         }
 
-        public IConsumer GetConsumer()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IProducerBuilder GetProducerBuilder()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        private  async Task<IConsumer> CreateTopicAsync(string source, string[] withSubscribedQueues)
+        private  async Task<object> CreateTopicAsync(string source, string[] withSubscribedQueues)
         {
             var queues = withSubscribedQueues.Select(subscribedQueue => new CreateRabbitMqQueueRequest
             {
@@ -61,7 +44,7 @@ namespace Topica.RabbitMq.Providers
             
             _logger.LogInformation($"{nameof(RabbitMqExchangeProvider)}.{nameof(CreateTopicAsync)}: Created exchange {source}");
             
-            return _consumer;
+            return new object();
         }
     }
 }

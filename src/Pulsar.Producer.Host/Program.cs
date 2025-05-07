@@ -55,10 +55,7 @@ var host = Host.CreateDefaultBuilder()
 var cts = new CancellationTokenSource();
 
 var producerSettings = host.Services.GetService<ProducerSettings>();
-var topicProviderFactory = host.Services.GetService<ITopicProviderFactory>();
-
-var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
-var producerBuilder = await topicProvider.CreateTopicAsync(producerSettings);
+var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("Pulsar ProducerBuilder not found");
 var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("test-producer-1", producerSettings, cts.Token);
 
 var message = new MatchStartedMessage{ConversationId = Guid.NewGuid(), Name = "Stoke Poges"};

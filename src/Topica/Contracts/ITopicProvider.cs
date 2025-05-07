@@ -7,10 +7,7 @@ namespace Topica.Contracts
     {
         MessagingPlatform MessagingPlatform { get; }
         
-        Task<IConsumer> CreateTopicAsync(ConsumerSettings settings);
-        Task<IProducerBuilder> CreateTopicAsync(ProducerSettings settings);
-        
-        IConsumer GetConsumer();
-        IProducerBuilder GetProducerBuilder();
+        Task CreateTopicAsync(ConsumerSettings settings);
+        Task CreateTopicAsync(ProducerSettings settings);
     }
 }
