@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMq.Producer.Host.Messages.V1;
@@ -24,6 +25,13 @@ var host = Host.CreateDefaultBuilder()
     )
     .ConfigureServices(services =>
     {
+        services.AddLogging(configure => configure.AddSimpleConsole(x =>
+        {
+            x.IncludeScopes = false;
+            x.TimestampFormat = "[HH:mm:ss] ";
+            x.SingleLine = true;
+        }));
+        
         // Configuration
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var rabbitMqHostSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
@@ -31,7 +39,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ProducerSettings.SectionName).Get<ProducerSettings>();
+            return config.GetSection(ProducerSettings.SectionName).Get<ProducerSettings>() ?? throw new InvalidOperationException("ConsumerSettings not found");
         });
 
         // Add MessagingPlatform Components

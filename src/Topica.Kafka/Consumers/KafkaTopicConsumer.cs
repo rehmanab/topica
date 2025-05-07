@@ -45,7 +45,7 @@ namespace Topica.Kafka.Consumers
             
             consumer.Subscribe(consumerSettings.Source);
             
-            _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Subscribed: {consumerSettings.Source}");
+            _logger.LogInformation("{KafkaTopicConsumerName}: Subscribed: {ConsumerSettingsSource}", nameof(KafkaTopicConsumer), consumerSettings.Source);
 
             await Task.Run(async () =>
             {
@@ -64,7 +64,7 @@ namespace Topica.Kafka.Consumers
                 }
 
                 consumer.Dispose();
-                _logger.LogInformation($"{nameof(KafkaTopicConsumer)}: Disposed");
+                _logger.LogInformation("{KafkaTopicConsumerName}: Disposed", nameof(KafkaTopicConsumer));
 
             }, cancellationToken)
                 .ContinueWith(x =>

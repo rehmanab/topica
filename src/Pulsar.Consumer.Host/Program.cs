@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Pulsar.Consumer.Host;
 using Pulsar.Consumer.Host.Settings;
 using Topica.Settings;
@@ -19,6 +20,13 @@ var host = Host.CreateDefaultBuilder()
     )
     .ConfigureServices(services =>
     {
+        services.AddLogging(configure => configure.AddSimpleConsole(x =>
+        {
+            x.IncludeScopes = false;
+            x.TimestampFormat = "[HH:mm:ss] ";
+            x.SingleLine = true;
+        }));
+        
         // Configuration
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
@@ -26,7 +34,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>();
+            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new InvalidOperationException("ConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components
