@@ -4,6 +4,7 @@ services:
   broker:
     image: confluentinc/cp-server:7.9.0
     hostname: broker
+    restart: unless-stopped
     container_name: broker
     ports:
       - "9092:9092"
@@ -39,6 +40,7 @@ services:
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.9.0
     hostname: control-center
+    restart: unless-stopped
     container_name: control-center
     depends_on:
       - broker
