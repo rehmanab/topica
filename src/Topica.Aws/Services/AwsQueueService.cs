@@ -9,7 +9,6 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Message = Amazon.SimpleNotificationService.Util.Message;

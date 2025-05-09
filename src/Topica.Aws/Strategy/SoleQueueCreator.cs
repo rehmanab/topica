@@ -22,7 +22,7 @@ namespace Topica.Aws.Strategy
         public async Task<string> CreateQueue(string queueName, QueueConfiguration? configuration)
         {
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
-            if (isFifo) queueName = queueName.Replace(".fifo", string.Empty);
+            if (isFifo) queueName = queueName.Replace(FifoQueueSuffix, string.Empty);
             
             var request = new CreateQueueRequest
             {
