@@ -8,8 +8,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Topica\Topica.csproj" />
-        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.3.92" />
-        <PackageReference Include="AWSSDK.SQS" Version="3.7.2.89" />
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0.2" />
+        <PackageReference Include="AWSSDK.SQS" Version="4.0.0.2" />
     </ItemGroup>
 
     <ItemGroup>

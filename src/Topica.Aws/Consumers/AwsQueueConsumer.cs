@@ -17,14 +17,16 @@ namespace Topica.Aws.Consumers
 {
     public class AwsQueueConsumer : IConsumer
     {
+        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly IAmazonSQS _client;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IAwsQueueService _awsQueueService;
         private readonly ResiliencePipeline _retryPipeline;
         private readonly ILogger<AwsQueueConsumer> _logger;
 
-        public AwsQueueConsumer(IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, ILogger<AwsQueueConsumer> logger)
+        public AwsQueueConsumer(ITopicProviderFactory topicProviderFactory, IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, ILogger<AwsQueueConsumer> logger)
         {
+            _topicProviderFactory = topicProviderFactory;
             _client = client;
             _messageHandlerExecutor = messageHandlerExecutor;
             _awsQueueService = awsQueueService;
@@ -42,14 +44,14 @@ namespace Topica.Aws.Consumers
             _logger = logger;
         }
 
-        public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
+        public async Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
+            await _topicProviderFactory.Create(MessagingPlatform.Aws).CreateTopicAsync(consumerSettings);
+
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
                 _retryPipeline.ExecuteAsync(x => StartAsync($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
             });
-            
-            return Task.CompletedTask;
         }
 
         private async ValueTask StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
@@ -72,6 +74,12 @@ namespace Topica.Aws.Consumers
                 {
                     var receiveMessageResponse = await _client.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
 
+                    if (receiveMessageResponse?.Messages == null)
+                    {
+                        await Task.Delay(1000, cancellationToken);
+                        continue;
+                    }
+                    
                     foreach (var message in receiveMessageResponse.Messages)
                     {
                         _logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));

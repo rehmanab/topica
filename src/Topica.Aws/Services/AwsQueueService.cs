@@ -250,6 +250,8 @@ namespace Topica.Aws.Services
         {
             var response = await _client.ListQueuesAsync(queueNamePrefix);
             var queueUrls = response.QueueUrls;
+            
+            if (queueUrls == null || !queueUrls.Any()) return [];
 
             var items = new List<string>();
             foreach (var queueUrl in queueUrls)

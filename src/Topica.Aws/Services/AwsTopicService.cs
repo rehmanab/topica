@@ -7,71 +7,69 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Topica.Messages;
 
 namespace Topica.Aws.Services
 {
-    public class AwsTopicService : IAwsTopicService
+    public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicService> logger) : IAwsTopicService
     {
-        private readonly IAwsPolicyBuilder _awsPolicyBuilder;
-        private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
-        private readonly ILogger<AwsTopicService> _logger;
-        private readonly IAmazonSimpleNotificationService _snsClient;
-        private readonly IAwsQueueService _awsQueueService;
-
-        public AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, 
-            IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicService> logger)
+        private const string FifoTopicSuffix = ".fifo";
+        
+        public async Task<string?> GetTopicArnAsync(string topicName, bool isFifo)
         {
-            _snsClient = snsClient;
-            _awsQueueService = awsQueueService;
-            _awsPolicyBuilder = awsPolicyBuilder;
-            _sqsConfigurationBuilder = sqsConfigurationBuilder;
-            _logger = logger;
-        }
+            string? topicArnFound = null;
+            var found = false;
+            var nextToken = string.Empty;
 
-        public async Task<string?> GetTopicArnAsync(string topicName)
-        {
-            var topic = await _snsClient.FindTopicAsync(topicName);
+            do
+            {
+                var response = await snsClient.ListTopicsAsync(nextToken);
+                if (response?.Topics == null) break;
 
-            return !string.IsNullOrWhiteSpace(topic?.TopicArn) ? topic.TopicArn : null;
+                topicArnFound = response.Topics.Select(x => x.TopicArn).SingleOrDefault(y => y.ToLower().EndsWith($"{topicName.ToLower()}{(isFifo && !topicName.ToLower().EndsWith(FifoTopicSuffix) ? FifoTopicSuffix : "")}"));
+                if (!string.IsNullOrWhiteSpace(topicArnFound)) found = true;
+                nextToken = response.NextToken;
+            }
+            while (!found && !string.IsNullOrEmpty(nextToken));
+
+            return !string.IsNullOrWhiteSpace(topicArnFound) ? topicArnFound : null;
         }
 
         public async Task<bool> TopicExistsAsync(string topicName)
         {
-            return !string.IsNullOrWhiteSpace(await GetTopicArnAsync(topicName));
+            return !string.IsNullOrWhiteSpace(await GetTopicArnAsync(topicName, false));
         }
 
         public async Task AuthorizeS3ToPublishByTopicNameAsync(string topicName, string bucketName)
         {
-            var topicArn = await GetTopicArnAsync(topicName);
+            var topicArn = await GetTopicArnAsync(topicName, false);
 
             await AuthorizeS3ToPublishByTopicArnAsync(topicArn, bucketName);
         }
 
         public async Task AuthorizeS3ToPublishByTopicArnAsync(string? topicArn, string bucketName)
         {
-            await _snsClient.AuthorizeS3ToPublishAsync(topicArn, bucketName);
+            await snsClient.AuthorizeS3ToPublishAsync(topicArn, bucketName);
         }
 
-        public async Task<string?> CreateTopicArnAsync(string topicName, bool? isFifoQueue)
+        public async Task<string?> CreateTopicArnAsync(string topicName, bool isFifoQueue)
         {
-            var topicArn = await GetTopicArnAsync(topicName);
+            var topicArn = await GetTopicArnAsync(topicName, isFifoQueue);
 
             if (!string.IsNullOrWhiteSpace(topicArn))
             {
-                _logger.LogInformation("SNS: CreateTopicArnAsync topic {Name} already exists!", topicName);
+                logger.LogInformation("SNS: CreateTopicArnAsync topic {Name} already exists!", topicName);
                 return topicArn;
             }
 
             var createTopicRequest = new CreateTopicRequest
             {
-                Name = $"{topicName}{(isFifoQueue.HasValue && isFifoQueue.Value && !topicName.EndsWith(".fifo") ? ".fifo" : "")}",
-                Attributes = new Dictionary<string, string>{{"FifoTopic", isFifoQueue.HasValue && isFifoQueue.Value ? "true" : "false"}}
+                Name = $"{topicName}{(isFifoQueue && !topicName.EndsWith(FifoTopicSuffix) ? FifoTopicSuffix : "")}",
+                Attributes = new Dictionary<string, string>{{"FifoTopic", isFifoQueue ? "true" : "false"}}
             };
-            var response = await _snsClient.CreateTopicAsync(createTopicRequest);
+            var response = await snsClient.CreateTopicAsync(createTopicRequest);
 
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
@@ -85,14 +83,14 @@ namespace Topica.Aws.Services
             };
 
             //TODO - use polly for retry incase topic has just been created
-            var publishResponse = await _snsClient.PublishAsync(request);
+            var publishResponse = await snsClient.PublishAsync(request);
 
-            _logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
+            logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
         }
 
         public async Task SendToTopicByTopicNameAsync(string topicName, Message message)
         {
-            var topicArn = await GetTopicArnAsync(topicName);
+            var topicArn = await GetTopicArnAsync(topicName, false);
 
             await SendToTopicAsync(topicArn, message);
         }
@@ -106,7 +104,12 @@ namespace Topica.Aws.Services
 
         public async Task<IEnumerable<string>> ListTopicSubscriptionsAsync(string? topicArn)
         {
-            var response = await _snsClient.ListSubscriptionsByTopicAsync(topicArn, string.Empty);
+            var response = await snsClient.ListSubscriptionsByTopicAsync(topicArn, string.Empty);
+            
+            if (response?.Subscriptions == null)
+            {
+                return new List<string>();
+            }
 
             return response.HttpStatusCode == HttpStatusCode.OK ? response.Subscriptions.Select(x => x.Endpoint) : new List<string>();
         }
@@ -115,64 +118,64 @@ namespace Topica.Aws.Services
         {
             return await CreateTopicWithOptionalQueuesSubscribedAsync
             (
-                topicName, queueNames, _sqsConfigurationBuilder.BuildWithCreationTypeQueue(QueueCreationType.SoleQueue)
+                topicName, queueNames, sqsConfigurationBuilder.BuildWithCreationTypeQueue(QueueCreationType.SoleQueue)
             );
         }
 
         public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, QueueConfiguration? queueConfiguration)
         {
-            queueConfiguration ??= _sqsConfigurationBuilder.BuildQueue();
+            queueConfiguration ??= sqsConfigurationBuilder.BuildQueue();
             
             var topicArn = await CreateTopicArnAsync(topicName, queueConfiguration.QueueAttributes.IsFifoQueue);
 
             foreach (var queueName in queueNames)
             {
-                _logger.LogDebug($"SNS: getting queueUrl for: {queueName}");
-                var queueUrl = await _awsQueueService.GetQueueUrlAsync(queueName);
+                logger.LogDebug("SNS: getting queueUrl for: {QueueName}", queueName);
+                var queueUrl = await awsQueueService.GetQueueUrlAsync(queueName);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    _logger.LogDebug("SNS: queue does not exist, creating queue");
-                    queueUrl = await _awsQueueService.CreateQueueAsync(queueName, queueConfiguration);
-                    _logger.LogDebug($"SNS: queue created, queueUrl: {queueUrl}");
+                    logger.LogDebug("SNS: queue does not exist, creating queue");
+                    queueUrl = await awsQueueService.CreateQueueAsync(queueName, queueConfiguration);
+                    logger.LogDebug("SNS: queue created, queueUrl: {QueueUrl}", queueUrl);
                 }
 
-                var properties = await _awsQueueService.GetAttributesByQueueUrl(queueUrl, new List<string> { AwsQueueAttributes.QueueArnName });
+                var properties = await awsQueueService.GetAttributesByQueueUrl(queueUrl, new List<string> { AwsQueueAttributes.QueueArnName });
 
                 var queueArn = properties[AwsQueueAttributes.QueueArnName];
-                _logger.LogDebug($"SNS: got queue Arn: {queueArn}");
+                logger.LogDebug("SNS: got queue Arn: {QueueArn}", queueArn);
 
                 if (!await SubscriptionExistsAsync(topicArn, queueArn))
                 {
-                    await _snsClient.SubscribeAsync(topicArn, "sqs", queueArn);
-                    _logger.LogDebug("SNS: NEW subscription to topic create");
+                    await snsClient.SubscribeAsync(topicArn, "sqs", queueArn);
+                    logger.LogDebug("SNS: NEW subscription to topic create");
                 }
                 else
                 {
-                    _logger.LogDebug("SNS: queue ALREADY subscribed to topic");
+                    logger.LogDebug("SNS: queue ALREADY subscribed to topic");
                 }
 
                 //TODO - Get properties from above and create method to parse policy, check if already has allow all users to send message from topic?
                 //Set access policy
-                var accessPolicy = _awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
-                if(await _awsQueueService.UpdateQueueAttributesAsync(queueUrl, _sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
-                    _logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
+                var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
+                if(await awsQueueService.UpdateQueueAttributesAsync(queueUrl, sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
+                    logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
                 else
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");
             }
 
-            _logger.LogDebug("SNS: Done !");
+            logger.LogDebug("SNS: Done !");
 
             return topicArn;
         }
 
         public async Task<bool> DeleteTopicArnAsync(string topicName)
         {
-            var response = await _snsClient.DeleteTopicAsync(topicName);
+            var response = await snsClient.DeleteTopicAsync(topicName);
 
             var success = response.HttpStatusCode == HttpStatusCode.OK;
 
-            _logger.LogDebug(success
+            logger.LogDebug(success
                 ? $"SNS: deleted topic: {topicName}"
                 : $"SNS: error deleting topic: {topicName}, response: {JsonConvert.SerializeObject(response)}");
 

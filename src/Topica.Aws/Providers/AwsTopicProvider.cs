@@ -65,7 +65,7 @@ namespace Topica.Aws.Providers
 
             var topic = await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
             
-            logger.LogInformation($"{nameof(AwsTopicProvider)}.{nameof(CreateTopicAsync)}: Created topic {topic}");
+            logger.LogInformation("{AwsTopicProviderName}.{CreateTopicAsyncName}: Created topic {Topic}", nameof(AwsTopicProvider), nameof(CreateTopicAsync), topic);
         }
     }
 }

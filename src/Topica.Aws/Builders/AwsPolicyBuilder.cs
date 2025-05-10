@@ -1,11 +1,9 @@
 ﻿using System;
 using Amazon.Auth.AccessControlPolicy;
-using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
 using Topica.Aws.Contracts;
 
 namespace Topica.Aws.Builders
 {
-    //TODO - support multiple account? arn:aws:sns:aws-region:account-id:topic-name, can use wildcards?
     public class AwsPolicyBuilder : IAwsPolicyBuilder
     {
         public string BuildQueueAllowPolicyForTopicToSendMessage(string queueUrl, string queueArn, string topicArn)
@@ -13,7 +11,7 @@ namespace Topica.Aws.Builders
             const Statement.StatementEffect statementEffect = Statement.StatementEffect.Allow;
             var sourceArnWildcard = CreateResourceArnWildcard(topicArn);
             var principals = new[] { Principal.AllUsers };
-            var actionIdentifiers = new[] { SQSActionIdentifiers.SendMessage };
+            var actionIdentifiers = new[] { new ActionIdentifier("sqs:SendMessage") };
 
             return BuildAwsPolicy(statementEffect, queueArn, sourceArnWildcard, principals, actionIdentifiers).ToJson();
         }
