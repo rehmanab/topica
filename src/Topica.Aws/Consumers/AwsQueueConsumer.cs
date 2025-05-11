@@ -83,7 +83,7 @@ namespace Topica.Aws.Consumers
                     
                     foreach (var message in receiveMessageResponse.Messages.OfType<Message>())
                     {
-                        _logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));
+                        // _logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));
                         
                         var baseMessage = BaseMessage.Parse<BaseMessage>(message.Body);
                         var messageBody = message.Body;
@@ -108,17 +108,13 @@ namespace Topica.Aws.Consumers
                         }
 
                         var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, messageBody);
-                        _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                        _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
                         
                         if (!success) continue;
 
                         if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {
                             _logger.LogError("{AwsQueueConsumerName}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
-                        }
-                        else
-                        {
-                            _logger.LogDebug("{AwsQueueConsumerName}: {ConsumerName}: Success, deleting message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
                         }
                     }
 

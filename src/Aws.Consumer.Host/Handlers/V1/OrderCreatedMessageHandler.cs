@@ -8,7 +8,7 @@ namespace Aws.Consumer.Host.Handlers.V1
     {
         public async Task<bool> HandleAsync(OrderCreatedMessageV1 source)
         {
-            logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Order: {OrderName}", nameof(OrderCreatedMessageV1), source.ConversationId, source.Name);
+            // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Order: {OrderName}", nameof(OrderCreatedMessageV1), source.ConversationId, source.ProductName);
             
             return await Task.FromResult(true);
         }

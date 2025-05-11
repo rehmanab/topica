@@ -158,10 +158,9 @@ namespace Topica.Aws.Services
                 }
 
                 //Set access policy
-                var awsPolicyBuilder = new AwsPolicyBuilder();
-                var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn);
-                if (await awsQueueService.UpdateQueueAttributesAsync(queueUrl, new SqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy = accessPolicy} }))
-                    Console.WriteLine("SNS: Updated queue policy to allow messages from topic");
+                var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
+                if(await awsQueueService.UpdateQueueAttributesAsync(queueUrl, sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
+                    logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
                 else
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");
             }

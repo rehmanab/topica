@@ -27,7 +27,7 @@ namespace Topica.Executors
                 return (handlerImpl.GetType().Name, false);
             }
             
-            _logger.LogDebug($"**** {handlerImpl.GetType().Name} Execution STARTED ****");
+            // _logger.LogDebug($"**** {handlerImpl.GetType().Name} Execution STARTED ****");
             return (handlerImpl.GetType().Name, await (Task<bool>)methodToExecute);
         }
     }
