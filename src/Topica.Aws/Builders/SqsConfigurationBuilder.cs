@@ -8,29 +8,29 @@ namespace Topica.Aws.Builders
     {
         private const int DefaultMaxReceiveCount = 3;
 
-        public QueueConfiguration BuildQueue()
+        public SqsConfiguration BuildQueue()
         {
             return BuildQueue(GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes)
+        public SqsConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes)
         {
-            return new QueueConfiguration { QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes) };
+            return new SqsConfiguration { QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes) };
         }
 
-        public QueueConfiguration BuildDefaultQueueWithErrorQueue()
+        public SqsConfiguration BuildDefaultQueueWithErrorQueue()
         {
             return BuildQueueWithErrorQueue(DefaultMaxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
+        public SqsConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
         {
             return BuildQueueWithErrorQueue(maxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public QueueConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
+        public SqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
         {
-            var config = new QueueConfiguration
+            var config = new SqsConfiguration
             {
                 CreateErrorQueue = true,
                 MaxReceiveCount = maxReceiveCount,
@@ -40,9 +40,9 @@ namespace Topica.Aws.Builders
             return config;
         }
 
-        public QueueConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType)
+        public SqsConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType)
         {
-            QueueConfiguration configuration;
+            SqsConfiguration configuration;
             switch (queueCreationType)
             {
                 case QueueCreationType.SoleQueue:
@@ -58,9 +58,9 @@ namespace Topica.Aws.Builders
             return configuration;
         }
 
-        public QueueConfiguration BuildUpdatePolicyQueue(string policy)
+        public SqsConfiguration BuildUpdatePolicyQueue(string policy)
         {
-            return new QueueConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
+            return new SqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
         }
 
         private static AwsQueueAttributes GetDefaultQueueAttributes(AwsQueueAttributes? awsQueueAttributeOverrides = null)

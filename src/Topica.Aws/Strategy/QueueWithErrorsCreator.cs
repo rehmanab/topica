@@ -23,7 +23,7 @@ namespace Topica.Aws.Strategy
             _client = client;
         }
 
-        public async Task<string> CreateQueue(string queueName, QueueConfiguration? configuration)
+        public async Task<string> CreateQueue(string queueName, SqsConfiguration? configuration)
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
@@ -39,12 +39,12 @@ namespace Topica.Aws.Strategy
             return mainQueueUrl;
         }
 
-        private async Task<string> InternalCreateErrorQueue(string queueName, QueueConfiguration? configuration)
+        private async Task<string> InternalCreateErrorQueue(string queueName, SqsConfiguration? configuration)
         {
             return await InternalCreateQueue(queueName, configuration.QueueAttributes.GetAttributeDictionary());
         }
 
-        private async Task<string> InternalMainCreateQueue(string queueName, QueueConfiguration? configuration, string? redrivePolicy)
+        private async Task<string> InternalMainCreateQueue(string queueName, SqsConfiguration? configuration, string? redrivePolicy)
         {
             var attributeDictionary = configuration.QueueAttributes.GetAttributeDictionary();
             attributeDictionary.Add(AwsQueueAttributes.RedrivePolicyName, redrivePolicy);

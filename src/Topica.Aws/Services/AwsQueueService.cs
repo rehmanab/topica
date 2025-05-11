@@ -10,26 +10,19 @@ using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Aws.Contracts;
+using Topica.Aws.Messages;
 using Topica.Aws.Queues;
-using Message = Amazon.SimpleNotificationService.Util.Message;
+using Topica.Messages;
 
 namespace Topica.Aws.Services
 {
-    public class AwsQueueService : IAwsQueueService
+    public class AwsQueueService(
+        IAmazonSQS client,
+        IQueueCreationFactory queueCreationFactory,
+        ISqsConfigurationBuilder sqsConfigurationBuilder,
+        ILogger<AwsQueueService> logger) : IAwsQueueService
     {
         private const string AwsNonExistentQueue = "AWS.SimpleQueueService.NonExistentQueue";
-        private readonly IAmazonSQS _client;
-        private readonly IQueueCreationFactory _queueCreationFactory;
-        private readonly ILogger<AwsQueueService> _logger;
-        private readonly ISqsConfigurationBuilder _sqsConfigurationBuilder;
-
-        public AwsQueueService(IAmazonSQS client, IQueueCreationFactory queueCreationFactory, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsQueueService> logger)
-        {
-            _client = client;
-            _queueCreationFactory = queueCreationFactory;
-            _logger = logger;
-            _sqsConfigurationBuilder = sqsConfigurationBuilder;
-        }
 
         public async Task<bool> QueueExistsByNameAsync(string queueName)
         {
@@ -50,17 +43,17 @@ namespace Topica.Aws.Services
             {
                 if (ex.ErrorCode == AwsNonExistentQueue) return false;
 
-                _logger.LogError(ex, $"SQS: Error - {ex.Message}");
+                logger.LogError(ex, "SQS: Error - {ExMessage}", ex.Message);
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"SQS: Error - {ex.Message}");
+                logger.LogError(ex, "SQS: Error - {ExMessage}", ex.Message);
                 throw;
             }
         }
 
-        public async Task<string> GetQueueUrlAsync(string queueName)
+        public async Task<string?> GetQueueUrlAsync(string queueName)
         {
             var queueUrl = (await GetQueueUrlsAsync(queueName, false))
                 .ToList()
@@ -96,7 +89,7 @@ namespace Topica.Aws.Services
                 QueueUrl = queueUrl
             };
 
-            var queueAttributes = (await _client.GetQueueAttributesAsync(getQueueAttributesRequest)).Attributes;
+            var queueAttributes = (await client.GetQueueAttributesAsync(getQueueAttributesRequest)).Attributes;
             queueAttributes.Add("QueueUrl", queueUrl);
 
             return queueAttributes;
@@ -104,34 +97,34 @@ namespace Topica.Aws.Services
 
         public async Task<string> CreateQueueAsync(string queueName, QueueCreationType queueCreationType)
         {
-            var configuration = _sqsConfigurationBuilder.BuildWithCreationTypeQueue(queueCreationType);
+            var configuration = sqsConfigurationBuilder.BuildWithCreationTypeQueue(queueCreationType);
 
             return await CreateQueueAsync(queueName, configuration);
         }
 
-        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, QueueConfiguration queueConfiguration)
+        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, SqsConfiguration sqsConfiguration)
         {
             foreach (var queueName in queueNames)
             {
-                yield return await CreateQueueAsync(queueName, queueConfiguration);
+                yield return await CreateQueueAsync(queueName, sqsConfiguration);
             }
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, QueueConfiguration queueConfiguration)
+        public async Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration)
         {
-            var createQueueType = queueConfiguration.CreateErrorQueue.HasValue && queueConfiguration.CreateErrorQueue.Value
+            var createQueueType = sqsConfiguration.CreateErrorQueue.HasValue && sqsConfiguration.CreateErrorQueue.Value
                 ? QueueCreationType.WithErrorQueue
                 : QueueCreationType.SoleQueue;
 
-            var queueCreator = _queueCreationFactory.Create(createQueueType);
+            var queueCreator = queueCreationFactory.Create(createQueueType);
 
-            return await queueCreator.CreateQueue(queueName, queueConfiguration);
+            return await queueCreator.CreateQueue(queueName, sqsConfiguration);
         }
 
         //TODO - Update method to update all error queues redrive MaxReceiveCount property
-        public async Task<bool> UpdateQueueAttributesAsync(string queueUrl, QueueConfiguration configuration)
+        public async Task<bool> UpdateQueueAttributesAsync(string queueUrl, SqsConfiguration configuration)
         {
-            var response = await _client.SetQueueAttributesAsync(queueUrl, configuration.QueueAttributes.GetAttributeDictionary());
+            var response = await client.SetQueueAttributesAsync(queueUrl, configuration.QueueAttributes.GetAttributeDictionary());
 
             return response.HttpStatusCode == HttpStatusCode.OK;
         }
@@ -150,7 +143,7 @@ namespace Topica.Aws.Services
                 sendMessageRequest.MessageDeduplicationId = Guid.NewGuid().ToString();
             }
 
-            var result = await _client.SendMessageAsync(sendMessageRequest);
+            var result = await client.SendMessageAsync(sendMessageRequest);
 
             return result.HttpStatusCode == HttpStatusCode.OK;
         }
@@ -181,58 +174,66 @@ namespace Topica.Aws.Services
                 Entries = requestEntries
             };
 
-            _logger.LogDebug($"SQS: sending multiple batched : {requestEntries.Count} messages");
-            var response = await _client.SendMessageBatchAsync(request);
-            _logger.LogError($"SQS: {response.Successful.Count} messages sent");
+            logger.LogDebug($"SQS: sending multiple batched : {requestEntries.Count} messages");
+            var response = await client.SendMessageBatchAsync(request);
+            logger.LogError($"SQS: {response.Successful.Count} messages sent");
 
             if (!response.Failed.Any())
             {
                 return true;
             }
             
-            _logger.LogError($"SQS: {response.Failed.Count} messages failed to send");
+            logger.LogError($"SQS: {response.Failed.Count} messages failed to send");
             foreach (var failed in response.Failed)
             {
-                _logger.LogError($"SQS: failed messageId: {failed.Id}, Code: {failed.Code}, Message: {failed.Message}, SenderFault: {failed.SenderFault}");
+                logger.LogError($"SQS: failed messageId: {failed.Id}, Code: {failed.Code}, Message: {failed.Message}, SenderFault: {failed.SenderFault}");
             }
 
             return false;
         }
 
-        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : Messages.Message
+        public async IAsyncEnumerable<T> StartReceive<T>(string queueUrl, [EnumeratorCancellation] CancellationToken cancellationToken = default) where T : BaseMessage
         {
             var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl };
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var receiveMessageResponse = await _client.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
+                var receiveMessageResponse = await client.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
 
+                if (receiveMessageResponse?.Messages == null)
+                {
+                    await Task.Delay(1000, cancellationToken);
+                    continue;
+                }
+                
                 foreach (var message in receiveMessageResponse.Messages)
                 {
-                    _logger.LogDebug($"SQS: Original Message from AWS: {JsonConvert.SerializeObject(message)}");
+                    if(message == null) continue;
+                    
+                    logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));
 
                     //Serialise normal SQS message body
-                    Messages.Message baseMessage = JsonConvert.DeserializeObject<T>(message.Body)!;
-                    baseMessage.Type = "Queue";
-
-                    if (baseMessage.ConversationId == Guid.Empty)
+                    var baseMessage = BaseMessage.Parse<BaseMessage>(message.Body);
+                    var messageBody = message.Body;
+                    
+                    if (baseMessage == null)
                     {
-                        //Otherwise serialise to an SnsMessage
-                        var snsMessage = Message.ParseMessage(message.Body);
-                        baseMessage = JsonConvert.DeserializeObject<T>(snsMessage.MessageText)!;
-                        if (baseMessage.ConversationId == Guid.Empty)
-                        {
-                            _logger.LogError("SQS: Error: could not convert message to base message");
-                            continue;
-                        }
-
-                        baseMessage.Type = snsMessage.Type;
+                        logger.LogWarning("SQS: message body could not be serialized into Message ({MessageId}): {MessageBody}", message.MessageId, message.Body);
+                        continue;
                     }
                     
-                    _logger.LogDebug($"SQS: baseMessage: {JsonConvert.SerializeObject(baseMessage)}");
-
-                    baseMessage.Id = message.MessageId;
-                    baseMessage.ReceiptReference = message.ReceiptHandle;
+                    // SNS notification sent, our message will be the Message property
+                    if (baseMessage.Type == "Notification")
+                    {
+                        var notification = AwsNotification.Parse(messageBody);
+                        if (notification == null)
+                        {
+                            logger.LogError("SQS: Error: could not convert Notification to AwsNotification object");
+                            continue;
+                        }
+                        baseMessage = BaseMessage.Parse<BaseMessage>(notification.Message);
+                        messageBody = notification.Message;
+                    }
 
                     yield return (T)baseMessage;
                 }
@@ -241,14 +242,14 @@ namespace Topica.Aws.Services
 
         public async Task<bool> DeleteMessageAsync(string queueUrl, string receiptHandle)
         {
-            var response = await _client.DeleteMessageAsync(queueUrl, receiptHandle);
+            var response = await client.DeleteMessageAsync(queueUrl, receiptHandle);
 
             return response.HttpStatusCode == HttpStatusCode.OK;
         }
 
         private async Task<IEnumerable<string>> GetQueueUrlsAsync(string queueNamePrefix, bool nameOnly)
         {
-            var response = await _client.ListQueuesAsync(queueNamePrefix);
+            var response = await client.ListQueuesAsync(queueNamePrefix);
             var queueUrls = response.QueueUrls;
             
             if (queueUrls == null || !queueUrls.Any()) return [];

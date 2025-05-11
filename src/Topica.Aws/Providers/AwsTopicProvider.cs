@@ -55,15 +55,15 @@ namespace Topica.Aws.Providers
                 ReceiveMessageWaitTimeSeconds = awsReceiveMessageWaitTimeSeconds
             };
             
-            var queueConfiguration = sqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
+            var sqsConfiguration = sqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
             
             if (awsBuildWithErrorQueue)
             {
-                queueConfiguration.CreateErrorQueue = true;
-                queueConfiguration.MaxReceiveCount = awsErrorQueueMaxReceiveCount ?? ErrorQueueMaxReceiveCountDefault;
+                sqsConfiguration.CreateErrorQueue = true;
+                sqsConfiguration.MaxReceiveCount = awsErrorQueueMaxReceiveCount ?? ErrorQueueMaxReceiveCountDefault;
             }
 
-            var topic = await creator.WithQueueConfiguration(queueConfiguration).BuildAsync();
+            var topic = await creator.WithSqsConfiguration(sqsConfiguration).BuildAsync();
             
             logger.LogInformation("{AwsTopicProviderName}.{CreateTopicAsyncName}: Created topic {Topic}", nameof(AwsTopicProvider), nameof(CreateTopicAsync), topic);
         }

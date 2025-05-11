@@ -4,23 +4,21 @@ using Topica.Contracts;
 
 namespace Aws.Consumer.Host.Handlers.V1
 {
-    public class OrderCreatedMessageHandler : IHandler<OrderCreatedMessage>
+    public class OrderCreatedMessageHandler(ILogger<OrderCreatedMessageHandler> logger) : IHandler<OrderCreatedMessageV1>
     {
-        private readonly ILogger<OrderCreatedMessageHandler> _logger;
-
-        public OrderCreatedMessageHandler(ILogger<OrderCreatedMessageHandler> logger)
+        public async Task<bool> HandleAsync(OrderCreatedMessageV1 source)
         {
-            _logger = logger;
-        }
-        
-        public async Task<bool> HandleAsync(OrderCreatedMessage source)
-        {
-            _logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Order: {OrderName}", nameof(OrderCreatedMessage), source.ConversationId, source.Name);
+            logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Order: {OrderName}", nameof(OrderCreatedMessageV1), source.ConversationId, source.Name);
             
             return await Task.FromResult(true);
         }
 
-        public bool ValidateMessage(OrderCreatedMessage message)
+        /// <summary>
+        /// Validate the message type equals the message name and can validate any properties for the message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns>True if Valid</returns>
+        public bool ValidateMessage(OrderCreatedMessageV1 message)
         {
             return true;
         }

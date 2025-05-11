@@ -6,7 +6,7 @@ namespace Topica.Aws.Contracts
 {
     public interface IQueueOptionalSettings
     {
-        IQueueOptionalSettings WithQueueConfiguration(QueueConfiguration? sqsConfiguration);
+        IQueueOptionalSettings WithSqsConfiguration(SqsConfiguration? sqsConfiguration);
         Task<IEnumerable<string>> BuildAsync();
     }
 }

@@ -7,6 +7,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Topica.Aws.Builders;
 using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Topica.Messages;
@@ -15,7 +16,7 @@ namespace Topica.Aws.Services
 {
     public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicService> logger) : IAwsTopicService
     {
-        private const string FifoTopicSuffix = ".fifo";
+        private const string FifoSuffix = ".fifo";
         
         public async Task<string?> GetTopicArnAsync(string topicName, bool isFifo)
         {
@@ -28,7 +29,7 @@ namespace Topica.Aws.Services
                 var response = await snsClient.ListTopicsAsync(nextToken);
                 if (response?.Topics == null) break;
 
-                topicArnFound = response.Topics.Select(x => x.TopicArn).SingleOrDefault(y => y.ToLower().EndsWith($"{topicName.ToLower()}{(isFifo && !topicName.ToLower().EndsWith(FifoTopicSuffix) ? FifoTopicSuffix : "")}"));
+                topicArnFound = response.Topics.Select(x => x.TopicArn).SingleOrDefault(y => y.ToLower().EndsWith($"{topicName.ToLower()}{(isFifo && !topicName.ToLower().EndsWith(FifoSuffix) ? FifoSuffix : "")}"));
                 if (!string.IsNullOrWhiteSpace(topicArnFound)) found = true;
                 nextToken = response.NextToken;
             }
@@ -66,7 +67,7 @@ namespace Topica.Aws.Services
 
             var createTopicRequest = new CreateTopicRequest
             {
-                Name = $"{topicName}{(isFifoQueue && !topicName.EndsWith(FifoTopicSuffix) ? FifoTopicSuffix : "")}",
+                Name = $"{topicName}{(isFifoQueue && !topicName.EndsWith(FifoSuffix) ? FifoSuffix : "")}",
                 Attributes = new Dictionary<string, string>{{"FifoTopic", isFifoQueue ? "true" : "false"}}
             };
             var response = await snsClient.CreateTopicAsync(createTopicRequest);
@@ -74,7 +75,7 @@ namespace Topica.Aws.Services
             return response.HttpStatusCode == HttpStatusCode.OK ? response.TopicArn : null;
         }
 
-        public async Task SendToTopicAsync(string? topicArn, Message message)
+        public async Task SendToTopicAsync(string? topicArn, BaseMessage message)
         {
             var request = new PublishRequest
             {
@@ -88,7 +89,7 @@ namespace Topica.Aws.Services
             logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
         }
 
-        public async Task SendToTopicByTopicNameAsync(string topicName, Message message)
+        public async Task SendToTopicByTopicNameAsync(string topicName, BaseMessage message)
         {
             var topicArn = await GetTopicArnAsync(topicName, false);
 
@@ -122,21 +123,22 @@ namespace Topica.Aws.Services
             );
         }
 
-        public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, QueueConfiguration? queueConfiguration)
+        public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, SqsConfiguration? sqsConfiguration)
         {
-            queueConfiguration ??= sqsConfigurationBuilder.BuildQueue();
+            sqsConfiguration ??= sqsConfigurationBuilder.BuildQueue();
             
-            var topicArn = await CreateTopicArnAsync(topicName, queueConfiguration.QueueAttributes.IsFifoQueue);
+            var topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
 
-            foreach (var queueName in queueNames)
+            foreach (var queue in queueNames)
             {
+                var queueName = $"{queue}{(sqsConfiguration.QueueAttributes.IsFifoQueue ? FifoSuffix : "")}";
                 logger.LogDebug("SNS: getting queueUrl for: {QueueName}", queueName);
                 var queueUrl = await awsQueueService.GetQueueUrlAsync(queueName);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
                     logger.LogDebug("SNS: queue does not exist, creating queue");
-                    queueUrl = await awsQueueService.CreateQueueAsync(queueName, queueConfiguration);
+                    queueUrl = await awsQueueService.CreateQueueAsync(queueName, sqsConfiguration);
                     logger.LogDebug("SNS: queue created, queueUrl: {QueueUrl}", queueUrl);
                 }
 
@@ -155,11 +157,11 @@ namespace Topica.Aws.Services
                     logger.LogDebug("SNS: queue ALREADY subscribed to topic");
                 }
 
-                //TODO - Get properties from above and create method to parse policy, check if already has allow all users to send message from topic?
                 //Set access policy
-                var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
-                if(await awsQueueService.UpdateQueueAttributesAsync(queueUrl, sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
-                    logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
+                var awsPolicyBuilder = new AwsPolicyBuilder();
+                var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn);
+                if (await awsQueueService.UpdateQueueAttributesAsync(queueUrl, new SqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy = accessPolicy} }))
+                    Console.WriteLine("SNS: Updated queue policy to allow messages from topic");
                 else
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");
             }

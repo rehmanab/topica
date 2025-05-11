@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Topica.Messages
 {
-    public class Message
+    public class BaseMessage
     {
-        protected Message()
+        protected BaseMessage()
         {
             TimeStampUtc = DateTime.UtcNow;
             Id = Guid.NewGuid().ToString();
@@ -23,5 +24,10 @@ namespace Topica.Messages
         public string Tenant { get; set; }
         public string ReceiptReference { get; set; }
         public IReadOnlyDictionary<string, string> AdditionalProperties { get; set; }
+        
+        public static BaseMessage Parse<T>(string messageBody) where T: BaseMessage
+        {
+            return JsonConvert.DeserializeObject<T>(messageBody);
+        }
     }
 }

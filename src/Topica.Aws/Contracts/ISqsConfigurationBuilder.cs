@@ -4,12 +4,12 @@ namespace Topica.Aws.Contracts
 {
     public interface ISqsConfigurationBuilder
     {
-        QueueConfiguration BuildQueue();
-        QueueConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes);
-        QueueConfiguration BuildDefaultQueueWithErrorQueue();
-        QueueConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount);
-        QueueConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes);
-        QueueConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType);
-        QueueConfiguration BuildUpdatePolicyQueue(string policy);
+        SqsConfiguration BuildQueue();
+        SqsConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes);
+        SqsConfiguration BuildDefaultQueueWithErrorQueue();
+        SqsConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount);
+        SqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes);
+        SqsConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType);
+        SqsConfiguration BuildUpdatePolicyQueue(string policy);
     }
 }

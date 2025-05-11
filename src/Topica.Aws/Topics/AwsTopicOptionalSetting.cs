@@ -12,7 +12,7 @@ namespace Topica.Aws.Topics
         private readonly IAwsTopicService _awsTopicService;
 
         private readonly IList<string> _queuesToAdd;
-        private QueueConfiguration? _queueConfiguration;
+        private SqsConfiguration? _sqsConfiguration;
 
         public AwsTopicOptionalSetting(string topicName, IAwsTopicService awsTopicService)
         {
@@ -33,15 +33,15 @@ namespace Topica.Aws.Topics
             return this;
         }
 
-        public IAwsTopicOptionalSetting WithQueueConfiguration(QueueConfiguration? sqsConfiguration)
+        public IAwsTopicOptionalSetting WithSqsConfiguration(SqsConfiguration? sqsConfiguration)
         {
-            _queueConfiguration = sqsConfiguration;
+            _sqsConfiguration = sqsConfiguration;
             return this;
         }
 
         public async Task<string> BuildAsync()
         {
-            return await _awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _queueConfiguration);
+            return await _awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
         }
     }
 }

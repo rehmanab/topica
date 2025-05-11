@@ -9,9 +9,10 @@ using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using Topica.Aws.Contracts;
+using Topica.Aws.Messages;
 using Topica.Contracts;
+using Topica.Messages;
 using Topica.Settings;
-using Message = Topica.Messages.Message;
 
 namespace Topica.Aws.Consumers
 {
@@ -80,26 +81,30 @@ namespace Topica.Aws.Consumers
                         continue;
                     }
                     
-                    foreach (var message in receiveMessageResponse.Messages)
+                    foreach (var message in receiveMessageResponse.Messages.OfType<Message>())
                     {
                         _logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));
                         
-                        //Serialise normal SQS message body
-                        var baseMessage = JsonConvert.DeserializeObject<Message>(message.Body);
+                        var baseMessage = BaseMessage.Parse<BaseMessage>(message.Body);
+                        var messageBody = message.Body;
 
                         if (baseMessage == null)
                         {
-                            _logger.LogWarning("SQS: message body could not be serialized into Message ({MessageId}): {MessageBody}", message.MessageId, message.Body);
+                            _logger.LogWarning("SQS: message body could not be serialized into BaseMessage ({MessageId}): {MessageBody}", message.MessageId, message.Body);
                             continue;
                         }
-
-                        var messageBody = message.Body;
                         
+                        // SNS notification sent, our message will be the Message property
                         if (baseMessage.Type == "Notification")
                         {
-                            //Otherwise serialise to an SnsMessage
-                            var snsMessage = Amazon.SimpleNotificationService.Util.Message.ParseMessage(message.Body);
-                            messageBody = snsMessage.MessageText;
+                            var notification = AwsNotification.Parse(messageBody);	
+                            if (notification == null)
+                            {
+                                _logger.LogError("SQS: Error: could not convert Notification to AwsNotification object");
+                                continue;
+                            }
+                            // baseMessage = BaseMessage.Parse<BaseMessage>(notification.Message);
+                            messageBody = notification.Message;
                         }
 
                         var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, messageBody);

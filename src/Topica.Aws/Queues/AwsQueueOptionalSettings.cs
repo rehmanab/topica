@@ -9,7 +9,7 @@ namespace Topica.Aws.Queues
     {
         private readonly IEnumerable<string> _queueNames;
         private readonly IAwsQueueService _awsQueueService;
-        private QueueConfiguration? _queueConfiguration = null!;
+        private SqsConfiguration? _sqsConfiguration = null!;
 
         public AwsQueueOptionalSettings(IAwsQueueService awsQueueService, IEnumerable<string> queueNames)
         {
@@ -23,15 +23,15 @@ namespace Topica.Aws.Queues
             _queueNames = new []{ queueName };
         }
 
-        public IQueueOptionalSettings WithQueueConfiguration(QueueConfiguration? queueConfiguration)
+        public IQueueOptionalSettings WithSqsConfiguration(SqsConfiguration? sqsConfiguration)
         {
-            _queueConfiguration = queueConfiguration;
+            _sqsConfiguration = sqsConfiguration;
             return this;
         }
 
         public async Task<IEnumerable<string>> BuildAsync()
         {
-            return await _awsQueueService.CreateQueuesAsync(_queueNames, _queueConfiguration ?? new QueueConfiguration()).ToListAsync();
+            return await _awsQueueService.CreateQueuesAsync(_queueNames, _sqsConfiguration ?? new SqsConfiguration()).ToListAsync();
         }
     }
 }

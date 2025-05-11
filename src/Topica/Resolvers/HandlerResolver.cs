@@ -17,6 +17,13 @@ namespace Topica.Resolvers
             _assembly = assembly;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="handlerType">The MessageToHandle, will find any IHandler impl that has this message type, name must match the message name</param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public (object handlerImpl, object methodToValidate, object methodToExecute) ResolveHandler(string handlerType, string source)
         {
             var @interface = typeof(IHandler<>);
