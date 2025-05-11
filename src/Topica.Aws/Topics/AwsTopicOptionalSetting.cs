@@ -39,7 +39,7 @@ namespace Topica.Aws.Topics
             return this;
         }
 
-        public async Task<string> BuildAsync()
+        public async Task<string?> BuildAsync()
         {
             return await _awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
         }

@@ -107,7 +107,7 @@ namespace Microsoft.Extensions.DependencyInjection
             if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile))
             {
                 AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-                logger.LogInformation($"Using AWS profile: {awsSettings.ProfileName} for {nameof(GetSnsClient)}");
+                logger.LogInformation("Using AWS profile: {AwsSettingsProfileName} for {GetSnsClientName}", awsSettings.ProfileName, nameof(GetSnsClient));
                 return new AmazonSimpleNotificationServiceClient(credentials, config);
             }
             

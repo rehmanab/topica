@@ -165,7 +165,7 @@ namespace Topica.Aws.Services
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");
             }
 
-            logger.LogDebug("SNS: Done !");
+            logger.LogDebug("SNS: Done creating topic: {TopicArn} and subscribing queues", topicArn);
 
             return topicArn;
         }

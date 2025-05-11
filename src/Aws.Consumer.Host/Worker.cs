@@ -5,7 +5,7 @@ using Topica.Settings;
 
 namespace Aws.Consumer.Host;
 
-public class Worker(IConsumer consumer, ITopicProviderFactory topicProviderFactory, IEnumerable<ConsumerSettings> consumerSettingsList) : BackgroundService
+public class Worker(IConsumer consumer, IEnumerable<ConsumerSettings> consumerSettingsList) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
