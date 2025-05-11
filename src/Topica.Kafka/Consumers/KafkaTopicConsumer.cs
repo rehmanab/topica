@@ -36,6 +36,11 @@ namespace Topica.Kafka.Consumers
             _logger = logger;
         }
 
+        public Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             await _topicProviderFactory.Create(MessagingPlatform.Kafka).CreateTopicAsync(consumerSettings);

@@ -40,6 +40,11 @@ namespace Topica.Pulsar.Consumers
             _logger = logger;
         }
 
+        public Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        {
+            throw new NotImplementedException();
+        }
+
         public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>

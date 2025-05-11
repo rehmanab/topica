@@ -16,6 +16,21 @@ namespace Topica.Executors
             _handlerResolver = handlerResolver;
         }
 
+        public async Task<(string, bool)> ExecuteHandlerAsync<T>(string messageBody) where T : IHandler
+        {
+            var (handlerImpl, methodToValidate, methodToExecute) = _handlerResolver.ResolveHandler<T>(messageBody);
+
+            var validated = (bool)methodToValidate;
+            if (!validated)
+            {
+                _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
+                return (handlerImpl.GetType().Name, false);
+            }
+            
+            // _logger.LogDebug("**** {Name} Execution STARTED ****", handlerImpl.GetType().Name);
+            return (handlerImpl.GetType().Name, await (Task<bool>)methodToExecute);
+        }
+
         public async Task<(string, bool)> ExecuteHandlerAsync(string messageTypeName, string messageBody)
         {
             var (handlerImpl, methodToValidate, methodToExecute) = _handlerResolver.ResolveHandler(messageTypeName, messageBody);
@@ -23,11 +38,11 @@ namespace Topica.Executors
             var validated = (bool)methodToValidate;
             if (!validated)
             {
-                _logger.LogWarning($"**** {handlerImpl.GetType().Name} Validation FAILED ****");
+                _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
                 return (handlerImpl.GetType().Name, false);
             }
             
-            // _logger.LogDebug($"**** {handlerImpl.GetType().Name} Execution STARTED ****");
+            // _logger.LogDebug("**** {Name} Execution STARTED ****", handlerImpl.GetType().Name);
             return (handlerImpl.GetType().Name, await (Task<bool>)methodToExecute);
         }
     }

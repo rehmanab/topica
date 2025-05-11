@@ -6,6 +6,7 @@ namespace Topica.Contracts
 {
     public interface IConsumer
     {
+        Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler;
         Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken);
     }
 }
