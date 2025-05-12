@@ -1,0 +1,68 @@
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Topica.Aws.Contracts;
+using Topica.Contracts;
+using Topica.Settings;
+
+namespace Topica.Aws.Builders;
+
+public class AwsAwsAwsAwsAwsAwsConsumerTopicTopicTopicTopicBuilder(IConsumer consumer) : IAwsConsumerTopicFluentBuilder, IAwsConsumerTopicBuilderWithTopic, IAwsConsumerTopicBuilderWithQueues, IAwsConsumerTopicBuilderWithFifo, IAwsConsumerTopicBuilder
+{
+    private string _consumerName = null!;
+    private string _topicName = null!;
+    private bool _buildErrorQueues = false;
+    private string[] _queueNames = null!;
+    private bool _isFifoQueue;
+    private bool _isFifoContentBasedDeduplication;
+
+    public IAwsConsumerTopicBuilderWithTopic WithConsumerName(string consumerName)
+    {
+        _consumerName = consumerName;
+        return this;
+    }
+
+    public IAwsConsumerTopicBuilderWithQueues WithTopicName(string topicName)
+    {
+        _topicName = topicName;
+        return this;
+    }
+
+    public IAwsConsumerTopicBuilderWithFifo WithSubscribedQueues(bool buildErrorQueues, params string[] queueNames)
+    {
+        _buildErrorQueues = buildErrorQueues;
+        _queueNames = queueNames;
+        return this;
+    }
+
+    public IAwsConsumerTopicBuilder WithFifoSettings(bool isFifoQueue, bool isFifoContentBasedDeduplication)
+    {
+        _isFifoQueue = isFifoQueue;
+        _isFifoContentBasedDeduplication = isFifoContentBasedDeduplication;
+        return this;
+    }
+
+    public async Task StartConsumingAsync<T>(int numberOfInstances, int receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default) where T : class, IHandler
+    {
+        var instances = numberOfInstances switch
+        {
+            < 1 => 1,
+            > 10 => 10,
+            _ => numberOfInstances
+        };
+
+        var consumerSettings = new ConsumerSettings
+        {
+            MessageToHandle = "OrderCreatedMessageV1",
+            AwsIsFifoQueue = _isFifoQueue,
+            Source = _topicName,
+            WithSubscribedQueues = _queueNames,
+            SubscribeToSource = "ar-order_placement_warehouse.fifo",
+            AwsBuildWithErrorQueue = _buildErrorQueues,
+            AwsIsFifoContentBasedDeduplication = _isFifoContentBasedDeduplication,
+            NumberOfInstances = instances,
+            AwsReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages
+        };
+
+        await consumer.ConsumeAsync(_consumerName, consumerSettings, cancellationToken);
+    }
+}

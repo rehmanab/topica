@@ -8,7 +8,7 @@ namespace Topica.Settings
         public string Source{ get; set; }
         public string SubscribeToSource{ get; set; }
         public string[] WithSubscribedQueues { get; set; }
-        public int NumberOfInstances { get; set; }
+        public int NumberOfInstances { get; set; } = 1;
         
         // Aws
         public bool AwsBuildWithErrorQueue { get; set; }
@@ -17,7 +17,7 @@ namespace Topica.Settings
         public bool AwsIsFifoQueue { get; set; }
         public bool AwsIsFifoContentBasedDeduplication { get; set; }
         public int? AwsMaximumMessageSize { get; set; }
-        public int? AwsMaximumNumberOfMessages { get; set; }
+        public int AwsReceiveMaximumNumberOfMessages { get; set; } = 10;
         public int? AwsMessageRetentionPeriod { get; set; }
         public int? AwsDelaySeconds { get; set; }
         public int? AwsReceiveMessageWaitTimeSeconds { get; set; }

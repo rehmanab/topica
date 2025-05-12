@@ -79,7 +79,7 @@ namespace Topica.Aws.Consumers
 
                 _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {QueueUrl}", nameof(AwsQueueConsumer), consumerName, queueUrl);
 
-                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsMaximumNumberOfMessages ?? 10};
+                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsReceiveMaximumNumberOfMessages};
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -168,7 +168,7 @@ namespace Topica.Aws.Consumers
 
                 _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {QueueUrl}", nameof(AwsQueueConsumer), consumerName, queueUrl);
 
-                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsMaximumNumberOfMessages ?? 10};
+                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsReceiveMaximumNumberOfMessages};
 
                 while (!cancellationToken.IsCancellationRequested)
                 {

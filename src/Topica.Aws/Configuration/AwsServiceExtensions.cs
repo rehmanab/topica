@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
-            services.AddScoped<IConsumerFluentBuilder, AwsConsumerBuilder>();
+            services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsAwsAwsAwsAwsAwsConsumerTopicTopicTopicTopicBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
             
