@@ -1,4 +1,5 @@
-﻿using Kafka.Consumer.Host;
+﻿using System.Reflection;
+using Kafka.Consumer.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,7 +35,7 @@ var host = Host.CreateDefaultBuilder()
         });
         
         // Add MessagingPlatform Components
-        services.AddKafkaTopica();
+        services.AddKafkaTopica(Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();
     })

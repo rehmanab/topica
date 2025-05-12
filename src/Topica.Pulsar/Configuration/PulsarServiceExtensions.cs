@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class PulsarServiceExtensions
     {
-        public static IServiceCollection AddPulsarTopica(this IServiceCollection services, Action<PulsarTopicaConfiguration> configurationFactory)
+        public static IServiceCollection AddPulsarTopica(this IServiceCollection services, Action<PulsarTopicaConfiguration> configurationFactory, Assembly assembly)
         {
             var config = new PulsarTopicaConfiguration();
             configurationFactory(config);
@@ -28,33 +28,43 @@ namespace Microsoft.Extensions.DependencyInjection
             var serviceProvider = services.BuildServiceProvider();
             
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
-            logger.LogDebug("******* Pulsar Service Extensions ******* ");
-
-            var entryAssembly = Assembly.GetEntryAssembly();
-            if (entryAssembly == null)
+            
+            if (logger == null)
             {
-                throw new Exception($"{nameof(PulsarServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+                throw new Exception($"{nameof(PulsarServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
+            
+            logger.LogDebug("******* Pulsar Service Extensions ******* ");
 
             services.AddHttpClient<IHttpClientService, HttpClientService>();
             services.AddScoped<IPulsarService, PulsarService>(provider =>
             {
                 var httpClientService = provider.GetService<IHttpClientService>();
-                var logger = provider.GetService<ILogger<PulsarService>>();
+                var localLogger = provider.GetService<ILogger<PulsarService>>();
                 
-                return new PulsarService(config.PulsarManagerBaseUrl, config.PulsarAdminBaseUrl, httpClientService, logger);
+                if (httpClientService == null)
+                {
+                    throw new Exception($"{nameof(PulsarServiceExtensions)}: httpClientService is null, this can happen if the executing application is from unmanaged code");
+                }
+                
+                if (localLogger == null)
+                {
+                    throw new Exception($"{nameof(PulsarServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
+                }
+                
+                return new PulsarService(config.PulsarManagerBaseUrl, config.PulsarAdminBaseUrl, httpClientService, localLogger);
             });
             services.AddScoped<IConsumer, PulsarTopicConsumer>();
             services.AddScoped<IProducerBuilder, PulsarTopicProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();
-            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
+            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
             services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new PulsarClientBuilder().ServiceUrl(config.ServiceUrl));
             
             // Scan for IHandlers from Entry assembly
             services.Scan(s => s
-                .FromAssemblies(entryAssembly!)
+                .FromAssemblies(assembly)
                 .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());

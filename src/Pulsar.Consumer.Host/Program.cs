@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Reflection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,10 +32,15 @@ var host = Host.CreateDefaultBuilder()
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
 
+        if (pulsarHostSettings == null)
+        {
+            throw new ApplicationException("PulsarHostSettings not found");
+        }
+        
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new InvalidOperationException("ConsumerSettings not found");
+            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new ApplicationException("ConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components
@@ -43,7 +49,7 @@ var host = Host.CreateDefaultBuilder()
             c.ServiceUrl = pulsarHostSettings.ServiceUrl;
             c.PulsarManagerBaseUrl = pulsarHostSettings.PulsarManagerBaseUrl;
             c.PulsarAdminBaseUrl = pulsarHostSettings.PulsarAdminBaseUrl;
-        });
+        }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();
     })

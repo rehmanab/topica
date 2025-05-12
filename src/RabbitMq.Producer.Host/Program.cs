@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -52,7 +53,7 @@ var host = Host.CreateDefaultBuilder()
             c.ManagementPort = rabbitMqHostSettings.ManagementPort;
             c.ManagementScheme = rabbitMqHostSettings.ManagementScheme;
             c.VHost = rabbitMqHostSettings.VHost;
-        });
+        }, Assembly.GetExecutingAssembly());
     })
     .Build();
 

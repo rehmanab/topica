@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Reflection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,11 @@ var host = Host.CreateDefaultBuilder()
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var rabbitMqHostSettings = hostSettings.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
         
+        if (rabbitMqHostSettings == null)
+        {
+            throw new ApplicationException("RabbitMqHostSettings not found");
+        }
+        
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -48,7 +54,7 @@ var host = Host.CreateDefaultBuilder()
             c.ManagementPort = rabbitMqHostSettings.ManagementPort;
             c.ManagementScheme = rabbitMqHostSettings.ManagementScheme;
             c.VHost = rabbitMqHostSettings.VHost;
-        });
+        }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();
     })

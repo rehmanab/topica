@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,7 +8,6 @@ using Newtonsoft.Json;
 using Pulsar.Client.Api;
 using Pulsar.Producer.Host.Messages.V1;
 using Pulsar.Producer.Host.Settings;
-using Topica;
 using Topica.Contracts;
 using Topica.Settings;
 
@@ -36,6 +36,11 @@ var host = Host.CreateDefaultBuilder()
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
 
+        if (pulsarHostSettings == null)
+        {
+            throw new ApplicationException("PulsarHostSettings not found");
+        }
+        
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -48,7 +53,7 @@ var host = Host.CreateDefaultBuilder()
             c.ServiceUrl = pulsarHostSettings.ServiceUrl;
             c.PulsarManagerBaseUrl = pulsarHostSettings.PulsarManagerBaseUrl;
             c.PulsarAdminBaseUrl = pulsarHostSettings.PulsarAdminBaseUrl;
-        });
+        }, Assembly.GetExecutingAssembly());
     })
     .Build();
 

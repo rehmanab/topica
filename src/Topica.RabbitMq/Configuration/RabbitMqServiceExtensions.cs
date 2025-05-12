@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class RabbitMqServiceExtensions
     {
-        public static IServiceCollection AddRabbitMqTopica(this IServiceCollection services, Action<RabbitMqTopicaConfiguration> configurationFactory)
+        public static IServiceCollection AddRabbitMqTopica(this IServiceCollection services, Action<RabbitMqTopicaConfiguration> configurationFactory, Assembly assembly)
         {
             var config = new RabbitMqTopicaConfiguration();
             configurationFactory(config);
@@ -28,13 +28,13 @@ namespace Microsoft.Extensions.DependencyInjection
             var serviceProvider = services.BuildServiceProvider();
 
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
-            logger?.LogDebug("******* RabbitMq Service Extensions ******* ");
-
-            var entryAssembly = Assembly.GetEntryAssembly();
-            if (entryAssembly == null)
+            
+            if (logger == null)
             {
-                throw new Exception($"{nameof(RabbitMqServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+                throw new Exception($"{nameof(RabbitMqServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
+            
+            logger.LogDebug("******* RabbitMq Service Extensions ******* ");
 
             services
                 .AddHttpClient(nameof(RabbitMqManagementApiClient))
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IProducerBuilder, RabbitMqProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
-            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), entryAssembly));
+            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
             services.AddScoped<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new ConnectionFactory
             {
@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Scan for IHandlers from Entry assembly
             services.Scan(s => s
-                .FromAssemblies(entryAssembly!)
+                .FromAssemblies(assembly)
                 .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
