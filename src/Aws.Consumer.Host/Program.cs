@@ -34,7 +34,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new InvalidOperationException("ConsumerSettings not found");
+            return config.GetSection(AwsConsumerSettings.SectionName).Get<AwsConsumerSettings>() ?? throw new InvalidOperationException("AwsConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components

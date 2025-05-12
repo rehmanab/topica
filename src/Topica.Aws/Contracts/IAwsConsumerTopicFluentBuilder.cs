@@ -26,6 +26,6 @@ namespace Topica.Aws.Contracts
     
     public interface IAwsConsumerTopicBuilder
     {
-        Task StartConsumingAsync<T>(int numberOfInstances, int receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default) where T : class, IHandler;
+        Task StartConsumingAsync<T>(string subscribeToQueueName, int numberOfInstances, int receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default) where T : class, IHandler;
     }
 }

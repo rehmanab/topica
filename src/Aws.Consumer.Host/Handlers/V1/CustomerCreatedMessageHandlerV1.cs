@@ -4,11 +4,11 @@ using Topica.Contracts;
 
 namespace Aws.Consumer.Host.Handlers.V1
 {
-    public class CustomerCreatedMessageHandler(ILogger<CustomerCreatedMessageHandler> logger) : IHandler<CustomerCreatedMessageV1>
+    public class CustomerCreatedMessageHandlerV1(ILogger<CustomerCreatedMessageHandlerV1> logger) : IHandler<CustomerCreatedMessageV1>
     {
         public async Task<bool> HandleAsync(CustomerCreatedMessageV1 source)
         {
-            logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Customer: {CustomerName}", nameof(CustomerCreatedMessageV1), source.ConversationId, source.Name);
+            // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Customer: {CustomerName}", nameof(CustomerCreatedMessageV1), source.ConversationId, source.CustomerName);
             
             return await Task.FromResult(true);
         }

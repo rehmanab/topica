@@ -4,9 +4,9 @@ using Topica.Contracts;
 
 namespace Aws.Consumer.Host.Handlers.V1
 {
-    public class OrderCreatedMessageHandler(ILogger<OrderCreatedMessageHandler> logger) : IHandler<OrderCreatedMessageV1>
+    public class OrderPlacedMessageHandlerV1(ILogger<OrderPlacedMessageHandlerV1> logger) : IHandler<OrderPlacedMessageV1>
     {
-        public async Task<bool> HandleAsync(OrderCreatedMessageV1 source)
+        public async Task<bool> HandleAsync(OrderPlacedMessageV1 source)
         {
             // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Order: {OrderName}", nameof(OrderCreatedMessageV1), source.ConversationId, source.ProductName);
             
@@ -18,7 +18,7 @@ namespace Aws.Consumer.Host.Handlers.V1
         /// </summary>
         /// <param name="message"></param>
         /// <returns>True if Valid</returns>
-        public bool ValidateMessage(OrderCreatedMessageV1 message)
+        public bool ValidateMessage(OrderPlacedMessageV1 message)
         {
             return true;
         }
