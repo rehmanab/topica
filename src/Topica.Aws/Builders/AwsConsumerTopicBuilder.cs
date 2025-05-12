@@ -55,7 +55,7 @@ public class AwsConsumerTopicBuilder(IConsumer consumer) : IAwsConsumerTopicFlue
             AwsIsFifoQueue = _isFifoQueue,
             Source = _topicName,
             WithSubscribedQueues = _queueNames,
-            SubscribeToSource = subscribeToQueueName,
+            SubscribeToSource = _isFifoQueue && !subscribeToQueueName.EndsWith(".fifo") ? $"{subscribeToQueueName}.fifo" : subscribeToQueueName,
             AwsBuildWithErrorQueue = _buildErrorQueues,
             AwsIsFifoContentBasedDeduplication = _isFifoContentBasedDeduplication,
             NumberOfInstances = instances,
