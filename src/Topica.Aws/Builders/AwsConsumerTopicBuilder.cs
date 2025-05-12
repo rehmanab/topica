@@ -6,7 +6,7 @@ using Topica.Settings;
 
 namespace Topica.Aws.Builders;
 
-public class AwsAwsAwsAwsAwsAwsConsumerTopicTopicTopicTopicBuilder(IConsumer consumer) : IAwsConsumerTopicFluentBuilder, IAwsConsumerTopicBuilderWithTopic, IAwsConsumerTopicBuilderWithQueues, IAwsConsumerTopicBuilderWithFifo, IAwsConsumerTopicBuilder
+public class AwsConsumerTopicBuilder(IConsumer consumer) : IAwsConsumerTopicFluentBuilder, IAwsConsumerTopicBuilderWithTopic, IAwsConsumerTopicBuilderWithQueues, IAwsConsumerTopicBuilderWithFifo, IAwsConsumerTopicBuilder
 {
     private string _consumerName = null!;
     private string _topicName = null!;

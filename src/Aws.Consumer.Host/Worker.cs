@@ -1,23 +1,15 @@
-using System.Reflection;
 using Aws.Consumer.Host.Handlers.V1;
 using Aws.Consumer.Host.Messages.V1;
 using Aws.Consumer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Contracts;
-using Topica.Contracts;
-using Topica.Settings;
 
 namespace Aws.Consumer.Host;
 
-public class Worker(IConsumer consumer, IAwsConsumerTopicFluentBuilder awsConsumerTopicFluentBuilder, AwsConsumerSettings awsConsumerSettings) : BackgroundService
+public class Worker(IAwsConsumerTopicFluentBuilder awsConsumerTopicFluentBuilder, AwsConsumerSettings awsConsumerSettings) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // foreach (var consumerSetting in consumerSettingsList)
-        // {
-        //     await consumer.ConsumeAsync($"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSetting.MessageToHandle}", consumerSetting, stoppingToken);
-        // }
-        
         await awsConsumerTopicFluentBuilder
             .WithConsumerName(nameof(OrderPlacedMessageV1))
             .WithTopicName(awsConsumerSettings.OrderPlacedTopicSettings.Source)

@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class AwsServiceExtensions
     {
-        public static IServiceCollection AddAwsTopica(this IServiceCollection services, Action<AwsTopicaConfiguration> configuration)
+        public static IServiceCollection AddAwsTopica(this IServiceCollection services, Action<AwsTopicaConfiguration> configuration, Assembly assembly)
         {
             var config = new AwsTopicaConfiguration();
             configuration(config);
@@ -44,11 +44,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
             services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
-            services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsAwsAwsAwsAwsAwsConsumerTopicTopicTopicTopicBuilder>();
+            services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsConsumerTopicBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
             
-            var entryAssembly = Assembly.GetEntryAssembly();
+            var entryAssembly = assembly;
             if (entryAssembly == null)
             {
                 throw new Exception($"{nameof(AwsServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");

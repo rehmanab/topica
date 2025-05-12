@@ -1,10 +1,10 @@
-﻿using Aws.Consumer.Host;
+﻿using System.Reflection;
+using Aws.Consumer.Host;
 using Aws.Consumer.Host.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting Aws.Consumer.Host *******");
 
@@ -45,7 +45,7 @@ var host = Host.CreateDefaultBuilder()
             c.SecretKey = awsHostSettings.SecretKey;
             c.ServiceUrl = awsHostSettings.ServiceUrl;
             c.RegionEndpoint = awsHostSettings.RegionEndpoint;
-        });
+        }, Assembly.GetEntryAssembly());
         
         services.AddHostedService<Worker>();
     })
