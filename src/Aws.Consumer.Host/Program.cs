@@ -31,6 +31,11 @@ var host = Host.CreateDefaultBuilder()
         var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var awsHostSettings = hostSettings.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
         
+        if (awsHostSettings == null)
+        {
+            throw new ApplicationException("AwsHostSettings not found");
+        }
+        
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -45,7 +50,7 @@ var host = Host.CreateDefaultBuilder()
             c.SecretKey = awsHostSettings.SecretKey;
             c.ServiceUrl = awsHostSettings.ServiceUrl;
             c.RegionEndpoint = awsHostSettings.RegionEndpoint;
-        }, Assembly.GetEntryAssembly());
+        }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();
     })
