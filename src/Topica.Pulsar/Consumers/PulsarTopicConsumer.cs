@@ -63,13 +63,11 @@ namespace Topica.Pulsar.Consumers
 
                 var client = await _clientBuilder.BuildAsync();
                 var consumer = await client.NewConsumer()
-                    .Topic(
-                        $"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
+                    .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
                     .SubscriptionName(consumerSettings.PulsarConsumerGroup)
                     .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest
                         ? SubscriptionInitialPosition.Earliest
-                        : SubscriptionInitialPosition
-                            .Latest) //Earliest will read unread, Latest will read live incoming messages only
+                        : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                     .SubscribeAsync();
 
                 _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), consumerSettings.Source, consumerSettings.PulsarConsumerGroup);
@@ -86,8 +84,7 @@ namespace Topica.Pulsar.Consumers
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, Encoding.UTF8.GetString(message.Data));
-                            _logger.LogInformation(
-                                "**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                             if (success)
                             {

@@ -45,6 +45,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AWS", "AWS", "{1DB9DAAB-ED5
 		..\docker-compose-aws.yml = ..\docker-compose-aws.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pulsar", "Pulsar", "{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose-pulsar.yml = ..\docker-compose-pulsar.yml
+		..\docker-compose-pulsar-kitchen-sink.yml = ..\docker-compose-pulsar-kitchen-sink.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,6 +116,7 @@ Global
 		{D9414D74-796D-4864-8D98-658853DD5B07} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
 		{61A51C6C-9886-457E-9F71-7E41B7909B54} = {20DB8CF9-8622-46DF-9C2B-E6521D772169}
 		{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
-		{1DB9DAAB-ED59-48E9-AB41-493FE7D82B1E} = {20DB8CF9-8622-46DF-9C2B-E6521D772169}
+		{1DB9DAAB-ED59-48E9-AB41-493FE7D82B1E} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
+		{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 	EndGlobalSection
 EndGlobal
