@@ -8,7 +8,7 @@ public class PersonCreatedMessageHandlerV1(ILogger<PersonCreatedMessageHandlerV1
 {
     public async Task<bool> HandleAsync(PersonCreatedMessageV1 source)
     {
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Person: {PersonName}", nameof(PersonCreatedMessageV1), source.ConversationId, source.PersonName);
+        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Person: {PersonName}", nameof(PersonCreatedMessageV1), source.ConversationId, source.PersonName);
             
         return await Task.FromResult(true);
     }

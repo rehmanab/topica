@@ -8,6 +8,7 @@ namespace Kafka.Consumer.Host;
 
 public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSettings settings) : BackgroundService
 {
+    // TODO - on all consumers, pass cancellation token through and test graceful shutdown
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await builder
@@ -19,6 +20,17 @@ public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSetti
             .StartConsumingAsync<PersonCreatedMessageHandlerV1>(
                     settings.PersonCreatedTopicSettings.NumberOfInstances, 
                     stoppingToken
+            );
+        
+        await builder
+            .WithConsumerName(nameof(PlaceCreatedMessageV1))
+            .WithTopicName(settings.PlaceCreatedTopicSettings.Source)
+            .WithConsumerGroup(settings.PlaceCreatedTopicSettings.ConsumerGroup)
+            .WithTopicSettings(settings.PlaceCreatedTopicSettings.StartFromEarliestMessages, settings.PlaceCreatedTopicSettings.NumberOfTopicPartitions)
+            .WithBootstrapServers(settings.PlaceCreatedTopicSettings.BootstrapServers)
+            .StartConsumingAsync<PlaceCreatedMessageHandlerV1>(
+                settings.PlaceCreatedTopicSettings.NumberOfInstances, 
+                stoppingToken
             );
     }
 }

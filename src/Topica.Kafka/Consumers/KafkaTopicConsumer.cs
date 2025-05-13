@@ -74,7 +74,7 @@ namespace Topica.Kafka.Consumers
                 var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
                 consumer.Subscribe(consumerSettings.Source);
 
-                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerSettingsSource}", nameof(KafkaTopicConsumer), consumerSettings.Source);
+                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerName}", nameof(KafkaTopicConsumer), consumerName);
 
                 await Task.Run(async () =>
                     {
@@ -128,7 +128,7 @@ namespace Topica.Kafka.Consumers
                 var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
                 consumer.Subscribe(consumerSettings.Source);
 
-                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerSettingsSource}", nameof(KafkaTopicConsumer), consumerSettings.Source);
+                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerName}", nameof(KafkaTopicConsumer), consumerName);
 
                 await Task.Run(async () =>
                     {
