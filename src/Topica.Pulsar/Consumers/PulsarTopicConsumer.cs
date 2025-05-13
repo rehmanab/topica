@@ -98,13 +98,13 @@ namespace Topica.Pulsar.Consumers
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
-                        if (x.IsFaulted || x.Exception != null)
+                        if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
                             _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{consumerSettings.PulsarConsumerGroup}");
                         }
                     }, cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
                 throw;

@@ -37,6 +37,11 @@ var host = Host.CreateDefaultBuilder()
         // Add MessagingPlatform Components
         services.AddKafkaTopica(Assembly.GetExecutingAssembly());
         
+        services.Configure<HostOptions>(options =>
+        {
+            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+        });
+        
         services.AddHostedService<Worker>();
     })
     .Build();

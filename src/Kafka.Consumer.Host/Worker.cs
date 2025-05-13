@@ -8,7 +8,6 @@ namespace Kafka.Consumer.Host;
 
 public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSettings settings) : BackgroundService
 {
-    // TODO - on all consumers, pass cancellation token through and test graceful shutdown
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await builder

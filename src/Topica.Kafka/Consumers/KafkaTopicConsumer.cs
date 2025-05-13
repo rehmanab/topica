@@ -97,13 +97,13 @@ namespace Topica.Kafka.Consumers
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
-                        if (x.IsFaulted || x.Exception != null)
+                        if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
                             _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                         }
                     }, cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                 throw;
@@ -134,7 +134,7 @@ namespace Topica.Kafka.Consumers
                     {
                         while (!cancellationToken.IsCancellationRequested)
                         {
-                            var message = consumer.Consume();
+                            var message = consumer.Consume(cancellationToken);
 
                             if (message == null)
                             {
@@ -144,20 +144,22 @@ namespace Topica.Kafka.Consumers
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message.Message.Value);
                             _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                             _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
+                            
+                            await Task.Delay(250, cancellationToken);
                         }
 
-                        consumer.Dispose();
+                        consumer.Dispose(); // Doesn't get here as consumer.Consume blocks
                         _logger.LogInformation("{KafkaTopicConsumerName}: Disposed", nameof(KafkaTopicConsumer));
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
-                        if (x.IsFaulted || x.Exception != null)
+                        if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
                             _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                         }
                     }, cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                 throw;
