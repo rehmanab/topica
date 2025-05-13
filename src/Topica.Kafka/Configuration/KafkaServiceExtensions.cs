@@ -4,7 +4,9 @@ using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Kafka.Builders;
 using Topica.Kafka.Consumers;
+using Topica.Kafka.Contracts;
 using Topica.Kafka.Producers;
 using Topica.Kafka.Providers;
 using Topica.Resolvers;
@@ -27,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             logger.LogDebug("******* Kafka Service Extensions ******* ");
             
             services.AddScoped<IConsumer, KafkaTopicConsumer>();
+            services.AddScoped<IKafkaConsumerTopicFluentBuilder, KafkaConsumerTopicBuilder>();
             services.AddScoped<IProducerBuilder, KafkaProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, KafkaTopicProvider>();

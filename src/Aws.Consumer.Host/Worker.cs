@@ -6,31 +6,31 @@ using Topica.Aws.Contracts;
 
 namespace Aws.Consumer.Host;
 
-public class Worker(IAwsConsumerTopicFluentBuilder awsConsumerTopicFluentBuilder, AwsConsumerSettings awsConsumerSettings) : BackgroundService
+public class Worker(IAwsConsumerTopicFluentBuilder builder, AwsConsumerSettings settings) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await awsConsumerTopicFluentBuilder
+        await builder
             .WithConsumerName(nameof(OrderPlacedMessageV1))
-            .WithTopicName(awsConsumerSettings.OrderPlacedTopicSettings.Source)
-            .WithSubscribedQueues(true, awsConsumerSettings.OrderPlacedTopicSettings.WithSubscribedQueues)
+            .WithTopicName(settings.OrderPlacedTopicSettings.Source)
+            .WithSubscribedQueues(true, settings.OrderPlacedTopicSettings.WithSubscribedQueues)
             .WithFifoSettings(true, true)
             .StartConsumingAsync<OrderPlacedMessageHandlerV1>(
-                awsConsumerSettings.OrderPlacedTopicSettings.SubscribeToSource,
-                awsConsumerSettings.OrderPlacedTopicSettings.NumberOfInstances,
-                awsConsumerSettings.OrderPlacedTopicSettings.AwsReceiveMaximumNumberOfMessages,
+                settings.OrderPlacedTopicSettings.SubscribeToSource,
+                settings.OrderPlacedTopicSettings.NumberOfInstances,
+                settings.OrderPlacedTopicSettings.ReceiveMaximumNumberOfMessages,
                 stoppingToken
             );
         
-        await awsConsumerTopicFluentBuilder
+        await builder
             .WithConsumerName(nameof(CustomerCreatedMessageV1))
-            .WithTopicName(awsConsumerSettings.CustomerCreatedTopicSettings.Source)
-            .WithSubscribedQueues(true, awsConsumerSettings.CustomerCreatedTopicSettings.WithSubscribedQueues)
+            .WithTopicName(settings.CustomerCreatedTopicSettings.Source)
+            .WithSubscribedQueues(true, settings.CustomerCreatedTopicSettings.WithSubscribedQueues)
             .WithFifoSettings(true, true)
             .StartConsumingAsync<CustomerCreatedMessageHandlerV1>(
-                awsConsumerSettings.CustomerCreatedTopicSettings.SubscribeToSource,
-                awsConsumerSettings.CustomerCreatedTopicSettings.NumberOfInstances,
-                awsConsumerSettings.CustomerCreatedTopicSettings.AwsReceiveMaximumNumberOfMessages,
+                settings.CustomerCreatedTopicSettings.SubscribeToSource,
+                settings.CustomerCreatedTopicSettings.NumberOfInstances,
+                settings.CustomerCreatedTopicSettings.ReceiveMaximumNumberOfMessages,
                 stoppingToken
             );
     }

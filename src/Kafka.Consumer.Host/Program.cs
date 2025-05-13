@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Kafka.Consumer.Host;
+using Kafka.Consumer.Host.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,11 +28,10 @@ var host = Host.CreateDefaultBuilder()
             x.SingleLine = true;
         }));
         
-        // Configuration
-        services.AddSingleton<IEnumerable<ConsumerSettings>>(provider =>
+        services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new InvalidOperationException("ConsumerSettings not found");
+            return config.GetSection(KafkaConsumerSettings.SectionName).Get<KafkaConsumerSettings>() ?? throw new ApplicationException("KafkaConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components

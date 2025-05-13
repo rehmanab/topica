@@ -16,14 +16,14 @@ public class AwsConsumerTopicSettings
     public int NumberOfInstances { get; set; } = 1;
 
     // Aws
-    public bool AwsBuildWithErrorQueue { get; set; }
-    public int? AwsErrorQueueMaxReceiveCount { get; set; }
-    public int? AwsVisibilityTimeout { get; set; }
-    public bool AwsIsFifoQueue { get; set; }
-    public bool AwsIsFifoContentBasedDeduplication { get; set; }
-    public int? AwsMaximumMessageSize { get; set; }
-    public int AwsReceiveMaximumNumberOfMessages { get; set; } = 10;
-    public int? AwsMessageRetentionPeriod { get; set; }
-    public int? AwsDelaySeconds { get; set; }
-    public int? AwsReceiveMessageWaitTimeSeconds { get; set; }
+    public bool BuildWithErrorQueue { get; set; }
+    public int? ErrorQueueMaxReceiveCount { get; set; }
+    public int? VisibilityTimeout { get; set; }
+    public bool IsFifoQueue { get; set; }
+    public bool IsFifoContentBasedDeduplication { get; set; }
+    public int? MaximumMessageSize { get; set; }
+    public int ReceiveMaximumNumberOfMessages { get; set; } = 10;
+    public int? MessageRetentionPeriod { get; set; }
+    public int? DelaySeconds { get; set; }
+    public int? ReceiveMessageWaitTimeSeconds { get; set; }
 }
