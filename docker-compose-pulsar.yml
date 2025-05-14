@@ -5,6 +5,7 @@ networks:
 services:
   pulsar:
     image: "apachepulsar/pulsar:2.6.2"
+    restart: unless-stopped
     command: bin/pulsar standalone
     environment:
       PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
@@ -13,12 +14,12 @@ services:
     ports:
       - "6650:6650"
       - "8080:8080"
-    restart: unless-stopped
     networks:
       - pulsar
   
   pulsar-manager:
     image: "apachepulsar/pulsar-manager:v0.2.0"
+    restart: unless-stopped
     ports:
       - "9527:9527"
       - "7750:7750"

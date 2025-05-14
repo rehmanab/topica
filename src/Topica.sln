@@ -48,7 +48,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pulsar", "Pulsar", "{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA}"
 	ProjectSection(SolutionItems) = preProject
 		..\docker-compose-pulsar.yml = ..\docker-compose-pulsar.yml
-		..\docker-compose-pulsar-kitchen-sink.yml = ..\docker-compose-pulsar-kitchen-sink.yml
 	EndProjectSection
 EndProject
 Global

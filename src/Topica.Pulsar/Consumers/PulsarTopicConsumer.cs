@@ -92,6 +92,9 @@ namespace Topica.Pulsar.Consumers
                             }
                         }
 
+                        await consumer.DisposeAsync();
+                        _logger.LogInformation("{PulsarTopicConsumerName}: Disposed", nameof(PulsarTopicConsumer));
+
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
