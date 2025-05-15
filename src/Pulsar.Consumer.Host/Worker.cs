@@ -1,20 +1,36 @@
-using System.Reflection;
 using Microsoft.Extensions.Hosting;
-using Topica.Contracts;
-using Topica.Settings;
+using Pulsar.Consumer.Host.Handlers.V1;
+using Pulsar.Consumer.Host.Messages.V1;
+using Pulsar.Consumer.Host.Settings;
+using Topica.Pulsar.Contracts;
 
 namespace Pulsar.Consumer.Host;
 
-public class Worker(IConsumer consumer, IEnumerable<ConsumerSettings> consumerSettings) : BackgroundService
+public class Worker(IPulsarConsumerTopicFluentBuilder builder, PulsarConsumerSettings settings) : BackgroundService
 {
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var consumerSetting in consumerSettings)
-        {
-            // Pulsar different consumer names will read the topic from the start and independently - i.e consumer name is like a consumer group
-            var consumerName = $"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSetting.MessageToHandle}";
-            await consumer.ConsumeAsync(consumerName, consumerSetting, stoppingToken);
-        }
+        await builder
+            .WithConsumerName(nameof(DataSentMessageV1))
+            .WithTopicName(settings.DataSentTopicSettings.Source)
+            .WithConsumerGroup(settings.DataSentTopicSettings.ConsumerGroup)
+            .WithConfiguration(settings.DataSentTopicSettings.Tenant, settings.DataSentTopicSettings.Namespace)
+            .WithTopicOptions(settings.DataSentTopicSettings.StartNewConsumerEarliest)
+            .StartConsumingAsync<DataSentMessageHandlerV1>(
+                settings.DataSentTopicSettings.NumberOfInstances, 
+                stoppingToken
+            );
+        
+        await builder
+            .WithConsumerName(nameof(MatchStartedMessageV1))
+            .WithTopicName(settings.MatchStartedTopicSettings.Source)
+            .WithConsumerGroup(settings.MatchStartedTopicSettings.ConsumerGroup)
+            .WithConfiguration(settings.MatchStartedTopicSettings.Tenant, settings.MatchStartedTopicSettings.Namespace)
+            .WithTopicOptions(settings.MatchStartedTopicSettings.StartNewConsumerEarliest)
+            .StartConsumingAsync<MatchStartedMessageHandlerV1>(
+                settings.MatchStartedTopicSettings.NumberOfInstances, 
+                stoppingToken
+            );
     }
 }

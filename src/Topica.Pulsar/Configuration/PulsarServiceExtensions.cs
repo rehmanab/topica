@@ -5,6 +5,7 @@ using Pulsar.Client.Api;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Pulsar.Builders;
 using Topica.Pulsar.Configuration;
 using Topica.Pulsar.Consumers;
 using Topica.Pulsar.Contracts;
@@ -55,6 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new PulsarService(config.PulsarManagerBaseUrl, config.PulsarAdminBaseUrl, httpClientService, localLogger);
             });
             services.AddScoped<IConsumer, PulsarTopicConsumer>();
+            services.AddScoped<IPulsarConsumerTopicFluentBuilder, PulsarConsumerTopicFluentBuilder>();
             services.AddScoped<IProducerBuilder, PulsarTopicProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();

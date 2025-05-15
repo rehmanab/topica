@@ -6,7 +6,7 @@ using Topica.Settings;
 
 namespace Topica.Kafka.Builders;
 
-public class KafkaConsumerTopicBuilder(IConsumer consumer) : IKafkaConsumerTopicFluentBuilder, IKafkaConsumerTopicBuilderWithTopic, IKafkaConsumerTopicBuilderWithQueues, IKafkaConsumerTopicBuilderWithTopicSettings, IKafkaConsumerTopicBuilderWithBootstrapServers, IKafkaConsumerTopicBuilder
+public class KafkaConsumerTopicFluentBuilder(IConsumer consumer) : IKafkaConsumerTopicFluentBuilder, IKafkaConsumerTopicBuilderWithTopic, IKafkaConsumerTopicBuilderWithQueues, IKafkaConsumerTopicBuilderWithTopicSettings, IKafkaConsumerTopicBuilderWithBootstrapServers, IKafkaConsumerTopicBuilder
 {
     private string _consumerName = null!;
     private string _topicName = null!;

@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             logger.LogDebug("******* Kafka Service Extensions ******* ");
             
             services.AddScoped<IConsumer, KafkaTopicConsumer>();
-            services.AddScoped<IKafkaConsumerTopicFluentBuilder, KafkaConsumerTopicBuilder>();
+            services.AddScoped<IKafkaConsumerTopicFluentBuilder, KafkaConsumerTopicFluentBuilder>();
             services.AddScoped<IProducerBuilder, KafkaProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, KafkaTopicProvider>();

@@ -42,7 +42,12 @@ namespace Topica.Pulsar.Consumers
 
         public Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
-            throw new NotImplementedException();
+            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            {
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-({index})", $"{consumerSettings.PulsarConsumerGroup}_{index}", consumerSettings, x), cancellationToken);
+            });
+
+            return Task.CompletedTask;
         }
 
         public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
@@ -55,6 +60,62 @@ namespace Topica.Pulsar.Consumers
             return Task.CompletedTask;
         }
 
+        private async ValueTask StartAsync<T>(string consumerName, string consumerGroup, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        {
+            try
+            {
+                await _topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(consumerSettings);
+
+                var client = await _clientBuilder.BuildAsync();
+                var consumer = await client.NewConsumer()
+                    .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
+                    .SubscriptionName(consumerGroup)
+                    .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest
+                        ? SubscriptionInitialPosition.Earliest
+                        : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
+                    .SubscribeAsync();
+
+                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), consumerSettings.Source, consumerSettings.PulsarConsumerGroup);
+
+                await Task.Run(async () =>
+                    {
+                        while (!cancellationToken.IsCancellationRequested)
+                        {
+                            var message = await consumer.ReceiveAsync(cancellationToken);
+
+                            if (message == null)
+                            {
+                                throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{consumerSettings.PulsarConsumerGroup} - Received null message on Topic: {consumerSettings.Source}");
+                            }
+
+                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Data));
+                            _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+
+                            if (success)
+                            {
+                                await consumer.AcknowledgeAsync(message.MessageId);
+                            }
+                        }
+
+                        await consumer.DisposeAsync();
+                        _logger.LogInformation("{PulsarTopicConsumerName}: Disposed", nameof(PulsarTopicConsumer));
+
+                    }, cancellationToken)
+                    .ContinueWith(x =>
+                    {
+                        if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
+                        {
+                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{consumerSettings.PulsarConsumerGroup}");
+                        }
+                    }, cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
+                throw;
+            }
+        }
+        
         private async ValueTask StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             try

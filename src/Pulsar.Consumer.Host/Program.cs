@@ -40,7 +40,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new ApplicationException("ConsumerSettings not found");
+            return config.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>() ?? throw new ApplicationException("PulsarConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components
