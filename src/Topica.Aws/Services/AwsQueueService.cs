@@ -18,8 +18,8 @@ namespace Topica.Aws.Services
 {
     public class AwsQueueService(
         IAmazonSQS client,
-        IQueueCreationFactory queueCreationFactory,
-        ISqsConfigurationBuilder sqsConfigurationBuilder,
+        IAwsQueueCreationFactory awsQueueCreationFactory,
+        IAwsSqsConfigurationBuilder awsSqsConfigurationBuilder,
         ILogger<AwsQueueService> logger) : IAwsQueueService
     {
         private const string AwsNonExistentQueue = "AWS.SimpleQueueService.NonExistentQueue";
@@ -95,34 +95,34 @@ namespace Topica.Aws.Services
             return queueAttributes;
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, QueueCreationType queueCreationType)
+        public async Task<string> CreateQueueAsync(string queueName, AwsQueueCreationType awsQueueCreationType)
         {
-            var configuration = sqsConfigurationBuilder.BuildWithCreationTypeQueue(queueCreationType);
+            var configuration = awsSqsConfigurationBuilder.BuildWithCreationTypeQueue(awsQueueCreationType);
 
             return await CreateQueueAsync(queueName, configuration);
         }
 
-        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, SqsConfiguration sqsConfiguration)
+        public async IAsyncEnumerable<string> CreateQueuesAsync(IEnumerable<string> queueNames, AwsSqsConfiguration awsSqsConfiguration)
         {
             foreach (var queueName in queueNames)
             {
-                yield return await CreateQueueAsync(queueName, sqsConfiguration);
+                yield return await CreateQueueAsync(queueName, awsSqsConfiguration);
             }
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration)
+        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration)
         {
-            var createQueueType = sqsConfiguration.CreateErrorQueue.HasValue && sqsConfiguration.CreateErrorQueue.Value
-                ? QueueCreationType.WithErrorQueue
-                : QueueCreationType.SoleQueue;
+            var createQueueType = awsSqsConfiguration.CreateErrorQueue.HasValue && awsSqsConfiguration.CreateErrorQueue.Value
+                ? AwsQueueCreationType.WithErrorQueue
+                : AwsQueueCreationType.SoleQueue;
 
-            var queueCreator = queueCreationFactory.Create(createQueueType);
+            var queueCreator = awsQueueCreationFactory.Create(createQueueType);
 
-            return await queueCreator.CreateQueue(queueName, sqsConfiguration);
+            return await queueCreator.CreateQueue(queueName, awsSqsConfiguration);
         }
 
         //TODO - Update method to update all error queues redrive MaxReceiveCount property
-        public async Task<bool> UpdateQueueAttributesAsync(string queueUrl, SqsConfiguration configuration)
+        public async Task<bool> UpdateQueueAttributesAsync(string queueUrl, AwsSqsConfiguration configuration)
         {
             var response = await client.SetQueueAttributesAsync(queueUrl, configuration.QueueAttributes.GetAttributeDictionary());
 

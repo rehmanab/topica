@@ -37,12 +37,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, config));
             services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, config));
             services.AddScoped<IAwsQueueService, AwsQueueService>();
-            services.AddScoped<ISqsConfigurationBuilder, SqsConfigurationBuilder>();
-            services.AddScoped<IQueueCreationFactory, QueueCreationFactory>();
+            services.AddScoped<IAwsSqsConfigurationBuilder, AwsSqsConfigurationBuilder>();
+            services.AddScoped<IAwsQueueCreationFactory, AwsQueueCreationFactory>();
             services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
             services.AddScoped<IAwsTopicService, AwsTopicService>();
             services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
-            services.AddScoped<IQueueBuilder, AwsQueueBuilder>();
+            services.AddScoped<IAwsQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
             services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsConsumerTopicBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();

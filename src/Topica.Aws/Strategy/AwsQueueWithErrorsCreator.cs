@@ -11,19 +11,19 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Strategy
 {
-    public class QueueWithErrorsCreator : IQueueCreator
+    public class AwsQueueWithErrorsCreator : IAwsQueueCreator
     {
         private const string ErrorQueueSuffix = "_error";
         private const string FifoQueueSuffix = ".fifo";
         private const int DefaultMaxReceiveCount = 3;
         private readonly IAmazonSQS _client;
 
-        public QueueWithErrorsCreator(IAmazonSQS client)
+        public AwsQueueWithErrorsCreator(IAmazonSQS client)
         {
             _client = client;
         }
 
-        public async Task<string> CreateQueue(string queueName, SqsConfiguration? configuration)
+        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration? configuration)
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
@@ -39,12 +39,12 @@ namespace Topica.Aws.Strategy
             return mainQueueUrl;
         }
 
-        private async Task<string> InternalCreateErrorQueue(string queueName, SqsConfiguration? configuration)
+        private async Task<string> InternalCreateErrorQueue(string queueName, AwsSqsConfiguration? configuration)
         {
             return await InternalCreateQueue(queueName, configuration.QueueAttributes.GetAttributeDictionary());
         }
 
-        private async Task<string> InternalMainCreateQueue(string queueName, SqsConfiguration? configuration, string? redrivePolicy)
+        private async Task<string> InternalMainCreateQueue(string queueName, AwsSqsConfiguration? configuration, string? redrivePolicy)
         {
             var attributeDictionary = configuration.QueueAttributes.GetAttributeDictionary();
             attributeDictionary.Add(AwsQueueAttributes.RedrivePolicyName, redrivePolicy);

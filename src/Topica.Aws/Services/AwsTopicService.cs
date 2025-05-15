@@ -14,7 +14,7 @@ using Topica.Messages;
 
 namespace Topica.Aws.Services
 {
-    public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, IAwsPolicyBuilder awsPolicyBuilder, ISqsConfigurationBuilder sqsConfigurationBuilder, ILogger<AwsTopicService> logger) : IAwsTopicService
+    public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, IAwsPolicyBuilder awsPolicyBuilder, IAwsSqsConfigurationBuilder awsSqsConfigurationBuilder, ILogger<AwsTopicService> logger) : IAwsTopicService
     {
         private const string FifoSuffix = ".fifo";
         
@@ -119,13 +119,13 @@ namespace Topica.Aws.Services
         {
             return await CreateTopicWithOptionalQueuesSubscribedAsync
             (
-                topicName, queueNames, sqsConfigurationBuilder.BuildWithCreationTypeQueue(QueueCreationType.SoleQueue)
+                topicName, queueNames, awsSqsConfigurationBuilder.BuildWithCreationTypeQueue(AwsQueueCreationType.SoleQueue)
             );
         }
 
-        public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, SqsConfiguration? sqsConfiguration)
+        public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration? sqsConfiguration)
         {
-            sqsConfiguration ??= sqsConfigurationBuilder.BuildQueue();
+            sqsConfiguration ??= awsSqsConfigurationBuilder.BuildQueue();
             
             var topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
 
@@ -159,7 +159,7 @@ namespace Topica.Aws.Services
 
                 //Set access policy
                 var accessPolicy = awsPolicyBuilder.BuildQueueAllowPolicyForTopicToSendMessage(queueUrl, queueArn, topicArn!);
-                if(await awsQueueService.UpdateQueueAttributesAsync(queueUrl, sqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
+                if(await awsQueueService.UpdateQueueAttributesAsync(queueUrl, awsSqsConfigurationBuilder.BuildUpdatePolicyQueue(accessPolicy)))
                     logger.LogDebug("SNS: Updated queue policy to allow messages from topic");
                 else
                     throw new ApplicationException($"Could not update the policy for queue: {queueName} to receive messages from topic: {topicName}");

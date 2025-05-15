@@ -12,7 +12,7 @@ namespace Topica.Aws.Topics
         private readonly IAwsTopicService _awsTopicService;
 
         private readonly IList<string> _queuesToAdd;
-        private SqsConfiguration? _sqsConfiguration;
+        private AwsSqsConfiguration? _sqsConfiguration;
 
         public AwsTopicOptionalSetting(string topicName, IAwsTopicService awsTopicService)
         {
@@ -33,7 +33,7 @@ namespace Topica.Aws.Topics
             return this;
         }
 
-        public IAwsTopicOptionalSetting WithSqsConfiguration(SqsConfiguration? sqsConfiguration)
+        public IAwsTopicOptionalSetting WithSqsConfiguration(AwsSqsConfiguration? sqsConfiguration)
         {
             _sqsConfiguration = sqsConfiguration;
             return this;

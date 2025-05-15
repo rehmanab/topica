@@ -4,7 +4,7 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Builders
 {
-    public class AwsQueueBuilder : IQueueBuilder
+    public class AwsQueueBuilder : IAwsQueueBuilder
     {
         private readonly IAwsQueueService _awsQueueService;
 
@@ -13,12 +13,12 @@ namespace Topica.Aws.Builders
             _awsQueueService = awsQueueService;
         }
         
-        public IQueueOptionalSettings WithQueueName(string queueName)
+        public IAwsQueueOptionalSettings WithQueueName(string queueName)
         {
             return new AwsQueueOptionalSettings(_awsQueueService, queueName); 
         }
 
-        public IQueueOptionalSettings WithQueueNames(IEnumerable<string> queueNames)
+        public IAwsQueueOptionalSettings WithQueueNames(IEnumerable<string> queueNames)
         {
             return new AwsQueueOptionalSettings(_awsQueueService, queueNames); 
         }

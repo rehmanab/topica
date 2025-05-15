@@ -1,36 +1,35 @@
-﻿using Topica.Aws.Configuration;
-using Topica.Aws.Contracts;
+﻿using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 
 namespace Topica.Aws.Builders
 {
-    public class SqsConfigurationBuilder : ISqsConfigurationBuilder
+    public class AwsSqsConfigurationBuilder : IAwsSqsConfigurationBuilder
     {
         private const int DefaultMaxReceiveCount = 3;
 
-        public SqsConfiguration BuildQueue()
+        public AwsSqsConfiguration BuildQueue()
         {
             return BuildQueue(GetDefaultQueueAttributes());
         }
 
-        public SqsConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes)
+        public AwsSqsConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes)
         {
-            return new SqsConfiguration { QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes) };
+            return new AwsSqsConfiguration { QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes) };
         }
 
-        public SqsConfiguration BuildDefaultQueueWithErrorQueue()
+        public AwsSqsConfiguration BuildDefaultQueueWithErrorQueue()
         {
             return BuildQueueWithErrorQueue(DefaultMaxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public SqsConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
+        public AwsSqsConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount)
         {
             return BuildQueueWithErrorQueue(maxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public SqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
+        public AwsSqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
         {
-            var config = new SqsConfiguration
+            var config = new AwsSqsConfiguration
             {
                 CreateErrorQueue = true,
                 MaxReceiveCount = maxReceiveCount,
@@ -40,15 +39,15 @@ namespace Topica.Aws.Builders
             return config;
         }
 
-        public SqsConfiguration BuildWithCreationTypeQueue(QueueCreationType queueCreationType)
+        public AwsSqsConfiguration BuildWithCreationTypeQueue(AwsQueueCreationType awsQueueCreationType)
         {
-            SqsConfiguration configuration;
-            switch (queueCreationType)
+            AwsSqsConfiguration configuration;
+            switch (awsQueueCreationType)
             {
-                case QueueCreationType.SoleQueue:
+                case AwsQueueCreationType.SoleQueue:
                     configuration = BuildQueue();
                     break;
-                case QueueCreationType.WithErrorQueue:
+                case AwsQueueCreationType.WithErrorQueue:
                     configuration = BuildDefaultQueueWithErrorQueue();
                     break;
                 default:
@@ -58,9 +57,9 @@ namespace Topica.Aws.Builders
             return configuration;
         }
 
-        public SqsConfiguration BuildUpdatePolicyQueue(string policy)
+        public AwsSqsConfiguration BuildUpdatePolicyQueue(string policy)
         {
-            return new SqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
+            return new AwsSqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
         }
 
         private static AwsQueueAttributes GetDefaultQueueAttributes(AwsQueueAttributes? awsQueueAttributeOverrides = null)

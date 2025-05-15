@@ -4,9 +4,9 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Contracts
 {
-    public interface IQueueOptionalSettings
+    public interface IAwsQueueOptionalSettings
     {
-        IQueueOptionalSettings WithSqsConfiguration(SqsConfiguration? sqsConfiguration);
+        IAwsQueueOptionalSettings WithSqsConfiguration(AwsSqsConfiguration? sqsConfiguration);
         Task<IEnumerable<string>> BuildAsync();
     }
 }

@@ -8,7 +8,7 @@ namespace Topica.Aws.Contracts
     {
         IAwsTopicOptionalSetting WithSubscribedQueue(string queueName);
         IAwsTopicOptionalSetting WithSubscribedQueue(IEnumerable<string> queueNames);
-        IAwsTopicOptionalSetting WithSqsConfiguration(SqsConfiguration? sqsConfiguration);
+        IAwsTopicOptionalSetting WithSqsConfiguration(AwsSqsConfiguration? sqsConfiguration);
         Task<string?> BuildAsync();
     }
 }

@@ -15,10 +15,10 @@ namespace Topica.Aws.Contracts
         Task<IEnumerable<string>> GetQueueUrlsByPrefix(string queueNamePrefix = "");
         Task<IDictionary<string, string>> GetAttributesByQueueName(string queueName, IEnumerable<string>? attributeNames = null);
         Task<IDictionary<string, string>> GetAttributesByQueueUrl(string queueUrl, IEnumerable<string>? attributeNames = null);
-        Task<string> CreateQueueAsync(string queueName, QueueCreationType queueCreationType);
-        IAsyncEnumerable<string>  CreateQueuesAsync(IEnumerable<string> queueNames, SqsConfiguration sqsConfiguration);
-        Task<string> CreateQueueAsync(string queueName, SqsConfiguration sqsConfiguration);
-        Task<bool> UpdateQueueAttributesAsync(string queueUrl, SqsConfiguration configuration);
+        Task<string> CreateQueueAsync(string queueName, AwsQueueCreationType awsQueueCreationType);
+        IAsyncEnumerable<string>  CreateQueuesAsync(IEnumerable<string> queueNames, AwsSqsConfiguration awsSqsConfiguration);
+        Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration);
+        Task<bool> UpdateQueueAttributesAsync(string queueUrl, AwsSqsConfiguration configuration);
         Task<bool> SendSingleAsync<T>(string queueUrl, T message);
         Task<bool> SendMultipleAsync<T>(string queueUrl, IEnumerable<T> messages);
         IAsyncEnumerable<T> StartReceive<T>(string queueUrl, CancellationToken cancellationToken = default) where T : BaseMessage;

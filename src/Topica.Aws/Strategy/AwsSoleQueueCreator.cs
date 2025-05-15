@@ -9,17 +9,11 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Strategy
 {
-    public class SoleQueueCreator : IQueueCreator
+    public class AwsSoleQueueCreator(IAmazonSQS client) : IAwsQueueCreator
     {
         private const string FifoSuffix = ".fifo";
-        private readonly IAmazonSQS _client;
 
-        public SoleQueueCreator(IAmazonSQS client)
-        {
-            _client = client;
-        }
-
-        public async Task<string> CreateQueue(string queueName, SqsConfiguration? configuration)
+        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration? configuration)
         {
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
             if (isFifo) queueName = queueName.Replace(FifoSuffix, string.Empty);
@@ -30,7 +24,7 @@ namespace Topica.Aws.Strategy
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 
-            var response = await _client.CreateQueueAsync(request);
+            var response = await client.CreateQueueAsync(request);
 
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {

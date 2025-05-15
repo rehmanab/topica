@@ -9,7 +9,7 @@ namespace Topica.Aws.Providers
 {
     public class AwsTopicProvider(
         IAwsTopicBuilder awsTopicBuilder,
-        ISqsConfigurationBuilder sqsConfigurationBuilder,
+        IAwsSqsConfigurationBuilder awsSqsConfigurationBuilder,
         ILogger<AwsTopicProvider> logger)
         : ITopicProvider
     {
@@ -55,7 +55,7 @@ namespace Topica.Aws.Providers
                 ReceiveMessageWaitTimeSeconds = awsReceiveMessageWaitTimeSeconds
             };
             
-            var sqsConfiguration = sqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
+            var sqsConfiguration = awsSqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
             
             if (awsBuildWithErrorQueue)
             {

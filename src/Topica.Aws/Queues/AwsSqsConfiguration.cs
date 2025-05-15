@@ -1,6 +1,6 @@
 ﻿namespace Topica.Aws.Queues
 {
-    public class SqsConfiguration
+    public class AwsSqsConfiguration
     {
         public AwsQueueAttributes QueueAttributes { get; set; } = new();
         public bool? CreateErrorQueue { get; set; }

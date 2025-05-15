@@ -17,7 +17,7 @@ namespace Topica.Aws.Contracts
         Task<bool> SubscriptionExistsAsync(string topicArn, string endpointArn);
         Task<IEnumerable<string>> ListTopicSubscriptionsAsync(string topicArn);
         Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames);
-        Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, SqsConfiguration? sqsConfiguration);
+        Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration? sqsConfiguration);
         Task<bool> DeleteTopicArnAsync(string topicName);
     }
 }
