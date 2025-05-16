@@ -55,16 +55,6 @@ namespace Topica.Aws.Consumers
             });
         }
 
-        public async Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
-        {
-            await _topicProviderFactory.Create(MessagingPlatform.Aws).CreateTopicAsync(consumerSettings);
-
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
-            {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
-            });
-        }
-
         private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T: IHandler
         {
             try

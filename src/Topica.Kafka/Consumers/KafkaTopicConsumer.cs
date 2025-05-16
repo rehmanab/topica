@@ -45,17 +45,7 @@ namespace Topica.Kafka.Consumers
                 _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
             });
         }
-
-        public async Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
-        {
-            await _topicProviderFactory.Create(MessagingPlatform.Kafka).CreateTopicAsync(consumerSettings);
-
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
-            {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
-            });
-        }
-
+        
         private async ValueTask StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig

@@ -51,16 +51,6 @@ namespace Topica.RabbitMq.Consumers
             return Task.CompletedTask;
         }
 
-        public Task ConsumeAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
-        {
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
-            {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
-            });
-            
-            return Task.CompletedTask;
-        }
-
         private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
             try
