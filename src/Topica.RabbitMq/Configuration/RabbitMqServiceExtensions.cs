@@ -6,6 +6,7 @@ using RabbitMQ.Client;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.RabbitMq.Builders;
 using Topica.RabbitMq.Clients;
 using Topica.RabbitMq.Configuration;
 using Topica.RabbitMq.Consumers;
@@ -48,6 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
 
             services.AddScoped<IConsumer, RabbitMqQueueConsumer>();
+            services.AddScoped<IRabbitMqConsumerTopicFluentBuilder, RabbitMqConsumerTopicFluentBuilder>();
             services.AddScoped<IProducerBuilder, RabbitMqProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
@@ -56,7 +58,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton(_ => new ConnectionFactory
             {
                 Uri = new Uri($"{config.Scheme}{Uri.SchemeDelimiter}{config.UserName}:{config.Password}@{config.Hostname}:{config.Port}/{config.VHost}"),
-                DispatchConsumersAsync = true,
                 RequestedHeartbeat = TimeSpan.FromSeconds(10),
                 AutomaticRecoveryEnabled = true
             });

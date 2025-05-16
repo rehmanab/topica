@@ -7,20 +7,14 @@ using Topica.Settings;
 
 namespace Topica.RabbitMq.Producers
 {
-    public class RabbitMqProducerBuilder : IProducerBuilder, IDisposable
+    public class RabbitMqProducerBuilder(ConnectionFactory rabbitMqConnectionFactory) : IProducerBuilder, IDisposable
     {
-        private IModel? _channel;
-        private readonly ConnectionFactory _rabbitMqConnectionFactory;
+        private IChannel? _channel;
 
-        public RabbitMqProducerBuilder(ConnectionFactory rabbitMqConnectionFactory)
-        {
-            _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-        }
-        
         public async Task<T> BuildProducerAsync<T>(string producerName, ProducerSettings producerSettings, CancellationToken cancellationToken)
         {
-            var connection = _rabbitMqConnectionFactory.CreateConnection();
-            _channel = connection.CreateModel();
+            var connection = await rabbitMqConnectionFactory.CreateConnectionAsync(cancellationToken);
+            _channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
             
             return await Task.FromResult((T)_channel);
         }

@@ -62,13 +62,13 @@ var cts = new CancellationTokenSource();
 var producerSettings = host.Services.GetService<ProducerSettings>() ?? throw new InvalidOperationException("RabbitMq ProducerSettings not found");
 var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("RabbitMq ProducerBuilder not found");
 
-var producer = await producerBuilder.BuildProducerAsync<IModel>(null, producerSettings, cts.Token);
+var producer = await producerBuilder.BuildProducerAsync<IChannel>(null, producerSettings, cts.Token);
 
 foreach (var index in Enumerable.Range(1, 100))
 {
     var message = new ItemDeliveredMessage{ConversationId = Guid.NewGuid(), Name = "Delivered"};
     var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-    producer.BasicPublish("item-posted", "", null, body);
+    await producer.BasicPublishAsync("item-posted", "", body);
     
     Console.WriteLine($"Produced message to {producerSettings.Source}: {message.ConversationId}");
     

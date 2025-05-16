@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMq.Consumer.Host;
 using RabbitMq.Consumer.Host.Settings;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting RabbitMq.Consumer.Host *******");
 
@@ -40,7 +39,7 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ConsumerSettings.SectionName).Get<IEnumerable<ConsumerSettings>>() ?? throw new InvalidOperationException("ConsumerSettings not found");
+            return config.GetSection(RabbitMqConsumerSettings.SectionName).Get<RabbitMqConsumerSettings>() ?? throw new InvalidOperationException("RabbitMqConsumerSettings not found");
         });
         
         // Add MessagingPlatform Components

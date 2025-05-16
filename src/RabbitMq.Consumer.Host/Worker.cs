@@ -1,18 +1,33 @@
-using System.Reflection;
 using Microsoft.Extensions.Hosting;
-using Topica.Contracts;
-using Topica.Settings;
+using RabbitMq.Consumer.Host.Handlers.V1;
+using RabbitMq.Consumer.Host.Messages.V1;
+using RabbitMq.Consumer.Host.Settings;
+using Topica.RabbitMq.Contracts;
 
 namespace RabbitMq.Consumer.Host;
 
-public class Worker(IConsumer consumer, IEnumerable<ConsumerSettings> consumerSettingsList) : BackgroundService
+public class Worker(IRabbitMqConsumerTopicFluentBuilder builder, RabbitMqConsumerSettings settings) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        foreach (var consumerSetting in consumerSettingsList)
-        {
-            var consumerName = $"{Assembly.GetExecutingAssembly().GetName().Name}-{consumerSetting.MessageToHandle}";
-            await consumer.ConsumeAsync(consumerName, consumerSetting, stoppingToken);
-        }
+        await builder
+            .WithConsumerName(nameof(ItemDeliveredMessageV1))
+            .WithTopicName(settings.ItemDeliveredTopicSettings!.Source!)
+            .WithSubscribedQueues(settings.ItemDeliveredTopicSettings!.WithSubscribedQueues!)
+            .StartConsumingAsync<ItemDeliveredMessageHandlerV1>(
+                settings.ItemDeliveredTopicSettings!.SubscribeToSource!,
+                settings.ItemDeliveredTopicSettings.NumberOfInstances,
+                stoppingToken
+            );
+        
+        await builder
+            .WithConsumerName(nameof(ItemPostedMessageV1))
+            .WithTopicName(settings.ItemPostedTopicSettings!.Source!)
+            .WithSubscribedQueues(settings.ItemPostedTopicSettings!.WithSubscribedQueues!)
+            .StartConsumingAsync<ItemPostedMessageHandlerV1>(
+                settings.ItemPostedTopicSettings!.SubscribeToSource!,
+                settings.ItemPostedTopicSettings.NumberOfInstances,
+                stoppingToken
+            );
     }
 }
