@@ -5,6 +5,6 @@ namespace Topica.Aws.Contracts
 {
     public interface IAwsQueueCreator
     {
-        Task<string> CreateQueue(string queueName, AwsSqsConfiguration? configuration);
+        Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration);
     }
 }

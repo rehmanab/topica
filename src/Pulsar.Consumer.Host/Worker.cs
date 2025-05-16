@@ -13,9 +13,9 @@ public class Worker(IPulsarConsumerTopicFluentBuilder builder, PulsarConsumerSet
     {
         await builder
             .WithConsumerName(nameof(DataSentMessageV1))
-            .WithTopicName(settings.DataSentTopicSettings.Source)
-            .WithConsumerGroup(settings.DataSentTopicSettings.ConsumerGroup)
-            .WithConfiguration(settings.DataSentTopicSettings.Tenant, settings.DataSentTopicSettings.Namespace)
+            .WithTopicName(settings.DataSentTopicSettings!.Source!)
+            .WithConsumerGroup(settings.DataSentTopicSettings!.ConsumerGroup!)
+            .WithConfiguration(settings.DataSentTopicSettings!.Tenant!, settings.DataSentTopicSettings!.Namespace!)
             .WithTopicOptions(settings.DataSentTopicSettings.StartNewConsumerEarliest)
             .StartConsumingAsync<DataSentMessageHandlerV1>(
                 settings.DataSentTopicSettings.NumberOfInstances, 
@@ -24,9 +24,9 @@ public class Worker(IPulsarConsumerTopicFluentBuilder builder, PulsarConsumerSet
         
         await builder
             .WithConsumerName(nameof(MatchStartedMessageV1))
-            .WithTopicName(settings.MatchStartedTopicSettings.Source)
-            .WithConsumerGroup(settings.MatchStartedTopicSettings.ConsumerGroup)
-            .WithConfiguration(settings.MatchStartedTopicSettings.Tenant, settings.MatchStartedTopicSettings.Namespace)
+            .WithTopicName(settings.MatchStartedTopicSettings!.Source!)
+            .WithConsumerGroup(settings.MatchStartedTopicSettings!.ConsumerGroup!)
+            .WithConfiguration(settings.MatchStartedTopicSettings!.Tenant!, settings.MatchStartedTopicSettings!.Namespace!)
             .WithTopicOptions(settings.MatchStartedTopicSettings.StartNewConsumerEarliest)
             .StartConsumingAsync<MatchStartedMessageHandlerV1>(
                 settings.MatchStartedTopicSettings.NumberOfInstances, 

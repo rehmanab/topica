@@ -53,7 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     throw new Exception($"{nameof(PulsarServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
                 }
                 
-                return new PulsarService(config.PulsarManagerBaseUrl, config.PulsarAdminBaseUrl, httpClientService, localLogger);
+                return new PulsarService(config.PulsarManagerBaseUrl!, config.PulsarAdminBaseUrl!, httpClientService, localLogger);
             });
             services.AddScoped<IConsumer, PulsarTopicConsumer>();
             services.AddScoped<IPulsarConsumerTopicFluentBuilder, PulsarConsumerTopicFluentBuilder>();

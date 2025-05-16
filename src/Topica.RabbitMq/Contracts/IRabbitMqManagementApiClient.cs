@@ -24,10 +24,10 @@ namespace Topica.RabbitMq.Contracts
         Task CreateQueueAsync(string name, bool durable);
         Task DeleteQueuesAsync(IEnumerable<string> names);
         Task<IEnumerable<Binding>> GetAllBindingAsync();
-        Task<Binding> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey);
+        Task<Binding?> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey);
         Task<IEnumerable<Binding>> GetExchangeQueueBindingAsync(string exchangeName, string queueName);
         Task CreateExchangeQueueBindingAsync(CreateExchangeQueueBindingRequest request);
         Task CreateExchangeToExchangeBindingAsync(CreateExchangeToExchangeBindingRequest request);
-        Task DeleteExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey = null);
+        Task DeleteExchangeQueueBindingAsync(string exchangeName, string queueName, string? routingKey);
     }
 }

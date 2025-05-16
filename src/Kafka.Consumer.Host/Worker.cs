@@ -12,10 +12,10 @@ public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSetti
     {
         await builder
             .WithConsumerName(nameof(PersonCreatedMessageV1))
-            .WithTopicName(settings.PersonCreatedTopicSettings.Source)
-            .WithConsumerGroup(settings.PersonCreatedTopicSettings.ConsumerGroup)
+            .WithTopicName(settings.PersonCreatedTopicSettings!.Source!)
+            .WithConsumerGroup(settings.PersonCreatedTopicSettings!.ConsumerGroup!)
             .WithTopicSettings(settings.PersonCreatedTopicSettings.StartFromEarliestMessages, settings.PersonCreatedTopicSettings.NumberOfTopicPartitions)
-            .WithBootstrapServers(settings.PersonCreatedTopicSettings.BootstrapServers)
+            .WithBootstrapServers(settings.PersonCreatedTopicSettings!.BootstrapServers!)
             .StartConsumingAsync<PersonCreatedMessageHandlerV1>(
                     settings.PersonCreatedTopicSettings.NumberOfInstances, 
                     stoppingToken
@@ -23,10 +23,10 @@ public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSetti
         
         await builder
             .WithConsumerName(nameof(PlaceCreatedMessageV1))
-            .WithTopicName(settings.PlaceCreatedTopicSettings.Source)
-            .WithConsumerGroup(settings.PlaceCreatedTopicSettings.ConsumerGroup)
+            .WithTopicName(settings.PlaceCreatedTopicSettings!.Source!)
+            .WithConsumerGroup(settings.PlaceCreatedTopicSettings!.ConsumerGroup!)
             .WithTopicSettings(settings.PlaceCreatedTopicSettings.StartFromEarliestMessages, settings.PlaceCreatedTopicSettings.NumberOfTopicPartitions)
-            .WithBootstrapServers(settings.PlaceCreatedTopicSettings.BootstrapServers)
+            .WithBootstrapServers(settings.PlaceCreatedTopicSettings!.BootstrapServers!)
             .StartConsumingAsync<PlaceCreatedMessageHandlerV1>(
                 settings.PlaceCreatedTopicSettings.NumberOfInstances, 
                 stoppingToken

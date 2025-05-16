@@ -11,11 +11,16 @@ using Topica.RabbitMq.Requests;
 
 namespace Topica.RabbitMq.Clients
 {
-    public class RabbitMqManagementApiClient : IRabbitMqManagementApiClient
+    public class RabbitMqManagementApiClient(string vhost, HttpClient httpClient) : IRabbitMqManagementApiClient
     {
-        private readonly string _vhost;
-        private readonly HttpClient _httpClient;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
+        private readonly string _vhost = !string.IsNullOrWhiteSpace(vhost) ? HttpUtility.UrlEncode(vhost) : vhost;
+
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+        {
+            IgnoreNullValues = true,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         private const string ApiBasePath = "/api";
         private const string UsersPath = "/users";
@@ -24,19 +29,6 @@ namespace Topica.RabbitMq.Clients
         private const string QueuesPath = "/queues";
         private const string ExchangesPath = "/exchanges";
         private const string BindingsPath = "/bindings";
-
-        public RabbitMqManagementApiClient(string vhost, HttpClient httpClient)
-        {
-            _vhost = !string.IsNullOrWhiteSpace(vhost) ? HttpUtility.UrlEncode(vhost) : vhost;
-            _httpClient = httpClient;
-
-            _jsonSerializerOptions = new JsonSerializerOptions
-            {
-                IgnoreNullValues = true,
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-        }
 
         // Get Exchange with queues and bindings
         public async Task<ExchangeBinding> GetAsync(string name)
@@ -50,11 +42,11 @@ namespace Topica.RabbitMq.Clients
         // Create Exchange with queues and bindings
         public async Task CreateAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues)
         {
-            await CreateExchangesAsync(type, durable, new[] { exchangeName });
+            await CreateExchangesAsync(type, durable, [exchangeName]);
 
             foreach (var queue in queues)
             {
-                await CreateQueueAsync(queue.Name, queue.Durable);
+                await CreateQueueAsync(queue.Name!, queue.Durable);
                 await CreateExchangeQueueBindingAsync(new CreateExchangeQueueBindingRequest
                 {
                     ExchangeName = exchangeName,
@@ -70,14 +62,34 @@ namespace Topica.RabbitMq.Clients
             foreach (var exchangeName in exchangeNames)
             {
                 var exchangeBindings = await GetAsync(exchangeName);
+                
+                if (exchangeBindings.Exchange == null)
+                {
+                    throw new Exception($"Exchange '{exchangeName}' not found");
+                }
+                
+                if (exchangeBindings.Bindings == null)
+                {
+                    throw new Exception($"Exchange bindings for '{exchangeName}' not found");
+                }
+                
+                if (exchangeBindings.Bindings == null)
+                {
+                    throw new Exception($"Exchange bindings for '{exchangeName}' not found");
+                }
 
                 foreach (var binding in exchangeBindings.Bindings)
                 {
+                    if (binding.Destination == null)
+                    {
+                        throw new Exception($"Binding destination for '{exchangeName}' not found");
+                    }
+                    
                     await DeleteExchangeQueueBindingAsync(exchangeName, binding.Destination);
-                    await DeleteQueuesAsync(new[] { binding.Destination });
+                    await DeleteQueuesAsync([binding.Destination]);
                 }
 
-                await DeleteExchangesAsync(new[] { exchangeName });
+                await DeleteExchangesAsync([exchangeName]);
             }
         }
 
@@ -108,14 +120,14 @@ namespace Topica.RabbitMq.Clients
             var exchanges = await SendAsync<IEnumerable<Exchange>>($"{ExchangesPath}/{_vhost}", HttpMethod.Get, null);
 
             return exchanges
-                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.Name))
-                .Where(x => includeSystemExchanges || !x.Name.StartsWith("amq"));
+                .Where(x => !string.IsNullOrWhiteSpace(x.Name))
+                .Where(x => includeSystemExchanges || !x.Name!.StartsWith("amq"));
         }
 
         public async Task CreateExchangesAsync(ExchangeTypes exchangeType, bool durable, IEnumerable<string> exchangeNames)
         {
             var exchanges = await GetExchangesAsync();
-            var names = new HashSet<string>(exchanges.Select(x => x.Name));
+            var names = exchanges.Select(x => x.Name).ToHashSet();
 
             foreach (var name in exchangeNames.Where(x => !names.Contains(x)))
             {
@@ -126,7 +138,7 @@ namespace Topica.RabbitMq.Clients
         public async Task DeleteExchangesAsync(IEnumerable<string> names)
         {
             var exchanges = await GetExchangesAsync();
-            var exchangeNames = new HashSet<string>(exchanges.Select(x => x.Name));
+            var exchangeNames = exchanges.Select(x => x.Name).ToHashSet();
 
             foreach (var name in names.Where(x => exchangeNames.Contains(x)))
             {
@@ -164,7 +176,7 @@ namespace Topica.RabbitMq.Clients
         public async Task DeleteQueuesAsync(IEnumerable<string> names)
         {
             var queues = await GetQueuesAsync();
-            var queueNames = new HashSet<string>(queues.Select(x => x.Name));
+            var queueNames = queues.Select(x => x.Name).ToHashSet();
 
             foreach (var name in names.Where(x => queueNames.Contains(x)))
             {
@@ -178,7 +190,7 @@ namespace Topica.RabbitMq.Clients
             return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}", HttpMethod.Get, null);
         }
 
-        public async Task<Binding> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey)
+        public async Task<Binding?> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey)
         {
             var bindings = await GetExchangeQueueBindingAsync(exchangeName, queueName);
 
@@ -203,13 +215,14 @@ namespace Topica.RabbitMq.Clients
             await SendAsync($"{BindingsPath}/{_vhost}/e/{request.SourceExchangeName}/e/{request.DestinationExchangeName}", HttpMethod.Post, request);
         }
 
-        public async Task DeleteExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey = null)
+        public async Task DeleteExchangeQueueBindingAsync(string exchangeName, string queueName, string? routingKey = null)
         {
             var bindings = new List<Binding>();
 
             if (routingKey != null)
             {
-                bindings.Add(await GetExchangeQueueBindingAsync(exchangeName, queueName, routingKey));
+                var exchangeQueueBindingAsync = await GetExchangeQueueBindingAsync(exchangeName, queueName, routingKey);
+                if(exchangeQueueBindingAsync != null) bindings.Add(exchangeQueueBindingAsync);
             }
             else
             {
@@ -246,7 +259,7 @@ namespace Topica.RabbitMq.Clients
                 message.Content = new StringContent(messageContentString);
             }
 
-            var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead);
+            var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead);
 
             response.EnsureSuccessStatusCode();
 

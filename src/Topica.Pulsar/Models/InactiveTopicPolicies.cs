@@ -5,7 +5,7 @@ namespace Topica.Pulsar.Models
     public class InactiveTopicPolicies
     {
         [JsonProperty("inactiveTopicDeleteMode")]
-        public string InactiveTopicDeleteMode { get; set; }
+        public string? InactiveTopicDeleteMode { get; set; }
 
         [JsonProperty("maxInactiveDurationSeconds")]
         public long MaxInactiveDurationSeconds { get; set; }

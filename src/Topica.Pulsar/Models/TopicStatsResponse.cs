@@ -39,15 +39,15 @@ namespace Topica.Pulsar.Models
         [JsonProperty("lastOffloadFailureTimeStamp")]
         public long LastOffloadFailureTimeStamp { get; set; }
 
-        [JsonProperty("publishers")] public List<Publisher> Publishers { get; set; }
+        [JsonProperty("publishers")] public List<Publisher>? Publishers { get; set; }
 
         [JsonProperty("waitingPublishers")] public long WaitingPublishers { get; set; }
 
-        [JsonProperty("subscriptions")] public Replication Subscriptions { get; set; }
+        [JsonProperty("subscriptions")] public Replication? Subscriptions { get; set; }
 
-        [JsonProperty("replication")] public Replication Replication { get; set; }
+        [JsonProperty("replication")] public Replication? Replication { get; set; }
 
-        [JsonProperty("deduplicationStatus")] public string DeduplicationStatus { get; set; }
+        [JsonProperty("deduplicationStatus")] public string? DeduplicationStatus { get; set; }
 
         [JsonProperty("nonContiguousDeletedMessagesRanges")]
         public long NonContiguousDeletedMessagesRanges { get; set; }
@@ -55,6 +55,6 @@ namespace Topica.Pulsar.Models
         [JsonProperty("nonContiguousDeletedMessagesRangesSerializedSize")]
         public long NonContiguousDeletedMessagesRangesSerializedSize { get; set; }
 
-        [JsonProperty("compaction")] public Compaction Compaction { get; set; }
+        [JsonProperty("compaction")] public Compaction? Compaction { get; set; }
     }
 }

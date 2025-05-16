@@ -5,7 +5,7 @@ namespace Topica.Pulsar.Models
     public class BacklogQuotaMapProperty1
     {
         [JsonProperty("policy")]
-        public string Policy { get; set; }
+        public string? Policy { get; set; }
 
         [JsonProperty("limit")]
         public long Limit { get; set; }

@@ -12,11 +12,11 @@ public class Worker(IAwsConsumerTopicFluentBuilder builder, AwsConsumerSettings 
     {
         await builder
             .WithConsumerName(nameof(OrderPlacedMessageV1))
-            .WithTopicName(settings.OrderPlacedTopicSettings.Source)
-            .WithSubscribedQueues(true, settings.OrderPlacedTopicSettings.WithSubscribedQueues)
+            .WithTopicName(settings.OrderPlacedTopicSettings!.Source!)
+            .WithSubscribedQueues(true, settings.OrderPlacedTopicSettings!.WithSubscribedQueues!)
             .WithFifoSettings(true, true)
             .StartConsumingAsync<OrderPlacedMessageHandlerV1>(
-                settings.OrderPlacedTopicSettings.SubscribeToSource,
+                settings.OrderPlacedTopicSettings!.SubscribeToSource!,
                 settings.OrderPlacedTopicSettings.NumberOfInstances,
                 settings.OrderPlacedTopicSettings.ReceiveMaximumNumberOfMessages,
                 stoppingToken
@@ -24,11 +24,11 @@ public class Worker(IAwsConsumerTopicFluentBuilder builder, AwsConsumerSettings 
         
         await builder
             .WithConsumerName(nameof(CustomerCreatedMessageV1))
-            .WithTopicName(settings.CustomerCreatedTopicSettings.Source)
-            .WithSubscribedQueues(true, settings.CustomerCreatedTopicSettings.WithSubscribedQueues)
+            .WithTopicName(settings.CustomerCreatedTopicSettings!.Source!)
+            .WithSubscribedQueues(true, settings.CustomerCreatedTopicSettings!.WithSubscribedQueues!)
             .WithFifoSettings(true, true)
             .StartConsumingAsync<CustomerCreatedMessageHandlerV1>(
-                settings.CustomerCreatedTopicSettings.SubscribeToSource,
+                settings.CustomerCreatedTopicSettings!.SubscribeToSource!,
                 settings.CustomerCreatedTopicSettings.NumberOfInstances,
                 settings.CustomerCreatedTopicSettings.ReceiveMaximumNumberOfMessages,
                 stoppingToken

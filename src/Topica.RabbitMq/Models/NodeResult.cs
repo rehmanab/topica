@@ -2,6 +2,6 @@ namespace Topica.RabbitMq.Models
 {
     public class NodeResult
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

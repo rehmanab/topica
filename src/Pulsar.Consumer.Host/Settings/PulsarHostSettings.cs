@@ -4,7 +4,7 @@ public class PulsarHostSettings
 {
     public static string SectionName => nameof(PulsarHostSettings);
 
-    public string ServiceUrl { get; set; }
-    public string PulsarManagerBaseUrl { get; set; }
-    public string PulsarAdminBaseUrl { get; set; }
+    public string? ServiceUrl { get; set; }
+    public string? PulsarManagerBaseUrl { get; set; }
+    public string? PulsarAdminBaseUrl { get; set; }
 }

@@ -4,15 +4,15 @@ public class AwsConsumerSettings
 {
     public static string SectionName => nameof(AwsConsumerSettings);
 
-    public AwsConsumerTopicSettings OrderPlacedTopicSettings { get; set; }
-    public AwsConsumerTopicSettings CustomerCreatedTopicSettings { get; set; }
+    public AwsConsumerTopicSettings? OrderPlacedTopicSettings { get; set; }
+    public AwsConsumerTopicSettings? CustomerCreatedTopicSettings { get; set; }
 }
 
 public class AwsConsumerTopicSettings
 {
-    public string Source { get; set; }
-    public string SubscribeToSource { get; set; }
-    public string[] WithSubscribedQueues { get; set; }
+    public string? Source { get; set; }
+    public string? SubscribeToSource { get; set; }
+    public string[]? WithSubscribedQueues { get; set; }
     public int NumberOfInstances { get; set; } = 1;
 
     // Aws

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulsar.Consumer.Host;
 using Pulsar.Consumer.Host.Settings;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting Pulsar.Consumer.Host *******");
 

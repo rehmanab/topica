@@ -32,6 +32,12 @@ namespace Microsoft.Extensions.DependencyInjection
             var serviceProvider = services.BuildServiceProvider();
             
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
+            
+            if (logger == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
+            }
+            
             logger.LogDebug("******* Aws Service Extensions ******* ");
 
             services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, config));

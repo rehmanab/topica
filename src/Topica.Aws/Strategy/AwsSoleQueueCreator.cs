@@ -13,7 +13,7 @@ namespace Topica.Aws.Strategy
     {
         private const string FifoSuffix = ".fifo";
 
-        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration? configuration)
+        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
             if (isFifo) queueName = queueName.Replace(FifoSuffix, string.Empty);

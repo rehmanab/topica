@@ -20,7 +20,7 @@ namespace Topica.RabbitMq.Consumers
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly ResiliencePipeline _retryPipeline;
         private readonly ILogger<RabbitMqQueueConsumer> _logger;
-        private IModel _channel;
+        private IModel? _channel = null;
 
         public RabbitMqQueueConsumer(ITopicProviderFactory topicProviderFactory, ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<RabbitMqQueueConsumer> logger)
         {
@@ -98,7 +98,7 @@ namespace Topica.RabbitMq.Consumers
 
         public void Dispose()
         {
-            _channel.Dispose();
+            _channel?.Dispose();
             _logger.LogInformation("{RabbitMqQueueConsumerName}: Disposed", nameof(RabbitMqQueueConsumer));
         }
     }

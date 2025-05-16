@@ -61,7 +61,7 @@ namespace Topica.Pulsar.Services
                     return;
                 }
 
-                var createResponse = await _httpClientService.PutAsync<object>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}", null);
+                var createResponse = await _httpClientService.PutAsync<object>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}", null!);
 
                 if (!createResponse.IsSuccessStatusCode)
                 {

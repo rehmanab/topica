@@ -11,19 +11,13 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Strategy
 {
-    public class AwsQueueWithErrorsCreator : IAwsQueueCreator
+    public class AwsQueueWithErrorsCreator(IAmazonSQS client) : IAwsQueueCreator
     {
         private const string ErrorQueueSuffix = "_error";
         private const string FifoQueueSuffix = ".fifo";
         private const int DefaultMaxReceiveCount = 3;
-        private readonly IAmazonSQS _client;
 
-        public AwsQueueWithErrorsCreator(IAmazonSQS client)
-        {
-            _client = client;
-        }
-
-        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration? configuration)
+        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
@@ -39,12 +33,12 @@ namespace Topica.Aws.Strategy
             return mainQueueUrl;
         }
 
-        private async Task<string> InternalCreateErrorQueue(string queueName, AwsSqsConfiguration? configuration)
+        private async Task<string> InternalCreateErrorQueue(string queueName, AwsSqsConfiguration configuration)
         {
             return await InternalCreateQueue(queueName, configuration.QueueAttributes.GetAttributeDictionary());
         }
 
-        private async Task<string> InternalMainCreateQueue(string queueName, AwsSqsConfiguration? configuration, string? redrivePolicy)
+        private async Task<string> InternalMainCreateQueue(string queueName, AwsSqsConfiguration configuration, string? redrivePolicy)
         {
             var attributeDictionary = configuration.QueueAttributes.GetAttributeDictionary();
             attributeDictionary.Add(AwsQueueAttributes.RedrivePolicyName, redrivePolicy);
@@ -60,7 +54,7 @@ namespace Topica.Aws.Strategy
                 Attributes = attributes
             };
 
-            var response = await _client.CreateQueueAsync(request);
+            var response = await client.CreateQueueAsync(request);
 
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {
@@ -78,7 +72,7 @@ namespace Topica.Aws.Strategy
                 QueueUrl = queueUrl
             };
 
-            var queueAttributes = (await _client.GetQueueAttributesAsync(getQueueAttributesRequest)).Attributes;
+            var queueAttributes = (await client.GetQueueAttributesAsync(getQueueAttributesRequest)).Attributes;
 
             return queueAttributes[AwsQueueAttributes.QueueArnName];
         }
