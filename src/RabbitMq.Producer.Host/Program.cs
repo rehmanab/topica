@@ -64,15 +64,15 @@ var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new 
 
 var producer = await producerBuilder.BuildProducerAsync<IChannel>(null, producerSettings, cts.Token);
 
-foreach (var index in Enumerable.Range(1, 100))
+foreach (var index in Enumerable.Range(1, 1))
 {
-    var message = new ItemDeliveredMessage{ConversationId = Guid.NewGuid(), Name = "Delivered"};
+    var message = new ItemDeliveredMessageV1{ConversationId = Guid.NewGuid(), ItemId = 123L, ItemName = "Rubicon Mango", Type = nameof(ItemDeliveredMessageV1)};
     var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-    await producer.BasicPublishAsync("item-posted", "", body);
+    await producer.BasicPublishAsync("item_delivered_v1_exchange", "", body);
     
     Console.WriteLine($"Produced message to {producerSettings.Source}: {message.ConversationId}");
     
-    await Task.Delay(1000);
+    await Task.Delay(250);
 }
 
 producer.Dispose();
