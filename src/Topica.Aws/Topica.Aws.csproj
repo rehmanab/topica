@@ -8,13 +8,13 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Topica\Topica.csproj" />
-        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0.2" />
-        <PackageReference Include="AWSSDK.SQS" Version="4.0.0.2" />
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.0.3" />
+        <PackageReference Include="AWSSDK.SQS" Version="4.0.0.3" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Polly.Core" Version="8.5.2" />
-        <PackageReference Include="Scrutor" Version="4.2.0" />
+        <PackageReference Include="Scrutor" Version="6.0.1" />
     </ItemGroup>
 
 </Project>
