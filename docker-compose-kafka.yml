@@ -1,4 +1,6 @@
----
+#  docker-compose -f docker-compose-kafka.yml -p pulsar up -d
+#  docker-compose -f docker-compose-kafka.yml -p pulsar down
+
 services:
 
   broker:

@@ -1,3 +1,6 @@
+#  docker-compose -f docker-compose-aws.yml -p pulsar up -d
+#  docker-compose -f docker-compose-aws.yml -p pulsar down
+
 services:
   localstack:
     container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"

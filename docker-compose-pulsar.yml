@@ -1,3 +1,6 @@
+#  docker-compose -f docker-compose-pulsar.yml -p pulsar up -d
+#  docker-compose -f docker-compose-pulsar.yml -p pulsar down
+
 networks:
   pulsar:
     driver: bridge

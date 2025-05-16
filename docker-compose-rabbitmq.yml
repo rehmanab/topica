@@ -1,0 +1,18 @@
+#  docker-compose -f docker-compose-rabbitmq.yml -p pulsar up -d
+#  docker-compose -f docker-compose-rabbitmq.yml -p pulsar down
+  
+services:
+  rabbitmq:
+    container_name: "rabbitmq1"
+    hostname: "rabbitmq1"
+    restart: unless-stopped
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"  # RabbitMQ Management UI
+      - "5672:5672"  # RabbitMQ AMQP protocol
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
