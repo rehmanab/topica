@@ -1,6 +1,6 @@
 using Topica.Messages;
 
-namespace Pulsar.Consumer.Host.Messages.V1;
+namespace Pulsar.Producer.Host.Messages.V1;
 
 public class MatchStartedMessageV1 : BaseMessage
 {

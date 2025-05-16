@@ -63,7 +63,7 @@ var producerSettings = host.Services.GetService<ProducerSettings>();
 var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("Pulsar ProducerBuilder not found");
 var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("test-producer-1", producerSettings, cts.Token);
 
-var message = new MatchStartedMessage{ConversationId = Guid.NewGuid(), Name = "Stoke Poges"};
+var message = new MatchStartedMessageV1{ConversationId = Guid.NewGuid(), MatchName = "Stoke Poges"};
 foreach (var index in Enumerable.Range(1, 10))
 {
     await producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));

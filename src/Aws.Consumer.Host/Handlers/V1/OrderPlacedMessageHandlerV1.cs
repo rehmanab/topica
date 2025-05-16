@@ -20,6 +20,12 @@ namespace Aws.Consumer.Host.Handlers.V1
         /// <returns>True if Valid</returns>
         public bool ValidateMessage(OrderPlacedMessageV1 message)
         {
+            if(!message.Type.Equals(nameof(OrderPlacedMessageV1), StringComparison.CurrentCultureIgnoreCase))
+            {
+                logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(OrderPlacedMessageHandlerV1));
+                return false;
+            }
+            
             return true;
         }
     }

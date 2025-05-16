@@ -23,7 +23,7 @@ namespace Topica.Executors
             var validated = (bool)methodToValidate;
             if (!validated)
             {
-                _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
+                // _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
                 return (handlerImpl.GetType().Name, false);
             }
             
@@ -38,7 +38,7 @@ namespace Topica.Executors
             var validated = (bool)methodToValidate;
             if (!validated)
             {
-                _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
+                // _logger.LogWarning("**** {Name} Validation FAILED ****", handlerImpl.GetType().Name);
                 return (handlerImpl.GetType().Name, false);
             }
             

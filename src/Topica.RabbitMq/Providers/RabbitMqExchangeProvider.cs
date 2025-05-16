@@ -9,18 +9,8 @@ using Topica.Settings;
 
 namespace Topica.RabbitMq.Providers
 {
-    public class RabbitMqExchangeProvider : ITopicProvider
+    public class RabbitMqExchangeProvider(IRabbitMqManagementApiClient managementApiClient, ILogger<RabbitMqExchangeProvider> logger) : ITopicProvider
     {
-        private readonly IRabbitMqManagementApiClient _managementApiClient;
-        private readonly ILogger<RabbitMqExchangeProvider> _logger;
-
-        public RabbitMqExchangeProvider(IRabbitMqManagementApiClient managementApiClient,
-            ILogger<RabbitMqExchangeProvider> logger)
-        {
-            _managementApiClient = managementApiClient;
-            _logger = logger;
-        }
-        
         public MessagingPlatform MessagingPlatform => MessagingPlatform.RabbitMq;
 
         public async Task CreateTopicAsync(ConsumerSettings settings)
@@ -40,9 +30,9 @@ namespace Topica.RabbitMq.Providers
                 Name = subscribedQueue, Durable = true
             }).ToList();
 
-            await _managementApiClient.CreateAsync(source, true, ExchangeTypes.Fanout, queues);
+            await managementApiClient.CreateAsync(source, true, ExchangeTypes.Fanout, queues);
             
-            _logger.LogInformation($"{nameof(RabbitMqExchangeProvider)}.{nameof(CreateTopicAsync)}: Created exchange {source}");
+            logger.LogInformation($"{nameof(RabbitMqExchangeProvider)}.{nameof(CreateTopicAsync)}: Created exchange {source}");
             
             return new object();
         }

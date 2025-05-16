@@ -50,6 +50,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pulsar", "Pulsar", "{0F5CEA
 		..\docker-compose-pulsar.yml = ..\docker-compose-pulsar.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{AFBB018F-5369-4F6C-B934-A61D1C075FC1}"
+	ProjectSection(SolutionItems) = preProject
+		..\docker-compose-rabbitmq.yml = ..\docker-compose-rabbitmq.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,5 +122,6 @@ Global
 		{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 		{1DB9DAAB-ED59-48E9-AB41-493FE7D82B1E} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 		{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
+		{AFBB018F-5369-4F6C-B934-A61D1C075FC1} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 	EndGlobalSection
 EndGlobal

@@ -102,6 +102,11 @@ namespace Topica.Resolvers
                 throw new Exception("invoked method returned null");   
             }
             
+            if(!(bool)toValidate)
+            {
+                return (handlerImpl, toValidate, null);
+            }
+            
             if (methodToExecute == null)
             {
                 throw new Exception($"HandleAsync method not found on : {handlerImpl.GetType().Name}");

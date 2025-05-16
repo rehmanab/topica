@@ -20,6 +20,12 @@ namespace Aws.Consumer.Host.Handlers.V1
         /// <returns>True if Valid</returns>
         public bool ValidateMessage(CustomerCreatedMessageV1 message)
         {
+            if(!message.Type.Equals(nameof(CustomerCreatedMessageV1), StringComparison.CurrentCultureIgnoreCase))
+            {
+                // logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(CustomerCreatedMessageHandlerV1));
+                return false;
+            }
+            
             return true;
         }
     }

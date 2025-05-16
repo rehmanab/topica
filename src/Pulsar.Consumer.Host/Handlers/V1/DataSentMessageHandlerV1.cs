@@ -15,6 +15,12 @@ public class DataSentMessageHandlerV1(ILogger<DataSentMessageHandlerV1> logger) 
 
     public bool ValidateMessage(DataSentMessageV1 message)
     {
+        if(!message.Type.Equals(nameof(DataSentMessageV1), StringComparison.CurrentCultureIgnoreCase))
+        {
+            // logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(DataSentMessageHandlerV1));
+            return false;
+        }
+        
         return true;
     }
 }

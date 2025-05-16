@@ -72,7 +72,7 @@ namespace Topica.RabbitMq.Consumers
                     var message = Encoding.UTF8.GetString(body);
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, message);
-                    _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, consumerSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
+                    // _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, consumerSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
                 };
 
                 await Task.Run(() =>
