@@ -68,8 +68,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
                 .AsImplementedInterfaces()
                 .WithScopedLifetime());
-
-
+            
             return services;
         }
     }

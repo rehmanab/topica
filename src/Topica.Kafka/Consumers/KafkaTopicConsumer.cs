@@ -46,60 +46,6 @@ namespace Topica.Kafka.Consumers
             });
         }
         
-        private async ValueTask StartAsync(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken)
-        {
-            var config = new ConsumerConfig
-            {
-                BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers),
-                GroupId = consumerSettings.KafkaConsumerGroup,
-                AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages
-                    ? AutoOffsetReset.Earliest
-                    : AutoOffsetReset.Latest,
-                SaslMechanism = SaslMechanism.Plain
-                //SecurityProtocol = SecurityProtocol.Ssl
-            };
-
-            try
-            {
-                var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-                consumer.Subscribe(consumerSettings.Source);
-
-                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerName}", nameof(KafkaTopicConsumer), consumerName);
-
-                await Task.Run(async () =>
-                    {
-                        while (!cancellationToken.IsCancellationRequested)
-                        {
-                            var message = consumer.Consume();
-
-                            if (message == null)
-                            {
-                                throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerSettings.Source}");
-                            }
-
-                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(consumerSettings.MessageToHandle, message.Message.Value);
-                            _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
-                            _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
-                        }
-
-                        consumer.Dispose();
-                        _logger.LogInformation("{KafkaTopicConsumerName}: Disposed", nameof(KafkaTopicConsumer));
-                    }, cancellationToken)
-                    .ContinueWith(x =>
-                    {
-                        if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
-                        {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
-                        }
-                    }, cancellationToken);
-            }
-            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
-                throw;
-            }
-        }
-        
         private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
             var config = new ConsumerConfig
