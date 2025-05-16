@@ -61,12 +61,13 @@ var cts = new CancellationTokenSource();
 
 var producerSettings = host.Services.GetService<ProducerSettings>();
 var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("Pulsar ProducerBuilder not found");
-var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("test-producer-1", producerSettings, cts.Token);
+var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("pulsar-producer-1", producerSettings, cts.Token);
 
-var message = new MatchStartedMessageV1{ConversationId = Guid.NewGuid(), MatchName = "Stoke Poges"};
+var message = new DataSentMessageV1{ConversationId = Guid.NewGuid(), DataId = 123L, DataName = "Stock price", Type = nameof(DataSentMessageV1)};
 foreach (var index in Enumerable.Range(1, 10))
 {
     await producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
+    await Task.Delay(500);
 }
 
 await producer.DisposeAsync();

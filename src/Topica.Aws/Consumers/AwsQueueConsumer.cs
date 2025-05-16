@@ -51,7 +51,7 @@ namespace Topica.Aws.Consumers
 
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-({index})", consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
             });
         }
 

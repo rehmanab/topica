@@ -7,24 +7,15 @@ using Topica.Settings;
 
 namespace Topica.Pulsar.Producers
 {
-    public class PulsarTopicProducerBuilder : IProducerBuilder, IDisposable
+    public class PulsarTopicProducerBuilder(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder) : IProducerBuilder, IDisposable
     {
-        private readonly ITopicProviderFactory _topicProviderFactory;
-        private readonly PulsarClientBuilder _clientBuilder;
         private IProducer<byte[]>? _producer;
-
-        public PulsarTopicProducerBuilder(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder)
-        {
-            _topicProviderFactory = topicProviderFactory;
-            _clientBuilder = clientBuilder;
-        }
 
         public async Task<T> BuildProducerAsync<T>(string producerName, ProducerSettings producerSettings, CancellationToken cancellationToken)
         {
-            var topicProvider = _topicProviderFactory.Create(MessagingPlatform.Pulsar);
-            await topicProvider.CreateTopicAsync(producerSettings);
+            await topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(producerSettings);
             
-            var client = await _clientBuilder.BuildAsync();
+            var client = await clientBuilder.BuildAsync();
             _producer = await client.NewProducer(Schema.BYTES())
                 .ProducerName(producerName)
                 .Topic($"persistent://{producerSettings.PulsarTenant}/{producerSettings.PulsarNamespace}/{producerSettings.Source}")
