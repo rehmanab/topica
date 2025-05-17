@@ -64,15 +64,17 @@ var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new 
 var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("pulsar-producer-1", producerSettings, cts.Token);
 
 var message = new DataSentMessageV1{ConversationId = Guid.NewGuid(), DataId = 123L, DataName = "Stock price", Type = nameof(DataSentMessageV1)};
+var count = 0;
 foreach (var index in Enumerable.Range(1, 10))
 {
     await producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
-    await Task.Delay(500);
+    count++;
+    await Task.Delay(250);
 }
 
 await producer.DisposeAsync();
 
-Console.WriteLine("Finished!");
+Console.WriteLine($"Finished: {count} messages sent.");
 
 
 

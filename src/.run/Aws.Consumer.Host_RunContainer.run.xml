@@ -1,5 +1,5 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="aws.consumer.host/RunContainer" type="docker-deploy" factoryName="docker-image" server-name="localhost">
+  <configuration default="false" name="Aws.Consumer.Host/RunContainer" type="docker-deploy" factoryName="docker-image" server-name="localhost">
     <deployment type="docker-image">
       <settings>
         <option name="imageTag" value="aws.consumer.host:latest" />

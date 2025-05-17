@@ -1,0 +1,12 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RabbitMq.Producer.Host/RunContainer" type="docker-deploy" factoryName="docker-image" server-name="localhost">
+    <deployment type="docker-image">
+      <settings>
+        <option name="imageTag" value="rabbitmq.producer.host:latest" />
+        <option name="containerName" value="rabbitmq.producer.host" />
+        <option name="showCommandPreview" value="true" />
+      </settings>
+    </deployment>
+    <method v="2" />
+  </configuration>
+</component>
