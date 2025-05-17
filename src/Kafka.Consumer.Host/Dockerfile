@@ -1,4 +1,6 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+﻿# buid and run from the src folder using cmd
+# docker build -f Kafka.Consumer.Host\Dockerfile -t kafka.consumer.host:latest . && docker run --name kafka.consumer.host kafka.consumer.host:latest
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
