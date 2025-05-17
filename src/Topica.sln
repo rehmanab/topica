@@ -5,6 +5,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{20DB8CF9-8622-46DF-9C2B-E6521D772169}"
 ProjectSection(SolutionItems) = preProject
 	..\.gitignore = ..\.gitignore
+	..\README.md = ..\README.md
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{79224FA1-FB83-402D-A9CE-78F7712F6A1B}"
@@ -34,25 +35,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Producer.Host", "RabbitMq.Producer.Host\RabbitMq.Producer.Host.csproj", "{D9414D74-796D-4864-8D98-658853DD5B07}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{61A51C6C-9886-457E-9F71-7E41B7909B54}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kafka", "Kafka", "{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17}"
 	ProjectSection(SolutionItems) = preProject
-		..\docker-compose-kafka.yml = ..\docker-compose-kafka.yml
+		..\.docker\docker-compose-aws.yml = ..\.docker\docker-compose-aws.yml
+		..\.docker\docker-compose-kafka.yml = ..\.docker\docker-compose-kafka.yml
+		..\.docker\docker-compose-pulsar.yml = ..\.docker\docker-compose-pulsar.yml
+		..\.docker\docker-compose-rabbitmq.yml = ..\.docker\docker-compose-rabbitmq.yml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AWS", "AWS", "{1DB9DAAB-ED59-48E9-AB41-493FE7D82B1E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{CA4B8797-60C0-4906-9A5E-57E5D3CD0D62}"
 	ProjectSection(SolutionItems) = preProject
-		..\docker-compose-aws.yml = ..\docker-compose-aws.yml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pulsar", "Pulsar", "{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA}"
-	ProjectSection(SolutionItems) = preProject
-		..\docker-compose-pulsar.yml = ..\docker-compose-pulsar.yml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{AFBB018F-5369-4F6C-B934-A61D1C075FC1}"
-	ProjectSection(SolutionItems) = preProject
-		..\docker-compose-rabbitmq.yml = ..\docker-compose-rabbitmq.yml
+		..\.github\workflows\ci_main.yml = ..\.github\workflows\ci_main.yml
+		..\.github\workflows\ci_main_tag.yml = ..\.github\workflows\ci_main_tag.yml
 	EndProjectSection
 EndProject
 Global
@@ -119,9 +112,6 @@ Global
 		{CEF24FAE-D43C-4DB4-B262-CC7E695344A7} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
 		{D9414D74-796D-4864-8D98-658853DD5B07} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
 		{61A51C6C-9886-457E-9F71-7E41B7909B54} = {20DB8CF9-8622-46DF-9C2B-E6521D772169}
-		{DF0894AF-AEAC-4C33-B5FB-0E363CBE5B17} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
-		{1DB9DAAB-ED59-48E9-AB41-493FE7D82B1E} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
-		{0F5CEA93-BA2C-4B6A-83C5-DFAEB79173FA} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
-		{AFBB018F-5369-4F6C-B934-A61D1C075FC1} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
+		{CA4B8797-60C0-4906-9A5E-57E5D3CD0D62} = {20DB8CF9-8622-46DF-9C2B-E6521D772169}
 	EndGlobalSection
 EndGlobal

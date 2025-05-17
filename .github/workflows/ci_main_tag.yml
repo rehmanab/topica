@@ -1,0 +1,38 @@
+name: Build, Test, Pack and Publish
+
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+
+jobs:
+  build-test-pack-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ./src --configuration Release --no-build --verbosity normal
+
+      - name: GetVersion
+        id: version
+        uses: battila7/get-version-action@v2
+
+      - name: Pack
+        run: dotnet pack ./src --configuration Release --no-restore --no-build --output ./nupkgs -p:PackageVersion=${{ steps.version.outputs.version-without-v }}
+
+      - name: Publish to GitHub Packages
+        if: github.ref == 'refs/heads/main'
+        run: dotnet nuget push "./nupkgs/*.nupkg" --api-key ${{ secrets.GITHUB_TOKEN }} --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --skip-duplicate
