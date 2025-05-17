@@ -15,7 +15,7 @@ public class PersonCreatedMessageHandlerV1(ILogger<PersonCreatedMessageHandlerV1
 
     public bool ValidateMessage(PersonCreatedMessageV1 message)
     {
-        if(!message.Type.Equals(nameof(PersonCreatedMessageV1), StringComparison.CurrentCultureIgnoreCase))
+        if(string.IsNullOrWhiteSpace(message.Type) || !message.Type.Equals(nameof(PersonCreatedMessageV1), StringComparison.CurrentCultureIgnoreCase))
         {
             // logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(PersonCreatedMessageHandlerV1));
             return false;

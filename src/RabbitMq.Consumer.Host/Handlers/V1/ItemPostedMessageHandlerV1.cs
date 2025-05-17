@@ -14,7 +14,7 @@ public class ItemPostedMessageHandlerV1(ILogger<ItemPostedMessageHandlerV1> logg
 
     public bool ValidateMessage(ItemPostedMessageV1 message)
     {
-        if(!message.Type.Equals(nameof(ItemPostedMessageV1), StringComparison.CurrentCultureIgnoreCase))
+        if(string.IsNullOrWhiteSpace(message.Type) || !message.Type.Equals(nameof(ItemPostedMessageV1), StringComparison.CurrentCultureIgnoreCase))
         {
             // logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(ItemPostedMessageHandlerV1));
             return false;

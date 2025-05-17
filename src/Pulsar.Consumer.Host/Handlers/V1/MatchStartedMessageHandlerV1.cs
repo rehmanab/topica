@@ -15,7 +15,7 @@ public class MatchStartedMessageHandlerV1(ILogger<MatchStartedMessageHandlerV1> 
 
     public bool ValidateMessage(MatchStartedMessageV1 message)
     {
-        if(!message.Type.Equals(nameof(MatchStartedMessageV1), StringComparison.CurrentCultureIgnoreCase))
+        if(string.IsNullOrWhiteSpace(message.Type) || !message.Type.Equals(nameof(MatchStartedMessageV1), StringComparison.CurrentCultureIgnoreCase))
         {
             // logger.LogWarning("Invalid message type: {MessageType} for Handler: {Handler}", message.Type, nameof(MatchStartedMessageHandlerV1));
             return false;
