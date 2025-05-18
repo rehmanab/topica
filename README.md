@@ -9,6 +9,9 @@ dotnet add package Topical.Aws.Sns.Sqs --version 0.0.1
 ```
 dotnet pack ./src --configuration Release --no-restore --no-build --output ./nupkgs -p:PackageVersion=0.0.1
 dotnet nuget push "./nupkgs/*.nupkg" --api-key ghp_xxx --source "https://nuget.pkg.github.com/rehmanab/index.json" --skip-duplicate
+
+Add for project NOT to be packagble into a .nupkg in the .csproj
+<IsPackable>false</IsPackable>
 ```
 
 ## Docker local Usage

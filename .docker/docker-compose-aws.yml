@@ -1,5 +1,5 @@
-#  docker-compose -f docker-compose-aws.yml -p pulsar up -d
-#  docker-compose -f docker-compose-aws.yml -p pulsar down
+#  docker-compose -f .docker/docker-compose-aws.yml -p aws up -d
+#  docker-compose -f .docker/docker-compose-aws.yml -p aws down
 
 services:
   localstack:

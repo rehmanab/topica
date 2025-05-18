@@ -1,5 +1,5 @@
-#  docker-compose -f docker-compose-pulsar.yml -p pulsar up -d
-#  docker-compose -f docker-compose-pulsar.yml -p pulsar down
+#  docker-compose -f .docker/docker-compose-pulsar.yml -p pulsar up -d
+#  docker-compose -f .docker/docker-compose-pulsar.yml -p pulsar down
 
 networks:
   pulsar:
