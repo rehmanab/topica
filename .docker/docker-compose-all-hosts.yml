@@ -1,0 +1,48 @@
+#  docker-compose -f .docker/docker-compose-all-hosts.yml -p topica_hosts up -d
+#  docker-compose -f .docker/docker-compose-all-hosts.yml -p topica_hosts down
+
+services:
+  
+  # Consumers
+  aws.consumer.host:
+    build:
+      context: ../src
+      dockerfile: Aws.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+
+  kafka.consumer.host:
+    build:
+      context: ../src
+      dockerfile: Kafka.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  pulsar.consumer.host:
+    build:
+      context: ../src
+      dockerfile: Pulsar.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.consumer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+      
+  # Producers
+  pulsar.producer.host:
+    build:
+      context: ../src
+      dockerfile: Pulsar.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+
+  rabbitmq.producer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable

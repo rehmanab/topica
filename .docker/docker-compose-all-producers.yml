@@ -1,0 +1,17 @@
+#  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers up -d
+#  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers down
+
+services:
+  pulsar.producer.host:
+    build:
+      context: ../src
+      dockerfile: Pulsar.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.producer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
