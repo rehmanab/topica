@@ -17,21 +17,48 @@ namespace Topica.RabbitMq.Clients
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
-            IgnoreNullValues = true,
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        private const string ApiBasePath = "/api";
+        private const string VhostsPath = "/vhosts";
         private const string UsersPath = "/users";
         private const string PermissionsPath = "/permissions";
         private const string NodesPath = "/nodes";
         private const string QueuesPath = "/queues";
         private const string ExchangesPath = "/exchanges";
         private const string BindingsPath = "/bindings";
+        
+        public async Task<IEnumerable<VhostDetail>> GetVHostsAsync()
+        {
+            return await SendAsync<IEnumerable<VhostDetail>>($"{VhostsPath}", HttpMethod.Get, null);			
+        }
+
+        public async Task<VhostDetail?> GetVHostAsync(string vhostName)
+        {
+            var response = await SendAsync($"{VhostsPath}/{vhostName}", HttpMethod.Get, null);
+		
+            if(!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var resultString = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<VhostDetail>(resultString, _jsonSerializerOptions) ?? throw new NullReferenceException($"Null result returned from trying to deserialise - {resultString}");
+        }
+
+        public async Task CreateVHostsAsync(string vhostName, string vhostDescription)
+        {
+            await SendAsync($"{VhostsPath}/{vhostName}", HttpMethod.Put, new { Description = vhostDescription});
+        }
+
+        public async Task DeleteVHostsAsync(string vhostName)
+        {
+            await SendAsync($"{VhostsPath}/{vhostName}", HttpMethod.Delete, null);
+        }
 
         // Get Exchange with queues and bindings
-        public async Task<ExchangeBinding> GetAsync(string name)
+        public async Task<ExchangeBinding> GetExchangeAndBindingsAsync(string name)
         {
             var exchange = await GetExchangeAsync(name);
             var bindings = await GetExchangeInSourceBindingsAsync(name);
@@ -40,8 +67,15 @@ namespace Topica.RabbitMq.Clients
         }
 
         // Create Exchange with queues and bindings
-        public async Task CreateAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues)
+        public async Task CreateExchangeAndBindingsAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues)
         {
+            var vhostResponse = await GetVHostAsync(_vhost);
+
+            if (vhostResponse == null)
+            {
+                await CreateVHostsAsync(_vhost, $"{_vhost} created for Topica messaging");
+            }
+            
             await CreateExchangesAsync(type, durable, [exchangeName]);
 
             foreach (var queue in queues)
@@ -57,11 +91,11 @@ namespace Topica.RabbitMq.Clients
         }
 
         // Delete Exchange with queues and bindings
-        public async Task DeleteAsync(params string[] exchangeNames)
+        public async Task DeleteExchangeAndBindingsAsync(params string[] exchangeNames)
         {
             foreach (var exchangeName in exchangeNames)
             {
-                var exchangeBindings = await GetAsync(exchangeName);
+                var exchangeBindings = await GetExchangeAndBindingsAsync(exchangeName);
                 
                 if (exchangeBindings.Exchange == null)
                 {
@@ -117,7 +151,7 @@ namespace Topica.RabbitMq.Clients
 
         public async Task<IEnumerable<Exchange>> GetExchangesAsync(bool includeSystemExchanges = false)
         {
-            var exchanges = await SendAsync<IEnumerable<Exchange>>($"{ExchangesPath}/{_vhost}", HttpMethod.Get, null);
+            var exchanges = await SendAsync<IEnumerable<Exchange>>($"{ExchangesPath}/{_vhost}", HttpMethod.Get, null) ?? [];
 
             return exchanges
                 .Where(x => !string.IsNullOrWhiteSpace(x.Name))
@@ -236,9 +270,14 @@ namespace Topica.RabbitMq.Clients
         }
 
         // Private Methods
-        private async Task<TResult> SendAsync<TResult>(string path, HttpMethod httpMethod, object? body)
+        private async Task<TResult?> SendAsync<TResult>(string path, HttpMethod httpMethod, object? body)
         {
             var response = await SendAsync(path, httpMethod, body);
+            
+            if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return default;
+            }
 
             var resultString = await response.Content.ReadAsStringAsync();
 
@@ -249,7 +288,7 @@ namespace Topica.RabbitMq.Clients
 
         private async Task<HttpResponseMessage> SendAsync(string path, HttpMethod httpMethod, object? body)
         {
-            var url = $"{ApiBasePath}{path}";
+            var url = $"/api{path}";
 
             var message = new HttpRequestMessage(httpMethod, url);
 
@@ -261,7 +300,7 @@ namespace Topica.RabbitMq.Clients
 
             var response = await httpClient.SendAsync(message, HttpCompletionOption.ResponseContentRead);
 
-            response.EnsureSuccessStatusCode();
+            // response.EnsureSuccessStatusCode();
 
             return response;
         }

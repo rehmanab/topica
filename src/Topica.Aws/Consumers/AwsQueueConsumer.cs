@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using Topica.Aws.Contracts;

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
@@ -33,7 +35,7 @@ namespace Topica.Aws.Providers
                 settings.AwsBuildWithErrorQueue, settings.AwsErrorQueueMaxReceiveCount);
         }
 
-        private async Task CreateTopicAsync(string source, string[] withSubscribedQueues, int? awsVisibilityTimeout,
+        private async Task CreateTopicAsync(string source, IEnumerable<string> withSubscribedQueues, int? awsVisibilityTimeout,
             bool awsIsFifoQueue, bool awsIsFifoContentBasedDeduplication, int? awsMaximumMessageSize,
             int? awsMessageRetentionPeriod, int? awsDelaySeconds, int? awsReceiveMessageWaitTimeSeconds,
             bool awsBuildWithErrorQueue, int? awsErrorQueueMaxReceiveCount)

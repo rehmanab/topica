@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Topica.RabbitMq.Requests
@@ -10,7 +9,5 @@ namespace Topica.RabbitMq.Requests
 	
         [JsonPropertyName("routing_key")]
         public string? RoutingKey { get; set; }
-	
-        public IDictionary<string, object>? Arguments { get; set; }
     }
 }

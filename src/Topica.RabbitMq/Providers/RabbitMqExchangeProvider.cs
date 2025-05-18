@@ -27,12 +27,12 @@ namespace Topica.RabbitMq.Providers
         {
             var queues = withSubscribedQueues.Select(subscribedQueue => new CreateRabbitMqQueueRequest
             {
-                Name = subscribedQueue, Durable = true
+                Name = subscribedQueue, Durable = true, RoutingKey = $"{subscribedQueue}_routing_key"
             }).ToList();
 
-            await managementApiClient.CreateAsync(source, true, ExchangeTypes.Fanout, queues);
+            await managementApiClient.CreateExchangeAndBindingsAsync(source, true, ExchangeTypes.Fanout, queues);
             
-            logger.LogInformation($"{nameof(RabbitMqExchangeProvider)}.{nameof(CreateTopicAsync)}: Created exchange {source}");
+            logger.LogInformation("{RabbitMqExchangeProviderName}.{CreateTopicAsyncName}: Created exchange {Source}", nameof(RabbitMqExchangeProvider), nameof(CreateTopicAsync), source);
             
             return new object();
         }

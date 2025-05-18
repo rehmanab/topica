@@ -7,9 +7,13 @@ namespace Topica.RabbitMq.Contracts
 {
     public interface IRabbitMqManagementApiClient
     {
-        Task<ExchangeBinding> GetAsync(string name);
-        Task CreateAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues);
-        Task DeleteAsync(params string[] exchangeNames);
+        Task<IEnumerable<VhostDetail>> GetVHostsAsync();
+        Task<VhostDetail?> GetVHostAsync(string vhostName);
+        Task CreateVHostsAsync(string vhostName, string vhostDescription);
+        Task DeleteVHostsAsync(string vhostName);
+        Task<ExchangeBinding> GetExchangeAndBindingsAsync(string name);
+        Task CreateExchangeAndBindingsAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues);
+        Task DeleteExchangeAndBindingsAsync(params string[] exchangeNames);
         Task<IEnumerable<User>> GetUsersAsync();
         Task CreateOrUpdateUserAsync(CreateOrUpdateUserRequest body);
         Task SetUserPermissionsAsync(SetUserPermissionsRequest body);
