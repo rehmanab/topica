@@ -108,7 +108,7 @@ namespace Topica.Aws.Consumers
                         }
 
                         var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(messageBody);
-                        _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                        // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
                         
                         if (!success) continue;
 

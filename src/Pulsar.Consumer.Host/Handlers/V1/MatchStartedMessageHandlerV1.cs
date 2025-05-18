@@ -8,7 +8,7 @@ public class MatchStartedMessageHandlerV1(ILogger<MatchStartedMessageHandlerV1> 
 {
     public async Task<bool> HandleAsync(MatchStartedMessageV1 source)
     {
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Match: {PersonName}", nameof(MatchStartedMessageV1), source.ConversationId, source.MatchName);
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Match: {Match}", nameof(MatchStartedMessageV1), source.ConversationId, $"{source.MatchId} : {source.MatchName}");
             
         return await Task.FromResult(true);
     }

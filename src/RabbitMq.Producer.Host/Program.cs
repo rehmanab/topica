@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMq.Producer.Host.Messages.V1;
 using RabbitMq.Producer.Host.Settings;
+using RandomNameGeneratorLibrary;
 using Topica.Contracts;
 using Topica.Settings;
 
@@ -64,15 +65,17 @@ var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new 
 
 var producer = await producerBuilder.BuildProducerAsync<IChannel>(null, producerSettings, cts.Token);
 
-foreach (var index in Enumerable.Range(1, 1))
+var count = 1;
+
+while(true)
 {
-    var message = new ItemDeliveredMessageV1{ConversationId = Guid.NewGuid(), ItemId = 123L, ItemName = "Rubicon Mango", Type = nameof(ItemDeliveredMessageV1)};
-    var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-    await producer.BasicPublishAsync("item_delivered_v1_exchange", "", body);
+    var message = new ItemDeliveredMessageV1{ConversationId = Guid.NewGuid(), ItemId = count, ItemName = Random.Shared.GenerateRandomPlaceName(), Type = nameof(ItemDeliveredMessageV1)};
+    await producer.BasicPublishAsync("item_delivered_v1_exchange", "", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
+    count++;
     
-    Console.WriteLine($"Produced message to {producerSettings.Source}: {message.ConversationId}");
+    Console.WriteLine($"Produced message to {producerSettings.Source}: {count}");
     
-    await Task.Delay(250);
+    await Task.Delay(1000);
 }
 
 producer.Dispose();

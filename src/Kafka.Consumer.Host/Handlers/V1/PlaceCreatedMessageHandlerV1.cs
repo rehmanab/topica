@@ -8,7 +8,7 @@ public class PlaceCreatedMessageHandlerV1(ILogger<PlaceCreatedMessageHandlerV1> 
 {
     public async Task<bool> HandleAsync(PlaceCreatedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Place: {PlaceName}", nameof(PlaceCreatedMessageV1), source.ConversationId, source.PlaceName);
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Place: {Place}", nameof(PlaceCreatedMessageV1), source.ConversationId, $"{source.PlaceId} : {source.PlaceName}");
             
         return await Task.FromResult(true);
     }

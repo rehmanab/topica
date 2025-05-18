@@ -14,7 +14,7 @@ namespace Topica.Messages
 
         public virtual string UniqueKey() => Id;
 
-        public string Id { get; set; }
+        public string Id { get; private set; }
         public string Type { get; set; }
         public Guid ConversationId { get; set; }
         public DateTime TimeStampUtc { get; set; }

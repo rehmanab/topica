@@ -78,8 +78,8 @@ namespace Topica.Kafka.Consumers
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message.Message.Value);
-                            _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
-                            _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
+                            // _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            // _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
                             
                             await Task.Delay(250, cancellationToken);
                         }

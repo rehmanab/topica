@@ -8,7 +8,7 @@ public class DataSentMessageHandlerV1(ILogger<DataSentMessageHandlerV1> logger) 
 {
     public async Task<bool> HandleAsync(DataSentMessageV1 source)
     {
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Data: {PersonName}", nameof(DataSentMessageV1), source.ConversationId, source.DataName);
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Data: {Data}", nameof(DataSentMessageV1), source.ConversationId, $"{source.DataId} : {source.DataName}");
             
         return await Task.FromResult(true);
     }

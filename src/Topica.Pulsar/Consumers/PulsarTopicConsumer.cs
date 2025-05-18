@@ -79,7 +79,7 @@ namespace Topica.Pulsar.Consumers
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Data));
-                            _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                             if (success)
                             {

@@ -8,7 +8,7 @@ public class ItemPostedMessageHandlerV1(ILogger<ItemPostedMessageHandlerV1> logg
 {
     public async Task<bool> HandleAsync(ItemPostedMessageV1 source)
     {
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for PostTown: {PostTown}", nameof(ItemPostedMessageV1), source.ConversationId, source.PostboxName);
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Postbox: {PostBox}", nameof(ItemPostedMessageV1), source.ConversationId, $"{source.PostboxId} : {source.PostboxName}");
         return await Task.FromResult(true);
     }
 
