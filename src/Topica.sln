@@ -42,6 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{61A51C
 		..\.docker\docker-compose-rabbitmq.yml = ..\.docker\docker-compose-rabbitmq.yml
 		..\.docker\docker-compose-all-platforms.yml = ..\.docker\docker-compose-all-platforms.yml
 		..\.docker\docker-compose-include-all.yml = ..\.docker\docker-compose-include-all.yml
+		..\.docker\docker-compose-all-consumers.yml = ..\.docker\docker-compose-all-consumers.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{CA4B8797-60C0-4906-9A5E-57E5D3CD0D62}"
