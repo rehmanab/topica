@@ -1,0 +1,20 @@
+# Main docker-compose file that includes all services
+# To start all services: docker compose -f docker-compose.yml up -d
+# To stop all services: docker compose -f docker-compose.yml down
+# To start specific services, you can still use the individual files
+
+# Adds all to the project name defined in the command. (messaging_platforms)
+#  docker-compose -f .docker/docker-compose.yml -p messaging_platforms up -d
+#  docker-compose -f .docker/docker-compose.yml -p messaging_platforms down
+
+include:
+  - docker-compose-pulsar.yml
+  - docker-compose-kafka.yml
+  - docker-compose-aws.yml
+  - docker-compose-rabbitmq.yml
+
+networks:
+  # Shared network to enable communication between all services
+  default:
+    name: topica-network
+    driver: bridge
