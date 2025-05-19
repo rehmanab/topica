@@ -36,7 +36,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Producer.Host", "R
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{61A51C6C-9886-457E-9F71-7E41B7909B54}"
 	ProjectSection(SolutionItems) = preProject
-		..\.docker\docker-compose-all-platforms.yml = ..\.docker\docker-compose-all-platforms.yml
 		..\.docker\docker-compose-include-all.yml = ..\.docker\docker-compose-include-all.yml
 	EndProjectSection
 EndProject
@@ -56,6 +55,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{
 		..\.docker\docker-compose-pulsar.yml = ..\.docker\docker-compose-pulsar.yml
 		..\.docker\docker-compose-kafka.yml = ..\.docker\docker-compose-kafka.yml
 		..\.docker\docker-compose-aws.yml = ..\.docker\docker-compose-aws.yml
+		..\.docker\docker-compose-all-platforms.yml = ..\.docker\docker-compose-all-platforms.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{8BB967B8-19F8-4CE1-B2EF-03F78B773B75}"

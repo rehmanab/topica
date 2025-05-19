@@ -1,5 +1,5 @@
 ﻿# buid and run from the src folder using cmd
-# docker build -f Aws.Consumer.Host\Dockerfile -t aws.consumer.host:latest . && docker run --name aws.consumer.host aws.consumer.host:latest
+# docker build -f Aws.Consumer.Host\Dockerfile -t aws.consumer.host:latest . && docker run -d --name aws.consumer.host aws.consumer.host:latest
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
 WORKDIR /app
 

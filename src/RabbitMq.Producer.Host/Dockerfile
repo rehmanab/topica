@@ -1,5 +1,5 @@
 ﻿# buid and run from the src folder using cmd
-# docker build -f RabbitMq.Producer.Host\Dockerfile -t rabbitmq.producer.host:latest . && docker run --name rabbitmq.producer.host rabbitmq.producer.host:latest
+# docker build -f RabbitMq.Producer.Host\Dockerfile -t rabbitmq.producer.host:latest . && docker run -d --name rabbitmq.producer.host rabbitmq.producer.host:latest
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
 USER $APP_UID
 WORKDIR /app
