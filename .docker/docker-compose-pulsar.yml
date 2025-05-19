@@ -7,7 +7,7 @@ networks:
 services:
   # Start zookeeper
   zookeeper:
-    image: apachepulsar/pulsar:latest
+    image: apachepulsar/pulsar:4.0.4
     container_name: zookeeper
     restart: unless-stopped
     networks:
@@ -32,7 +32,7 @@ services:
     container_name: pulsar-init
     restart: no # only run once to init Pulsar
     hostname: pulsar-init
-    image: apachepulsar/pulsar:latest
+    image: apachepulsar/pulsar:4.0.4
     networks:
       - pulsar
     command: |-
@@ -43,7 +43,7 @@ services:
 
   # Start bookie
   bookie:
-    image: apachepulsar/pulsar:latest
+    image: apachepulsar/pulsar:4.0.4
     container_name: bookie
     restart: unless-stopped
     networks:
@@ -68,7 +68,7 @@ services:
 
   # Start broker
   pulsarbroker:
-    image: apachepulsar/pulsar:latest
+    image: apachepulsar/pulsar:4.0.4
     container_name: pulsarbroker
     hostname: pulsarbroker
     restart: unless-stopped
@@ -96,7 +96,7 @@ services:
     
     # Start pulsar Manager
   pulsar-manager:
-    image: "apachepulsar/pulsar-manager:latest"
+    image: apachepulsar/pulsar-manager:v0.4.0
     restart: unless-stopped
     ports:
       - "9527:9527"
