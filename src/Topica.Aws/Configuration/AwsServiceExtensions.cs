@@ -12,6 +12,7 @@ using Topica.Aws.Configuration;
 using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
 using Topica.Aws.Factories;
+using Topica.Aws.Producers;
 using Topica.Aws.Providers;
 using Topica.Aws.Services;
 using Topica.Contracts;
@@ -51,6 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IAwsQueueBuilder, AwsQueueBuilder>();
             services.AddScoped<IConsumer, AwsQueueConsumer>();
             services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsConsumerTopicFluentBuilder>();
+            services.AddScoped<IProducerBuilder, AwsProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, AwsTopicProvider>();
             

@@ -64,7 +64,7 @@ var producerSettings = host.Services.GetService<ProducerSettings>();
 var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("Pulsar ProducerBuilder not found");
 var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("pulsar-producer-1", producerSettings, cts.Token);
 
-var count = 0;
+var count = 1;
 while(true)
 {
     var message = new DataSentMessageV1{ConversationId = Guid.NewGuid(), DataId = count, DataName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(DataSentMessageV1)};

@@ -7,7 +7,6 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Topica.Aws.Builders;
 using Topica.Aws.Contracts;
 using Topica.Aws.Queues;
 using Topica.Messages;
@@ -17,6 +16,35 @@ namespace Topica.Aws.Services
     public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, IAwsPolicyBuilder awsPolicyBuilder, IAwsSqsConfigurationBuilder awsSqsConfigurationBuilder, ILogger<AwsTopicService> logger) : IAwsTopicService
     {
         private const string FifoSuffix = ".fifo";
+        
+        public async IAsyncEnumerable<IEnumerable<Topic>> GetAllTopics(string? topicNamePrefix = null, bool? isFifo = false)
+        {
+            Func<Topic, bool> filterTopics = x =>
+            {
+                if(string.IsNullOrWhiteSpace(topicNamePrefix)) return true;
+		
+                if (string.IsNullOrWhiteSpace(x.TopicArn) || !x.TopicArn.Contains(':')) return false;
+
+                var lastEntryTopicName = x.TopicArn.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+
+                return !string.IsNullOrEmpty(lastEntryTopicName) 
+                       && lastEntryTopicName.StartsWith(topicNamePrefix, StringComparison.CurrentCultureIgnoreCase) 
+                       && (isFifo.HasValue && isFifo.Value ? lastEntryTopicName.EndsWith(FifoSuffix) : !lastEntryTopicName.EndsWith(FifoSuffix));
+            };
+
+            var response = await snsClient.ListTopicsAsync();
+
+            if (response?.Topics == null || response.Topics.Count == 0) yield break;
+
+            yield return response.Topics.Where(filterTopics);
+
+            while (!string.IsNullOrWhiteSpace(response.NextToken))
+            {
+                response = await snsClient.ListTopicsAsync(response.NextToken);
+                if (response?.Topics == null || response.Topics.Count == 0) yield break;
+                yield return response.Topics.Where(filterTopics);
+            }
+        }
         
         public async Task<string?> GetTopicArnAsync(string topicName, bool isFifo)
         {
@@ -83,10 +111,10 @@ namespace Topica.Aws.Services
                 Message = JsonConvert.SerializeObject(message)
             };
 
-            //TODO - use polly for retry incase topic has just been created
+            //TODO - use polly for retry in case topic has just been created
             var publishResponse = await snsClient.PublishAsync(request);
 
-            logger.LogDebug($"SNS: SendToTopicAsync response: {publishResponse.HttpStatusCode}");
+            logger.LogDebug("SNS: SendToTopicAsync response: {PublishResponseHttpStatusCode}", publishResponse.HttpStatusCode);
         }
 
         public async Task SendToTopicByTopicNameAsync(string topicName, BaseMessage message)

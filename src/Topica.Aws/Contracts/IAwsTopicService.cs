@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Amazon.SimpleNotificationService.Model;
 using Topica.Aws.Queues;
 using Topica.Messages;
 
@@ -7,6 +8,7 @@ namespace Topica.Aws.Contracts
 {
     public interface IAwsTopicService
     {
+        IAsyncEnumerable<IEnumerable<Topic>> GetAllTopics(string? topicNamePrefix = null, bool? isFifo = false);
         Task<string?> GetTopicArnAsync(string topicName, bool isFifo);
         Task<bool> TopicExistsAsync(string topicName);
         Task AuthorizeS3ToPublishByTopicNameAsync(string topicName, string bucketName);

@@ -31,7 +31,7 @@ namespace Topica.RabbitMq.Clients
         
         public async Task<IEnumerable<VhostDetail>> GetVHostsAsync()
         {
-            return await SendAsync<IEnumerable<VhostDetail>>($"{VhostsPath}", HttpMethod.Get, null);			
+            return await SendAsync<IEnumerable<VhostDetail>>($"{VhostsPath}", HttpMethod.Get, null) ?? new List<VhostDetail>();			
         }
 
         public async Task<VhostDetail?> GetVHostAsync(string vhostName)
@@ -130,7 +130,7 @@ namespace Topica.RabbitMq.Clients
         // Users
         public async Task<IEnumerable<User>> GetUsersAsync()
         {
-            return await SendAsync<IEnumerable<User>>(UsersPath, HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<User>>(UsersPath, HttpMethod.Get, null) ?? new List<User>();
         }
 
         public async Task CreateOrUpdateUserAsync(CreateOrUpdateUserRequest body)
@@ -144,7 +144,7 @@ namespace Topica.RabbitMq.Clients
         }
 
         // Exchanges
-        public async Task<Exchange> GetExchangeAsync(string name)
+        public async Task<Exchange?> GetExchangeAsync(string name)
         {
             return await SendAsync<Exchange>($"{ExchangesPath}/{_vhost}/{name}", HttpMethod.Get, null);
         }
@@ -182,24 +182,24 @@ namespace Topica.RabbitMq.Clients
 
         public async Task<IEnumerable<Binding>> GetExchangeInSourceBindingsAsync(string name)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/source", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/source", HttpMethod.Get, null) ?? new List<Binding>();
         }
 
         public async Task<IEnumerable<Binding>> GetExchangeInDestinationBindingsAsync(string name)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/destination", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{ExchangesPath}/{_vhost}/{name}/bindings/destination", HttpMethod.Get, null) ?? new List<Binding>();
         }
 
         // Nodes
         public async Task<IEnumerable<NodeResult>> GetNodesAsync()
         {
-            return await SendAsync<IEnumerable<NodeResult>>(NodesPath, HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<NodeResult>>(NodesPath, HttpMethod.Get, null) ?? new List<NodeResult>();
         }
 
         // Queues
         public async Task<IEnumerable<RabbitMqQueue>> GetQueuesAsync()
         {
-            return await SendAsync<IEnumerable<RabbitMqQueue>>($"{QueuesPath}/{_vhost}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<RabbitMqQueue>>($"{QueuesPath}/{_vhost}", HttpMethod.Get, null) ?? new List<RabbitMqQueue>();
         }
 
         public async Task CreateQueueAsync(string name, bool durable)
@@ -221,7 +221,7 @@ namespace Topica.RabbitMq.Clients
         // Bindings
         public async Task<IEnumerable<Binding>> GetAllBindingAsync()
         {
-            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}", HttpMethod.Get, null) ?? new List<Binding>();
         }
 
         public async Task<Binding?> GetExchangeQueueBindingAsync(string exchangeName, string queueName, string routingKey)
@@ -236,7 +236,7 @@ namespace Topica.RabbitMq.Clients
 
         public async Task<IEnumerable<Binding>> GetExchangeQueueBindingAsync(string exchangeName, string queueName)
         {
-            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}/e/{exchangeName}/q/{queueName}", HttpMethod.Get, null);
+            return await SendAsync<IEnumerable<Binding>>($"{BindingsPath}/{_vhost}/e/{exchangeName}/q/{queueName}", HttpMethod.Get, null) ?? new List<Binding>();
         }
 
         public async Task CreateExchangeQueueBindingAsync(CreateExchangeQueueBindingRequest request)

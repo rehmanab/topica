@@ -17,7 +17,7 @@ namespace Topica.RabbitMq.Contracts
         Task<IEnumerable<User>> GetUsersAsync();
         Task CreateOrUpdateUserAsync(CreateOrUpdateUserRequest body);
         Task SetUserPermissionsAsync(SetUserPermissionsRequest body);
-        Task<Exchange> GetExchangeAsync(string name);
+        Task<Exchange?> GetExchangeAsync(string name);
         Task<IEnumerable<Exchange>> GetExchangesAsync(bool includeSystemExchanges = false);
         Task CreateExchangesAsync(ExchangeTypes exchangeType, bool durable, IEnumerable<string> exchangeNames);
         Task DeleteExchangesAsync(IEnumerable<string> names);
