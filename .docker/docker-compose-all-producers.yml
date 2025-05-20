@@ -9,6 +9,13 @@ services:
     environment:
       - SOME_VAR=variable
   
+  kafka.producer.host:
+    build:
+      context: ../src
+      dockerfile: Kafka.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
   pulsar.producer.host:
     build:
       context: ../src

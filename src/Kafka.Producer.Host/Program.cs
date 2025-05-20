@@ -1,18 +1,16 @@
 ﻿using System.Reflection;
-using System.Text;
+using Confluent.Kafka;
+using Kafka.Producer.Host.Messages.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Pulsar.Client.Api;
-using Pulsar.Producer.Host.Messages.V1;
-using Pulsar.Producer.Host.Settings;
 using RandomNameGeneratorLibrary;
 using Topica.Contracts;
 using Topica.Settings;
 
-Console.WriteLine("******* Starting Pulsar.Producer.Host *******");
+Console.WriteLine("******* Starting Aws.Producer.Host *******");
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(builder =>
@@ -34,14 +32,6 @@ var host = Host.CreateDefaultBuilder()
         }));
         
         // Configuration
-        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
-
-        if (pulsarHostSettings == null)
-        {
-            throw new ApplicationException("PulsarHostSettings not found");
-        }
-        
         services.AddSingleton(provider =>
         {
             var config = provider.GetRequiredService<IConfiguration>();
@@ -49,12 +39,7 @@ var host = Host.CreateDefaultBuilder()
         });
 
         // Add MessagingPlatform Components
-        services.AddPulsarTopica(c =>
-        {
-            c.ServiceUrl = pulsarHostSettings.ServiceUrl;
-            c.PulsarManagerBaseUrl = pulsarHostSettings.PulsarManagerBaseUrl;
-            c.PulsarAdminBaseUrl = pulsarHostSettings.PulsarAdminBaseUrl;
-        }, Assembly.GetExecutingAssembly());
+        services.AddKafkaTopica(Assembly.GetExecutingAssembly());
         
         services.Configure<HostOptions>(options =>
         {
@@ -66,14 +51,28 @@ var host = Host.CreateDefaultBuilder()
 var cts = new CancellationTokenSource();
 
 var producerSettings = host.Services.GetService<ProducerSettings>();
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("PulsarProducerBuilder not found");
-var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("pulsar_producer_host_1", producerSettings, cts.Token);
+
+if (producerSettings == null)
+{
+    throw new ApplicationException("ProducerSettings not found");
+}
+
+var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("KafkaProducerBuilder not found");
+var producer = await producerBuilder.BuildProducerAsync<IProducer<string, string>>("kafka_producer_host_1", producerSettings, cts.Token);
 
 var count = 1;
+var personNameGenerator = new PersonNameGenerator();
 while(true)
 {
-    var message = new DataSentMessageV1{ConversationId = Guid.NewGuid(), DataId = count, DataName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(DataSentMessageV1)};
-    await producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
+    var name = personNameGenerator.GenerateRandomFirstAndLastName();
+    var result = await producer.ProduceAsync(producerSettings?.Source, new Message<string, string>
+    {
+        Key = name,
+        Value = JsonConvert.SerializeObject(new PersonCreatedMessageV1 { PersonId = count, PersonName = name, ConversationId = Guid.NewGuid(), Type = nameof(PersonCreatedMessageV1) })
+    }, cts.Token);
+    // FLush will wait for all messages sent to be confirmed/delivered, so dont use after each Produce()
+    //producer.Flush(TimeSpan.FromSeconds(2));
+
     count++;
     
     Console.WriteLine($"Produced message to {producerSettings?.Source}: {count}");
@@ -81,10 +80,6 @@ while(true)
     await Task.Delay(1000);
 }
 
-await producer.DisposeAsync();
-
-Console.WriteLine($"Finished: {count} messages sent.");
-
-
+producer.Dispose();
 
 // await host.RunAsync();

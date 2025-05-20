@@ -57,7 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             services.AddScoped<IConsumer, PulsarTopicConsumer>();
             services.AddScoped<IPulsarConsumerTopicFluentBuilder, PulsarConsumerTopicFluentBuilder>();
-            services.AddScoped<IProducerBuilder, PulsarTopicProducerBuilder>();
+            services.AddScoped<IProducerBuilder, PulsarProducerBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));

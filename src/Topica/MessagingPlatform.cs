@@ -8,11 +8,11 @@ namespace Topica
         Pulsar,
         RabbitMq,
         Mqtt,
+        ActiveMq,
+        IbmMq,
         AzureServiceBus,
         Google,
         DotNetChannels,
-        IbmMq,
-        ActiveMq,
         Nats
     }
 }

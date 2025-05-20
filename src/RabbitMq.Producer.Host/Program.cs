@@ -55,13 +55,18 @@ var host = Host.CreateDefaultBuilder()
             c.ManagementScheme = rabbitMqHostSettings.ManagementScheme;
             c.VHost = rabbitMqHostSettings.VHost;
         }, Assembly.GetExecutingAssembly());
+        
+        services.Configure<HostOptions>(options =>
+        {
+            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+        });
     })
     .Build();
 
 var cts = new CancellationTokenSource();
 
 var producerSettings = host.Services.GetService<ProducerSettings>() ?? throw new InvalidOperationException("RabbitMq ProducerSettings not found");
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("RabbitMq ProducerBuilder not found");
+var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("RabbitMqProducerBuilder not found");
 
 var producer = await producerBuilder.BuildProducerAsync<IChannel>(null, producerSettings, cts.Token);
 

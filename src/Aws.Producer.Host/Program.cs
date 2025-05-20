@@ -58,15 +58,20 @@ var host = Host.CreateDefaultBuilder()
             c.ServiceUrl = awsHostSettings.ServiceUrl;
             c.RegionEndpoint = awsHostSettings.RegionEndpoint;
         }, Assembly.GetExecutingAssembly());
+        
+        services.Configure<HostOptions>(options =>
+        {
+            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+        });
     })
     .Build();
 
 var cts = new CancellationTokenSource();
 
 var producerSettings = host.Services.GetService<ProducerSettings>();
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("Aws IAmazonSimpleNotificationService not found");
+var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("AwsProducerBuilder not found");
 var awsTopicService = host.Services.GetService<IAwsTopicService>();
-var producer = await producerBuilder.BuildProducerAsync<IAmazonSimpleNotificationService>("aws_sns_producer-1", producerSettings, cts.Token);
+var producer = await producerBuilder.BuildProducerAsync<IAmazonSimpleNotificationService>(null, producerSettings, cts.Token);
 var topicArns = awsTopicService!.GetAllTopics(producerSettings?.Source, producerSettings?.AwsIsFifoQueue).ToBlockingEnumerable().SelectMany(x => x).ToList();
 
 switch (topicArns.Count)

@@ -7,7 +7,7 @@ using Topica.Settings;
 
 namespace Topica.Pulsar.Producers
 {
-    public class PulsarTopicProducerBuilder(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder) : IProducerBuilder, IDisposable
+    public class PulsarProducerBuilder(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder) : IProducerBuilder, IDisposable
     {
         private IProducer<byte[]>? _producer;
 
