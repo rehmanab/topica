@@ -31,8 +31,15 @@ services:
       dockerfile: RabbitMq.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
-      
+  
   # Producers
+  aws.producer.host:
+    build:
+      context: ../src
+      dockerfile: Aws.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+        
   pulsar.producer.host:
     build:
       context: ../src
