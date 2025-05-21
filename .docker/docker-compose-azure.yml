@@ -10,7 +10,7 @@ services:
     volumes:
       - "./config/servicebusemulator_config.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
     ports:
-      - "5672:5672"
+      - "5673:5673"
       - "5300:5300"
     environment:
       SQL_SERVER: sqledge
