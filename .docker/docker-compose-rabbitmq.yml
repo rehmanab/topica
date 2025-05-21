@@ -9,7 +9,7 @@ services:
     image: rabbitmq:4.1.0-management
     ports:
       - "15672:15672"  # RabbitMQ Management UI
-      - "5672:5672"  # RabbitMQ AMQP protocol
+      - "5673:5672"  # RabbitMQ AMQP protocol default is 5672, changed because of port conflict with servicebus-emulator
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest

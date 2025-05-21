@@ -1,6 +1,9 @@
 #  docker-compose -f .docker/docker-compose-azure.yml -p azure up -d
 #  docker-compose -f .docker/docker-compose-azure.yml -p azure down
 
+# volumes error: mounting to rootfs happens when 
+# using a different docker context, remote to server and run docker-compose up from there
+
 services:
   emulator:
     container_name: "servicebus-emulator"
@@ -10,8 +13,8 @@ services:
     volumes:
       - "./config/servicebusemulator_config.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
     ports:
-      - "5673:5673"
-      - "5300:5300"
+      - "5672:5672"  # AMQP protocol
+      - "5300:5300"  # http://localhost:5300/health
     environment:
       SQL_SERVER: sqledge
       MSSQL_SA_PASSWORD: "Password123!"  # Password should be same as what is set for SQL Edge  

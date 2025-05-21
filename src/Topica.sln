@@ -57,6 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{
 		..\.docker\docker-compose-aws.yml = ..\.docker\docker-compose-aws.yml
 		..\.docker\docker-compose-all-platforms.yml = ..\.docker\docker-compose-all-platforms.yml
 		..\.docker\docker-compose-azure.yml = ..\.docker\docker-compose-azure.yml
+		..\.docker\config\servicebusemulator_config.json = ..\.docker\config\servicebusemulator_config.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{8BB967B8-19F8-4CE1-B2EF-03F78B773B75}"
