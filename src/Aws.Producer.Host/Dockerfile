@@ -1,5 +1,6 @@
 ﻿# buid and run from the src folder using cmd
 # docker build -f Aws.Producer.Host\Dockerfile -t aws.producer.host:latest . && docker run -d --name aws.producer.host aws.producer.host:latest
+
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
 USER $APP_UID
 WORKDIR /app

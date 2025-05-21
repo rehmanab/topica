@@ -1,0 +1,38 @@
+#  docker-compose -f .docker/docker-compose-azure.yml -p azure up -d
+#  docker-compose -f .docker/docker-compose-azure.yml -p azure down
+
+services:
+  emulator:
+    container_name: "servicebus-emulator"
+    restart: unless-stopped
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    pull_policy: always
+    volumes:
+      - "./config/servicebusemulator_config.json:/ServiceBus_Emulator/ConfigFiles/Config.json"
+    ports:
+      - "5672:5672"
+      - "5300:5300"
+    environment:
+      SQL_SERVER: sqledge
+      MSSQL_SA_PASSWORD: "Password123!"  # Password should be same as what is set for SQL Edge  
+      ACCEPT_EULA: "Y"
+      SQL_WAIT_INTERVAL: 15 # Optional: Time in seconds to wait for SQL to be ready (default is 15 seconds)
+    depends_on:
+      - sqledge
+    networks:
+      sb-emulator:
+        aliases:
+          - "sb-emulator"
+  sqledge:
+    container_name: "sqledge"
+    image: "mcr.microsoft.com/azure-sql-edge:latest"
+    networks:
+      sb-emulator:
+        aliases:
+          - "sqledge"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Password123!" # To be filled by user as per policy : https://learn.microsoft.com/en-us/sql/relational-databases/security/strong-passwords?view=sql-server-linux-ver16 
+
+networks:
+  sb-emulator:
