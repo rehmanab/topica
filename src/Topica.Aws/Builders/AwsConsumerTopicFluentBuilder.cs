@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Topica.Aws.Contracts;
 using Topica.Contracts;
@@ -55,7 +54,7 @@ public class AwsConsumerTopicFluentBuilder(IConsumer consumer) : IAwsConsumerTop
         {
             AwsIsFifoQueue = _isFifoQueue,
             Source = _topicName,
-            WithSubscribedQueues = _queueNames,
+            AwsWithSubscribedQueues = _queueNames,
             SubscribeToSource = _isFifoQueue && !subscribeToQueueName.EndsWith(".fifo") ? $"{subscribeToQueueName}.fifo" : subscribeToQueueName,
             AwsBuildWithErrorQueue = _buildErrorQueues,
             AwsIsFifoContentBasedDeduplication = _isFifoContentBasedDeduplication,

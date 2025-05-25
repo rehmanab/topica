@@ -42,7 +42,7 @@ public class RabbitMqConsumerTopicFluentBuilder(IConsumer consumer) : IRabbitMqC
         var consumerSettings = new ConsumerSettings
         {
             Source = _topicName,
-            WithSubscribedQueues = _queueNames,
+            RabbitMqWithSubscribedQueues = _queueNames,
             SubscribeToSource = subscribeToQueueName,
             NumberOfInstances = instances,
         };

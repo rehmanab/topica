@@ -1,3 +1,7 @@
+# Run from root
+# the ./config/servicebusemulator_config.json file is expected to be on the remote server if using docker context
+# remember to git pull the latest changes before running the docker-compose command from localhost using docker context to remote dockerhost computer, it uses the file from remote server, not the local file when using docker context
+
 #  docker-compose -f .docker/docker-compose-azure.yml -p azure up -d
 #  docker-compose -f .docker/docker-compose-azure.yml -p azure down
 

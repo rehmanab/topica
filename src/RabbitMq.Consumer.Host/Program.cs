@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMq.Consumer.Host;
-using RabbitMq.Consumer.Host.Settings;
+using Topica.RabbitMq.Settings;
 
 Console.WriteLine("******* Starting RabbitMq.Consumer.Host *******");
 

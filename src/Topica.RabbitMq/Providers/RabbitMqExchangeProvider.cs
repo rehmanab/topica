@@ -15,7 +15,7 @@ namespace Topica.RabbitMq.Providers
 
         public async Task CreateTopicAsync(ConsumerSettings settings)
         {
-            await CreateTopicAsync(settings.Source, settings.WithSubscribedQueues);
+            await CreateTopicAsync(settings.Source, settings.RabbitMqWithSubscribedQueues);
         }
 
         public async Task CreateTopicAsync(ProducerSettings settings)

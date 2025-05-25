@@ -8,6 +8,8 @@ namespace Topica
         Pulsar,
         RabbitMq,
         AzureServiceBus,
+        AzureQueueStorage,
+        AzureEventGrid,
         Mqtt,
         IbmMq,
         Zmq,

@@ -19,8 +19,8 @@ namespace Topica.Messages
         public Guid ConversationId { get; set; }
         public DateTime TimeStampUtc { get; set; }
         public string RaisingComponent { get; set; }
-        public string Version { get; private set; }
-        public string SourceIp { get; private set; }
+        public string Version { get; set; }
+        public string SourceIp { get; set; }
         public string Tenant { get; set; }
         public string ReceiptReference { get; set; }
         public IReadOnlyDictionary<string, string> AdditionalProperties { get; set; }

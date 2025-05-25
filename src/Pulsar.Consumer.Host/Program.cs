@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulsar.Consumer.Host;
-using Pulsar.Consumer.Host.Settings;
+using Topica.Pulsar.Settings;
 
 Console.WriteLine("******* Starting Pulsar.Consumer.Host *******");
 

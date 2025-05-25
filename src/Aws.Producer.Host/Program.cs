@@ -2,7 +2,6 @@
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Aws.Producer.Host.Messages.V1;
-using Aws.Producer.Host.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RandomNameGeneratorLibrary;
 using Topica.Aws.Contracts;
+using Topica.Aws.Settings;
 using Topica.Contracts;
 using Topica.Settings;
 

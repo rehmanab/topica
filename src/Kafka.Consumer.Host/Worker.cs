@@ -1,8 +1,8 @@
 using Kafka.Consumer.Host.Handlers.V1;
 using Kafka.Consumer.Host.Messages.V1;
-using Kafka.Consumer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Topica.Kafka.Contracts;
+using Topica.Kafka.Settings;
 
 namespace Kafka.Consumer.Host;
 
@@ -10,6 +10,16 @@ public class Worker(IKafkaConsumerTopicFluentBuilder builder, KafkaConsumerSetti
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if(settings.PersonCreatedTopicSettings is null)
+        {
+            throw new ApplicationException($"{nameof(settings.PersonCreatedTopicSettings)} cannot be null.");
+        }
+        
+        if(settings.PlaceCreatedTopicSettings is null)
+        {
+            throw new ApplicationException($"{nameof(settings.PlaceCreatedTopicSettings)} cannot be null.");
+        }
+        
         await builder
             .WithConsumerName(nameof(PersonCreatedMessageV1))
             .WithTopicName(settings.PersonCreatedTopicSettings!.Source!)

@@ -6,20 +6,10 @@ using Topica.Aws.Queues;
 
 namespace Topica.Aws.Topics
 {
-    public class AwsTopicOptionalSetting : IAwsTopicOptionalSetting
+    public class AwsTopicOptionalSetting(string topicName, IAwsTopicService awsTopicService) : IAwsTopicOptionalSetting
     {
-        private readonly string _topicName;
-        private readonly IAwsTopicService _awsTopicService;
-
-        private readonly IList<string> _queuesToAdd;
+        private readonly List<string> _queuesToAdd = [];
         private AwsSqsConfiguration? _sqsConfiguration;
-
-        public AwsTopicOptionalSetting(string topicName, IAwsTopicService awsTopicService)
-        {
-            _topicName = topicName;
-            _awsTopicService = awsTopicService;
-            _queuesToAdd = new List<string>();
-        }
 
         public IAwsTopicOptionalSetting WithSubscribedQueue(string queueName)
         {
@@ -41,7 +31,7 @@ namespace Topica.Aws.Topics
 
         public async Task<string?> BuildAsync()
         {
-            return await _awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(_topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
+            return await awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(topicName, _queuesToAdd.ToArray(), _sqsConfiguration);
         }
     }
 }

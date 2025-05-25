@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using Kafka.Consumer.Host;
-using Kafka.Consumer.Host.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Kafka.Settings;
 
 Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
 

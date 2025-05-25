@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMq.Producer.Host.Messages.V1;
-using RabbitMq.Producer.Host.Settings;
 using RandomNameGeneratorLibrary;
 using Topica.Contracts;
+using Topica.RabbitMq.Settings;
 using Topica.Settings;
 
 Console.WriteLine("******* Starting RabbitMq.Producer.Host *******");

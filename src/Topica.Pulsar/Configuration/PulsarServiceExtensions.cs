@@ -23,6 +23,11 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddPulsarTopica(this IServiceCollection services, Action<PulsarTopicaConfiguration> configurationFactory, Assembly assembly)
         {
+            if (assembly == null)
+            {
+                throw new Exception($"{nameof(PulsarServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
+            
             var config = new PulsarTopicaConfiguration();
             configurationFactory(config);
             

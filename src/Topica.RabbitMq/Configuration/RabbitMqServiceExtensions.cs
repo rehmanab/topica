@@ -23,6 +23,11 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddRabbitMqTopica(this IServiceCollection services, Action<RabbitMqTopicaConfiguration> configurationFactory, Assembly assembly)
         {
+            if (assembly == null)
+            {
+                throw new Exception($"{nameof(RabbitMqServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
+            
             var config = new RabbitMqTopicaConfiguration();
             configurationFactory(config);
 

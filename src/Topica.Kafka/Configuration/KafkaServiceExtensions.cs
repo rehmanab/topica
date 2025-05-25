@@ -19,6 +19,11 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddKafkaTopica(this IServiceCollection services, Assembly assembly)
         {
+            if (assembly == null)
+            {
+                throw new Exception($"{nameof(KafkaServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
+            
             var serviceProvider = services.BuildServiceProvider();
             
             var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();

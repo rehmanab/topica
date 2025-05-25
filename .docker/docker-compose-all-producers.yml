@@ -9,6 +9,13 @@ services:
     environment:
       - SOME_VAR=variable
   
+  azure.servicebus.producer.host:
+    build:
+      context: ../src
+      dockerfile: Azure.ServiceBus.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
   kafka.producer.host:
     build:
       context: ../src

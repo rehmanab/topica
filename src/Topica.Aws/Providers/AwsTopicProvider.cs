@@ -20,7 +20,7 @@ namespace Topica.Aws.Providers
 
         public async Task CreateTopicAsync(ConsumerSettings settings)
         {
-            await CreateTopicAsync(settings.Source, settings.WithSubscribedQueues, settings.AwsVisibilityTimeout,
+            await CreateTopicAsync(settings.Source, settings.AwsWithSubscribedQueues, settings.AwsVisibilityTimeout,
                 settings.AwsIsFifoQueue, settings.AwsIsFifoContentBasedDeduplication, settings.AwsMaximumMessageSize,
                 settings.AwsMessageRetentionPeriod, settings.AwsDelaySeconds, settings.AwsReceiveMessageWaitTimeSeconds,
                 settings.AwsBuildWithErrorQueue, settings.AwsErrorQueueMaxReceiveCount);

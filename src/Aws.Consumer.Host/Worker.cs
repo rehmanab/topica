@@ -1,8 +1,8 @@
 using Aws.Consumer.Host.Handlers.V1;
 using Aws.Consumer.Host.Messages.V1;
-using Aws.Consumer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Topica.Aws.Contracts;
+using Topica.Aws.Settings;
 
 namespace Aws.Consumer.Host;
 
@@ -10,6 +10,16 @@ public class Worker(IAwsConsumerTopicFluentBuilder builder, AwsConsumerSettings 
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if(settings.OrderPlacedTopicSettings is null)
+        {
+            throw new ApplicationException($"{nameof(settings.OrderPlacedTopicSettings)} cannot be null.");
+        }
+        
+        if(settings.CustomerCreatedTopicSettings is null)
+        {
+            throw new ApplicationException($"{nameof(settings.CustomerCreatedTopicSettings)} cannot be null.");
+        }
+        
         await builder
             .WithConsumerName(nameof(OrderPlacedMessageV1))
             .WithTopicName(settings.OrderPlacedTopicSettings!.Source!)

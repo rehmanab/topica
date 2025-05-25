@@ -10,7 +10,14 @@ services:
       dockerfile: Aws.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
-
+  
+  azure.servicebus.consumer.host:
+    build:
+      context: ../src
+      dockerfile: Azure.ServiceBus.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
   kafka.consumer.host:
     build:
       context: ../src
@@ -37,6 +44,13 @@ services:
     build:
       context: ../src
       dockerfile: Aws.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  azure.servicebus.producer.host:
+    build:
+      context: ../src
+      dockerfile: Azure.ServiceBus.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   

@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Pulsar.Client.Api;
 using Pulsar.Producer.Host.Messages.V1;
-using Pulsar.Producer.Host.Settings;
 using RandomNameGeneratorLibrary;
 using Topica.Contracts;
+using Topica.Pulsar.Settings;
 using Topica.Settings;
 
 Console.WriteLine("******* Starting Pulsar.Producer.Host *******");

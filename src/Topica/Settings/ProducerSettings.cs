@@ -35,5 +35,20 @@ namespace Topica.Settings
         public bool PulsarEnableChunking { get; set; }
         public int PulsarBatchingMaxMessages { get; set; }
         public long PulsarBatchingMaxPublishDelayMilliseconds { get; set; }
+        
+        // Azure ServiceBus
+        public AzureServiceBusTopicSubscriptionSettings[]? AzureServiceBusSubscriptions { get; set; }
+        public string? AzureServiceBusAutoDeleteOnIdle { get; set; }
+        public string? AzureServiceBusDefaultMessageTimeToLive { get; set; }
+        public string? AzureServiceBusDuplicateDetectionHistoryTimeWindow { get; set; }
+        public bool? AzureServiceBusEnableBatchedOperations { get; set; }
+        public bool? AzureServiceBusEnablePartitioning { get; set; }
+        public int? AzureServiceBusMaxSizeInMegabytes { get; set; }
+        public bool? AzureServiceBusRequiresDuplicateDetection { get; set; }
+        public string? AzureServiceBusUserMetadata { get; set; }
+        public int? AzureServiceBusMaxMessageSizeInKilobytes { get; set; }
+        public bool? AzureServiceBusEnabledStatus { get; set; }
+        public bool? AzureServiceBusSupportOrdering { get; set; }
+        public string ConnectionString { get; set; }
     }
 }

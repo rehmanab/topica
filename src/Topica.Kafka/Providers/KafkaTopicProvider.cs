@@ -9,20 +9,13 @@ using Topica.Settings;
 
 namespace Topica.Kafka.Providers
 {
-    public class KafkaTopicProvider : ITopicProvider
+    public class KafkaTopicProvider(ILogger<KafkaTopicProvider> logger) : ITopicProvider
     {
-        private readonly ILogger<KafkaTopicProvider> _logger;
-
-        public KafkaTopicProvider(ILogger<KafkaTopicProvider> logger)
-        {
-            _logger = logger;
-        }
-        
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
         
         public async Task CreateTopicAsync(ConsumerSettings settings)
         {
-            await CreateTopicAsync(settings.Source, settings.KafkaBootstrapServers, settings.KafkaNumberOfTopicPartitions);
+            await CreateTopicAsync(settings.Source!, settings.KafkaBootstrapServers!, settings.KafkaNumberOfTopicPartitions);
         }
 
         public async Task CreateTopicAsync(ProducerSettings settings)
@@ -40,7 +33,7 @@ namespace Topica.Kafka.Providers
 
                 if (meta.Topics.Any(x => string.Equals(source, x.Topic, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    _logger.LogInformation($"{nameof(KafkaTopicProvider)}.{nameof(CreateTopicAsync)} topic {source} already exists!");
+                    logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName} topic {Source} already exists!", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), source);
                     return;
                 }
                 
@@ -49,11 +42,11 @@ namespace Topica.Kafka.Providers
                     new TopicSpecification { Name = source, ReplicationFactor = 1, NumPartitions = kafkaNumberOfTopicPartitions } 
                 });
                 
-                _logger.LogInformation($"{nameof(KafkaTopicProvider)}.{nameof(CreateTopicAsync)}: Created topic {source}");
+                logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), source);
             }
             catch (CreateTopicsException ex)
             {
-                _logger.LogError(ex, $"{nameof(KafkaTopicProvider)}.{nameof(CreateTopicAsync)}: An error occured creating topic {ex.Results[0].Topic}: {ex.Results[0].Error.Reason}");
+                logger.LogError(ex, "{KafkaTopicProviderName}.{CreateTopicAsyncName}: An error occured creating topic {Topic}: {ErrorReason}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), ex.Results[0].Topic, ex.Results[0].Error.Reason);
                 
                 throw;
             }

@@ -68,7 +68,7 @@ namespace Topica.Aws.Consumers
 
                 _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {QueueUrl}", nameof(AwsQueueConsumer), consumerName, queueUrl);
 
-                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsReceiveMaximumNumberOfMessages};
+                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsReceiveMaximumNumberOfMessages, WaitTimeSeconds = 20};
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -76,7 +76,7 @@ namespace Topica.Aws.Consumers
 
                     if (receiveMessageResponse?.Messages == null)
                     {
-                        await Task.Delay(1000, cancellationToken);
+                        await Task.Delay(50, cancellationToken);
                         continue;
                     }
                     
@@ -116,8 +116,6 @@ namespace Topica.Aws.Consumers
                             _logger.LogError("{AwsQueueConsumerName}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
                         }
                     }
-
-                    await Task.Delay(250, cancellationToken);
                 }
 
                 _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
