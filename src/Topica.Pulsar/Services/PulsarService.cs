@@ -122,7 +122,7 @@ namespace Topica.Pulsar.Services
 
             if (!namespaces.Any(x => x.EndsWith($"{tenant}/{@namespace}")))
             {
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             _httpClientService.ClearHeaders();

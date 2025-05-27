@@ -60,7 +60,7 @@ namespace Topica.Pulsar.Consumers
                 var consumer = await client.NewConsumer()
                     .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
                     .SubscriptionName(consumerGroup)
-                    .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest
+                    .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest.HasValue && consumerSettings.PulsarStartNewConsumerEarliest.Value
                         ? SubscriptionInitialPosition.Earliest
                         : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                     .SubscribeAsync();

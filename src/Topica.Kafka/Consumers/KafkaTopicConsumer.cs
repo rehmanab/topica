@@ -50,9 +50,9 @@ namespace Topica.Kafka.Consumers
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers),
+                BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers!),
                 GroupId = consumerSettings.KafkaConsumerGroup,
-                AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages
+                AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages.HasValue && consumerSettings.KafkaStartFromEarliestMessages.Value
                     ? AutoOffsetReset.Earliest
                     : AutoOffsetReset.Latest,
                 SaslMechanism = SaslMechanism.Plain

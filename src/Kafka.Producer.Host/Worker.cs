@@ -17,7 +17,7 @@ public class Worker(IProducerBuilder producerBuilder, ProducerSettings producerS
         
         var count = 1;
         var personNameGenerator = new PersonNameGenerator();
-        while(true)
+        while(!stoppingToken.IsCancellationRequested)
         {
             var name = personNameGenerator.GenerateRandomFirstAndLastName();
             var result = await producer.ProduceAsync(producerSettings?.Source, new Message<string, string>

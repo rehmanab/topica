@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Topica.Contracts;
@@ -57,10 +58,10 @@ public class PulsarConsumerTopicFluentBuilder(IConsumer consumer) : IPulsarConsu
 
         var consumerSettings = new ConsumerSettings
         {
-            Source = _topicName,
-            PulsarTenant = _tenant,
-            PulsarNamespace = _namespace,
-            PulsarConsumerGroup = _consumerGroup,
+            Source = _topicName ?? throw new ApplicationException("Pulsar topic name is not set."),
+            PulsarTenant = _tenant ?? throw new ApplicationException("Pulsar tenant is not set."),
+            PulsarNamespace = _namespace ?? throw new ApplicationException("Pulsar namespace is not set."),
+            PulsarConsumerGroup = _consumerGroup ?? throw new ApplicationException("Pulsar consumer group is not set."),
             PulsarStartNewConsumerEarliest = _startNewConsumerEarliest,
             NumberOfInstances = instances
         };

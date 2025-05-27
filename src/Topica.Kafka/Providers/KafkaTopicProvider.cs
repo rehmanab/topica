@@ -15,7 +15,7 @@ namespace Topica.Kafka.Providers
         
         public async Task CreateTopicAsync(ConsumerSettings settings)
         {
-            await CreateTopicAsync(settings.Source!, settings.KafkaBootstrapServers!, settings.KafkaNumberOfTopicPartitions);
+            await CreateTopicAsync(settings.Source!, settings.KafkaBootstrapServers!, settings.KafkaNumberOfTopicPartitions!);
         }
 
         public async Task CreateTopicAsync(ProducerSettings settings)
@@ -23,7 +23,7 @@ namespace Topica.Kafka.Providers
             await CreateTopicAsync(settings.Source, settings.KafkaBootstrapServers, settings.KafkaNumberOfTopicPartitions);
         }
         
-        private async Task CreateTopicAsync(string source, string[] kafkaBootstrapServers, int kafkaNumberOfTopicPartitions)
+        private async Task CreateTopicAsync(string source, string[] kafkaBootstrapServers, int? kafkaNumberOfTopicPartitions)
         {
             using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", kafkaBootstrapServers) }).Build();
             
@@ -37,10 +37,9 @@ namespace Topica.Kafka.Providers
                     return;
                 }
                 
-                await adminClient.CreateTopicsAsync(new[] 
-                {
-                    new TopicSpecification { Name = source, ReplicationFactor = 1, NumPartitions = kafkaNumberOfTopicPartitions } 
-                });
+                await adminClient.CreateTopicsAsync([
+                    new TopicSpecification { Name = source, ReplicationFactor = 1, NumPartitions = kafkaNumberOfTopicPartitions ?? 1 }
+                ]);
                 
                 logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), source);
             }

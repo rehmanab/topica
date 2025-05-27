@@ -10,7 +10,7 @@ public class PulsarConsumerSettings
 
 public class PulsarConsumerTopicSettings
 {
-    public string? Source { get; set; }
+    public string? Source { get; } = null!;
     public int NumberOfInstances { get; set; } = 1;
     
     public string? Tenant { get; set; }
@@ -19,6 +19,6 @@ public class PulsarConsumerTopicSettings
     // will read all un-acknowledge per consumer group (actually pulsar uses consumer name).
     // i.e. each consumer name is an independent subscription and acknowledges messages per subscription
     public string? ConsumerGroup { get; set; }
-    // Sets any NEW consumers only to earliest cursor position (can't be changed for existing subscription)
+    // Sets any NEW consumers only to the earliest cursor position (can't be changed for existing subscription)
     public bool StartNewConsumerEarliest { get; set; }
 }

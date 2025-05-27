@@ -23,7 +23,7 @@ public class Worker(IPulsarConsumerTopicFluentBuilder builder, PulsarConsumerSet
         
         await builder
             .WithConsumerName(nameof(DataSentMessageV1))
-            .WithTopicName(settings.DataSentTopicSettings!.Source!)
+            .WithTopicName(settings.DataSentTopicSettings.Source!)
             .WithConsumerGroup(settings.DataSentTopicSettings!.ConsumerGroup!)
             .WithConfiguration(settings.DataSentTopicSettings!.Tenant!, settings.DataSentTopicSettings!.Namespace!)
             .WithTopicOptions(settings.DataSentTopicSettings.StartNewConsumerEarliest)

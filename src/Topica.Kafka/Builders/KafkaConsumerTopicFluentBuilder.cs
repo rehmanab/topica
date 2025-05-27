@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Topica.Kafka.Contracts;
 using Topica.Contracts;
@@ -11,8 +12,8 @@ public class KafkaConsumerTopicFluentBuilder(IConsumer consumer) : IKafkaConsume
     private string _consumerName = null!;
     private string _topicName = null!;
     private string _consumerGroup = null!;
-    private bool _startFromEarliestMessages;
-    private int _numberOfTopicPartitions;
+    private bool? _startFromEarliestMessages;
+    private int? _numberOfTopicPartitions;
     private string[] _bootstrapServers = null!;
 
     public IKafkaConsumerTopicBuilderWithTopic WithConsumerName(string consumerName)
@@ -57,11 +58,11 @@ public class KafkaConsumerTopicFluentBuilder(IConsumer consumer) : IKafkaConsume
 
         var consumerSettings = new ConsumerSettings
         {
-            Source = _topicName,
-            KafkaConsumerGroup = _consumerGroup,
-            KafkaStartFromEarliestMessages = _startFromEarliestMessages,
+            Source = _topicName ?? throw new ArgumentNullException(nameof(_topicName)),
+            KafkaConsumerGroup = _consumerGroup ?? throw new ArgumentNullException(nameof(_consumerGroup)),
+            KafkaStartFromEarliestMessages = _startFromEarliestMessages ?? throw new ArgumentNullException(nameof(_startFromEarliestMessages)),
             KafkaNumberOfTopicPartitions = _numberOfTopicPartitions,
-            KafkaBootstrapServers = _bootstrapServers,
+            KafkaBootstrapServers = _bootstrapServers ?? throw new ArgumentNullException(nameof(_bootstrapServers)),
             NumberOfInstances = instances
         };
 

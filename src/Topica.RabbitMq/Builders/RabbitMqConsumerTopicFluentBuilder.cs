@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Topica.Contracts;
 using Topica.RabbitMq.Contracts;
@@ -41,9 +42,9 @@ public class RabbitMqConsumerTopicFluentBuilder(IConsumer consumer) : IRabbitMqC
 
         var consumerSettings = new ConsumerSettings
         {
-            Source = _topicName,
-            RabbitMqWithSubscribedQueues = _queueNames,
-            SubscribeToSource = subscribeToQueueName,
+            Source = _topicName ?? throw new ApplicationException($"{nameof(_topicName)} cannot be null."),
+            RabbitMqWithSubscribedQueues = _queueNames ?? throw new ApplicationException($"{nameof(_queueNames)} cannot be null."),
+            SubscribeToSource = subscribeToQueueName ?? throw new ApplicationException($"{nameof(subscribeToQueueName)} cannot be null."),
             NumberOfInstances = instances,
         };
 
