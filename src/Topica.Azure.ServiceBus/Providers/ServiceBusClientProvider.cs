@@ -3,10 +3,16 @@ using Topica.Azure.ServiceBus.Contracts;
 
 namespace Topica.Azure.ServiceBus.Providers;
 
-public class ServiceBusClientProvider(ServiceBusClient client) : IServiceBusClientProvider
+public class ServiceBusClientProvider : IServiceBusClientProvider
 {
-    public ServiceBusClient GetServiceBusClient()
+    public ServiceBusClientProvider(string connectionString, ServiceBusClientOptions? options = null)
     {
-        return client ?? throw new ArgumentNullException(nameof(client), "ServiceBusClient cannot be null.");
+        ConnectionString = connectionString;
+        Client = options == null 
+            ? new ServiceBusClient(ConnectionString)
+            : new ServiceBusClient(ConnectionString, options);
     }
+
+    public string ConnectionString { get; }
+    public ServiceBusClient Client { get; }
 }

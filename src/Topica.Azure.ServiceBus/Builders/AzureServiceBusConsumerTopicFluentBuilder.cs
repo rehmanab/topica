@@ -4,7 +4,7 @@ using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Builders;
 
-public class AzureServiceBusConsumerTopicFluentBuilder(IConsumer consumer) : IAzureServiceBusConsumerTopicFluentBuilder, IAzureServiceBusConsumerTopicBuilderWithTopic, IAzureServiceBusConsumerTopicBuilderWithSubscriptions, IAzureServiceBusConsumerTopicBuilderWithTimings, IAzureServiceBusConsumerTopicBuilderWithOptions, IAzureServiceBusConsumerTopicBuilderWithMetadata, IAzureServiceBusConsumerTopicBuilder
+public class AzureServiceBusConsumerTopicFluentBuilder(IConsumer consumer) : IAzureServiceBusConsumerTopicFluentBuilder, IAzureServiceBusConsumerTopicBuilderWithTopic, IAzureServiceBusConsumerTopicBuilderWithSubscriptions, IAzureServiceBusConsumerTopicBuilder
 {
     private string _consumerName = null!;
     private string _topicName = null!;
@@ -33,13 +33,13 @@ public class AzureServiceBusConsumerTopicFluentBuilder(IConsumer consumer) : IAz
         return this;
     }
 
-    public IAzureServiceBusConsumerTopicBuilderWithTimings WithSubscriptions(params Settings.AzureServiceBusTopicSubscriptionSettings[] subscriptions)
+    public IAzureServiceBusConsumerTopicBuilder WithSubscriptions(params Settings.AzureServiceBusTopicSubscriptionSettings[] subscriptions)
     {
         _subscriptions = subscriptions;
         return this;
     }
 
-    public IAzureServiceBusConsumerTopicBuilderWithOptions WithTimings(
+    public IAzureServiceBusConsumerTopicBuilder WithTimings(
         string? autoDeleteOnIdle,
         string? defaultMessageTimeToLive, 
         string? duplicateDetectionHistoryTimeWindow)
@@ -50,7 +50,7 @@ public class AzureServiceBusConsumerTopicFluentBuilder(IConsumer consumer) : IAz
         return this;
     }
 
-    public IAzureServiceBusConsumerTopicBuilderWithMetadata WithOptions(
+    public IAzureServiceBusConsumerTopicBuilder WithOptions(
         bool? enableBatchedOperations, 
         bool? enablePartitioning,
         int? maxSizeInMegabytes, 

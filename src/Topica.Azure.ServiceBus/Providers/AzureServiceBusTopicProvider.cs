@@ -1,11 +1,12 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.Logging;
+using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
 using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Providers;
 
-public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminClient, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
+public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvider administrationClientProvider, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.AzureServiceBus;
     
@@ -72,7 +73,7 @@ public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminCl
             EnablePartitioning = azureServiceBusEnablePartitioning ?? false, // Default
             MaxSizeInMegabytes = azureServiceBusMaxSizeInMegabytes ?? 1024, // Default
             RequiresDuplicateDetection = azureServiceBusRequiresDuplicateDetection ?? true,
-            UserMetadata = azureServiceBusUserMetadata,
+            UserMetadata = azureServiceBusUserMetadata ?? "", // Default
             MaxMessageSizeInKilobytes = azureServiceBusMaxMessageSizeInKilobytes ?? 256, // Default - 256 KB (standard tier) or 100 MB (premium tier)
             Status = azureServiceBusEnabledStatus.HasValue && !azureServiceBusEnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
             SupportOrdering = azureServiceBusSupportOrdering ?? false // Default
@@ -80,9 +81,9 @@ public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminCl
         
         topicOptions.AuthorizationRules.Add(new SharedAccessAuthorizationRule("allClaims", [AccessRights.Manage, AccessRights.Send, AccessRights.Listen]));
 
-        if(!await adminClient.TopicExistsAsync(source))
+        if(!await administrationClientProvider.AdminClient.TopicExistsAsync(source))
         {
-            await adminClient.CreateTopicAsync(topicOptions);
+            await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions);
             logger.LogInformation("Created topic: {TopicName}", source);
         }
         else
@@ -92,7 +93,7 @@ public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminCl
         
         foreach (var subscription in azureServiceBusSubscriptions!)
         {
-            if (await adminClient.SubscriptionExistsAsync(source, subscription.Source))
+            if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(source, subscription.Source))
             {
                 logger.LogInformation("Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, source);
                 continue;
@@ -103,7 +104,7 @@ public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminCl
                 AutoDeleteOnIdle = TimeSpan.TryParse(subscription.AutoDeleteOnIdle, out var autoDeleteOnIdleSubscription) ? autoDeleteOnIdleSubscription : TimeSpan.MaxValue, // Default
                 DefaultMessageTimeToLive = TimeSpan.TryParse(subscription.DefaultMessageTimeToLive, out var defaultMessageTimeToLiveSubscription) ? defaultMessageTimeToLiveSubscription :TimeSpan.MaxValue, // Default
                 EnableBatchedOperations = subscription.EnableBatchedOperations ?? true, // Default
-                UserMetadata = subscription.UserMetadata,
+                UserMetadata = subscription.UserMetadata ?? "",
                 DeadLetteringOnMessageExpiration = subscription.DeadLetteringOnMessageExpiration ?? false, // Default
                 EnableDeadLetteringOnFilterEvaluationExceptions = subscription.EnableDeadLetteringOnFilterEvaluationExceptions ?? true, // Default
                 ForwardDeadLetteredMessagesTo = subscription.ForwardDeadLetteredMessagesTo ?? null, // Default
@@ -114,7 +115,7 @@ public class AzureServiceBusTopicProvider(ServiceBusAdministrationClient adminCl
                 Status = subscription.EnabledStatus.HasValue && !subscription.EnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
             };
 
-            var createdSubscription = await adminClient.CreateSubscriptionAsync(subscriptionOptions);
+            var createdSubscription = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions);
             logger.LogInformation("Created subscription: {SubscriptionName} for topic: {TopicName} - Result: {Result}", subscription.Source, source, createdSubscription.Value.Status);
         }
     }

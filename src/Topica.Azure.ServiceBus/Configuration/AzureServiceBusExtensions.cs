@@ -40,9 +40,8 @@ public static class AzureServiceBusExtensions
             
         logger.LogDebug("******* AzureServiceBus Service Extensions ******* ");
 
-        services.AddScoped<ServiceBusAdministrationClient>(_ => GetServiceBusAdministrationClient(config.ConnectionString!));
-        services.AddScoped<ServiceBusClient>(_ => GetServiceBusClient(config.ConnectionString!));
-        services.AddScoped<IServiceBusClientProvider, ServiceBusClientProvider>();
+        services.AddScoped<IServiceBusAdministrationClientProvider>(_ => new ServiceBusAdministrationClientProvider(config.ConnectionString!));
+        services.AddScoped<IServiceBusClientProvider>(_ => new ServiceBusClientProvider(config.ConnectionString!));
         services.AddScoped<IConsumer, AzureServiceBusConsumer>();
         services.AddScoped<IAzureServiceBusConsumerTopicFluentBuilder, AzureServiceBusConsumerTopicFluentBuilder>();
         services.AddScoped<IProducerBuilder, AzureServiceBusProducerBuilder>();
@@ -59,19 +58,5 @@ public static class AzureServiceBusExtensions
             .WithScopedLifetime());
 
         return services;
-    }
-    
-    private static ServiceBusClient GetServiceBusClient(string connectionString, ServiceBusClientOptions? options = null)
-    {
-        return options == null
-            ? new ServiceBusClient(connectionString)
-            : new ServiceBusClient(connectionString, options);
-    }
-    
-    private static ServiceBusAdministrationClient GetServiceBusAdministrationClient(string connectionString, ServiceBusAdministrationClientOptions? options = null)
-    {
-        return options == null
-            ? new ServiceBusAdministrationClient(connectionString)
-            : new ServiceBusAdministrationClient(connectionString, options);
     }
 }

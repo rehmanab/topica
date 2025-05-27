@@ -20,7 +20,7 @@ public class Worker(IProducerBuilder producerBuilder, AzureServiceBusHostSetting
         
         producerSettings.ConnectionString = hostSettings.ConnectionString;
         var producer = await producerBuilder.BuildProducerAsync<IServiceBusClientProvider>(consumerName, producerSettings, stoppingToken);
-        var sender = producer.GetServiceBusClient().CreateSender(topicName, new ServiceBusSenderOptions { Identifier = consumerName });
+        var sender = producer.Client.CreateSender(topicName, new ServiceBusSenderOptions { Identifier = consumerName });
 
         var theMessage = JsonConvert.SerializeObject(new PriceSubmittedMessageV1
         {

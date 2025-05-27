@@ -3,6 +3,7 @@ using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using Topica.Azure.ServiceBus.Contracts;
 using Topica.Azure.ServiceBus.Settings;
 using Topica.Contracts;
 using Topica.Helpers;
@@ -12,24 +13,21 @@ namespace Topica.Azure.ServiceBus.Consumers;
 
 public class AzureServiceBusConsumer : IConsumer
 {
-    private readonly ServiceBusClient _client;
+    private readonly IServiceBusClientProvider _serviceBusClientProvider;
     private readonly ITopicProviderFactory _topicProviderFactory;
     private readonly IMessageHandlerExecutor _messageHandlerExecutor;
-    private readonly AzureServiceBusHostSettings _azureServiceBusHostSettings;
     private readonly ResiliencePipeline _retryPipeline;
     private readonly ILogger<AzureServiceBusConsumer> _logger;
 
     public AzureServiceBusConsumer(
-        ServiceBusClient client, 
+        IServiceBusClientProvider serviceBusClientProvider, 
         ITopicProviderFactory topicProviderFactory,
         IMessageHandlerExecutor messageHandlerExecutor,
-        AzureServiceBusHostSettings azureServiceBusHostSettings, 
         ILogger<AzureServiceBusConsumer> logger)
     {
-        _client = client;
+        _serviceBusClientProvider = serviceBusClientProvider;
         _topicProviderFactory = topicProviderFactory;
         _messageHandlerExecutor = messageHandlerExecutor;
-        _azureServiceBusHostSettings = azureServiceBusHostSettings;
         _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
         {
             BackoffType = DelayBackoffType.Constant,
@@ -46,7 +44,7 @@ public class AzureServiceBusConsumer : IConsumer
 
     public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
     {
-        var connectionStringEndpoint = CloudConnectionStringHelper.ParseEndpointCloudConnectionString(_azureServiceBusHostSettings.ConnectionString!);
+        var connectionStringEndpoint = CloudConnectionStringHelper.ParseEndpointCloudConnectionString(_serviceBusClientProvider.ConnectionString);
         if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(".servicebus.windows.net"))
         {
             _logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} with connection string endpoint: {ConnectionStringEndpoint}", consumerName, connectionStringEndpoint);
@@ -76,7 +74,7 @@ public class AzureServiceBusConsumer : IConsumer
                 ReceiveMode = ServiceBusReceiveMode.PeekLock
             };
             
-            var receiver = _client.CreateReceiver(consumerSettings.Source, consumerSettings.SubscribeToSource, opt);
+            var receiver = _serviceBusClientProvider.Client.CreateReceiver(consumerSettings.Source, consumerSettings.SubscribeToSource, opt);
                 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -99,7 +97,7 @@ public class AzureServiceBusConsumer : IConsumer
         catch (TaskCanceledException)
         {
             _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AzureServiceBusConsumer), consumerName, consumerSettings.SubscribeToSource);
-            await _client.DisposeAsync();
+            await _serviceBusClientProvider.Client.DisposeAsync();
         }
         catch (AggregateException ex)
         {
