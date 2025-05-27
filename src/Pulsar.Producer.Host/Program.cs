@@ -1,14 +1,9 @@
 ﻿using System.Reflection;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Pulsar.Client.Api;
-using Pulsar.Producer.Host.Messages.V1;
-using RandomNameGeneratorLibrary;
-using Topica.Contracts;
+using Pulsar.Producer.Host;
 using Topica.Pulsar.Settings;
 using Topica.Settings;
 
@@ -60,31 +55,9 @@ var host = Host.CreateDefaultBuilder()
         {
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
         });
+        
+        services.AddHostedService<Worker>();
     })
     .Build();
 
-var cts = new CancellationTokenSource();
-
-var producerSettings = host.Services.GetService<ProducerSettings>();
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("PulsarProducerBuilder not found");
-var producer = await producerBuilder.BuildProducerAsync<IProducer<byte[]>>("pulsar_producer_host_1", producerSettings, cts.Token);
-
-var count = 1;
-while(true)
-{
-    var message = new DataSentMessageV1{ConversationId = Guid.NewGuid(), DataId = count, DataName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(DataSentMessageV1)};
-    await producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
-    count++;
-    
-    Console.WriteLine($"Produced message to {producerSettings?.Source}: {count}");
-    
-    await Task.Delay(1000);
-}
-
-await producer.DisposeAsync();
-
-Console.WriteLine($"Finished: {count} messages sent.");
-
-
-
-// await host.RunAsync();
+await host.RunAsync();

@@ -1,14 +1,9 @@
 ﻿using System.Reflection;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RabbitMQ.Client;
-using RabbitMq.Producer.Host.Messages.V1;
-using RandomNameGeneratorLibrary;
-using Topica.Contracts;
+using RabbitMq.Producer.Host;
 using Topica.RabbitMq.Settings;
 using Topica.Settings;
 
@@ -60,31 +55,9 @@ var host = Host.CreateDefaultBuilder()
         {
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
         });
+        
+        services.AddHostedService<Worker>();
     })
     .Build();
 
-var cts = new CancellationTokenSource();
-
-var producerSettings = host.Services.GetService<ProducerSettings>() ?? throw new InvalidOperationException("RabbitMq ProducerSettings not found");
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("RabbitMqProducerBuilder not found");
-
-var producer = await producerBuilder.BuildProducerAsync<IChannel>(null, producerSettings, cts.Token);
-
-var count = 1;
-
-while(true)
-{
-    var message = new ItemDeliveredMessageV1{ConversationId = Guid.NewGuid(), ItemId = count, ItemName = Random.Shared.GenerateRandomPlaceName(), Type = nameof(ItemDeliveredMessageV1)};
-    await producer.BasicPublishAsync("item_delivered_v1_exchange", "", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
-    count++;
-    
-    Console.WriteLine($"Produced message to {producerSettings.Source}: {count}");
-    
-    await Task.Delay(1000);
-}
-
-producer.Dispose();
-
-Console.WriteLine("Finished!");
-
-// await host.RunAsync();
+await host.RunAsync();

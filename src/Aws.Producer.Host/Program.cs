@@ -1,16 +1,10 @@
 ﻿using System.Reflection;
-using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
-using Aws.Producer.Host.Messages.V1;
+using Aws.Producer.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using RandomNameGeneratorLibrary;
-using Topica.Aws.Contracts;
 using Topica.Aws.Settings;
-using Topica.Contracts;
 using Topica.Settings;
 
 Console.WriteLine("******* Starting Aws.Producer.Host *******");
@@ -63,62 +57,9 @@ var host = Host.CreateDefaultBuilder()
         {
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
         });
+        
+        services.AddHostedService<Worker>();
     })
     .Build();
 
-var cts = new CancellationTokenSource();
-
-var producerSettings = host.Services.GetService<ProducerSettings>();
-var producerBuilder = host.Services.GetService<IProducerBuilder>() ?? throw new InvalidOperationException("AwsProducerBuilder not found");
-var awsTopicService = host.Services.GetService<IAwsTopicService>();
-var producer = await producerBuilder.BuildProducerAsync<IAmazonSimpleNotificationService>(null, producerSettings, cts.Token);
-var topicArns = awsTopicService!.GetAllTopics(producerSettings?.Source, producerSettings?.AwsIsFifoQueue).ToBlockingEnumerable().SelectMany(x => x).ToList();
-
-switch (topicArns.Count)
-{
-    case 0:
-        throw new Exception($"No topic found for prefix: {producerSettings?.Source}");
-    case > 1:
-        throw new Exception($"More than 1 topic found for prefix: {producerSettings?.Source}");
-}
-
-var topic = topicArns.First().TopicArn;
-
-var count = 1;
-while(true)
-{
-    var message = new OrderPlacedMessageV1{ConversationId = Guid.NewGuid(), OrderId = count, OrderName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(OrderPlacedMessageV1)};
-    var request = new PublishRequest
-    {
-        TopicArn = topic, 
-        Message = JsonConvert.SerializeObject(message),
-        MessageAttributes = new Dictionary<string, MessageAttributeValue>
-        {
-            {
-                "SignatureVersion", new MessageAttributeValue { StringValue = "2", DataType = "String"} 
-            }
-        }
-    };
-    
-    if (topic.EndsWith(".fifo"))
-    {
-        request.MessageGroupId = Guid.NewGuid().ToString();
-        request.MessageDeduplicationId = Guid.NewGuid().ToString();
-    }
-    
-    await producer.PublishAsync(request);
-    
-    count++;
-    
-    Console.WriteLine($"Produced message to {producerSettings?.Source}: {count}");
-    
-    await Task.Delay(1000);
-}
-
-producer.Dispose();
-
-Console.WriteLine($"Finished: {count} messages sent.");
-
-
-
-// await host.RunAsync();
+await host.RunAsync();
