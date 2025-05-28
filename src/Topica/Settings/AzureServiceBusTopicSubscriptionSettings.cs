@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Topica.Settings;
+﻿namespace Topica.Settings;
 
 public class AzureServiceBusTopicSubscriptionSettings
 {

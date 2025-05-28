@@ -1,31 +1,38 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Pulsar.Client.Api;
 using Topica.Contracts;
+using Topica.Pulsar.Consumers;
 using Topica.Pulsar.Contracts;
+using Topica.Pulsar.Producers;
 using Topica.Settings;
 
 namespace Topica.Pulsar.Providers
 {
-    public class PulsarTopicProvider(IPulsarService pulsarService, ILogger<PulsarTopicProvider> logger) : ITopicProvider
+    public class PulsarTopicProvider(IPulsarService pulsarService, PulsarClientBuilder pulsarClientBuilder, IMessageHandlerExecutor messageHandlerExecutor, ILogger<PulsarTopicProvider> logger) : ITopicProvider
     {
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Pulsar;
         
-        public async Task CreateTopicAsync(ConsumerSettings settings)
+        public async Task CreateTopicAsync(MessagingSettings settings)
         {
-            await CreateTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source);
-        }
-
-        public async Task CreateTopicAsync(ProducerSettings settings)
-        {
-            await CreateTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source);
-        }
-
-        private async Task CreateTopicAsync(string tenant, string @namespace, string source)
-        {
-            await pulsarService.CreateNamespaceAsync(tenant, @namespace);
-            await pulsarService.CreatePartitionedTopicAsync(tenant, @namespace, source, 6);
+            await pulsarService.CreateNamespaceAsync(settings.PulsarTenant, settings.PulsarNamespace);
+            await pulsarService.CreatePartitionedTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source, settings.PulsarTopicNumberOfPartitions);
             
-            logger.LogInformation("{PulsarTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), source);
+            logger.LogInformation("{PulsarTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), settings.Source);
+        }
+
+        public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+        {
+            await Task.CompletedTask;
+
+            return new PulsarTopicConsumer(pulsarClientBuilder, messageHandlerExecutor, messagingSettings, logger);
+        }
+
+        public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
+        {
+            await Task.CompletedTask;
+            
+            return new PulsarTopicProducer(producerName, pulsarClientBuilder, messagingSettings);
         }
     }
 }

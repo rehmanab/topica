@@ -15,17 +15,17 @@ namespace Topica.Pulsar.Consumers
 {
     public class PulsarTopicConsumer : IConsumer
     {
-        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly PulsarClientBuilder _clientBuilder;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
+        private readonly MessagingSettings _messagingSettings;
         private readonly ResiliencePipeline _retryPipeline;
-        private readonly ILogger<PulsarTopicConsumer> _logger;
+        private readonly ILogger _logger;
 
-        public PulsarTopicConsumer(ITopicProviderFactory topicProviderFactory, PulsarClientBuilder clientBuilder, IMessageHandlerExecutor messageHandlerExecutor, ILogger<PulsarTopicConsumer> logger)
+        public PulsarTopicConsumer(PulsarClientBuilder clientBuilder, IMessageHandlerExecutor messageHandlerExecutor, MessagingSettings messagingSettings, ILogger logger)
         {
-            _topicProviderFactory = topicProviderFactory;
             _clientBuilder = clientBuilder;
             _messageHandlerExecutor = messageHandlerExecutor;
+            _messagingSettings = messagingSettings;
             _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
             {
                 BackoffType = DelayBackoffType.Constant,
@@ -40,32 +40,30 @@ namespace Topica.Pulsar.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
         {
-            await _topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(consumerSettings);
-
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings.PulsarConsumerGroup, consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings.PulsarConsumerGroup, _messagingSettings, x), cancellationToken);
             });
         }
         
-        private async ValueTask StartAsync<T>(string consumerName, string consumerGroup, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync<T>(string consumerName, string consumerGroup, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
         {
             try
             {
                 var client = await _clientBuilder.BuildAsync();
                 var consumer = await client.NewConsumer()
-                    .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
+                    .Topic($"persistent://{messagingSettings.PulsarTenant}/{messagingSettings.PulsarNamespace}/{messagingSettings.Source}")
                     .ConsumerName(consumerName)
                     .SubscriptionName(consumerGroup) // will act as a new subscriber and read all messages if the name is unique
                     .SubscriptionType(SubscriptionType.Shared) // If the topic is partitioned, then shared will allow other concurrent consumers (scale horizontally), with the same subscription name to split the messages between them
-                    .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest.HasValue && consumerSettings.PulsarStartNewConsumerEarliest.Value
+                    .SubscriptionInitialPosition(messagingSettings.PulsarStartNewConsumerEarliest.HasValue && messagingSettings.PulsarStartNewConsumerEarliest.Value
                         ? SubscriptionInitialPosition.Earliest
                         : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                     .SubscribeAsync();
 
-                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), consumerSettings.Source, consumerSettings.PulsarConsumerGroup);
+                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), messagingSettings.Source, messagingSettings.PulsarConsumerGroup);
 
                 await Task.Run(async () =>
                     {
@@ -75,11 +73,11 @@ namespace Topica.Pulsar.Consumers
 
                             if (message == null)
                             {
-                                throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{consumerSettings.PulsarConsumerGroup} - Received null message on Topic: {consumerSettings.Source}");
+                                throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{messagingSettings.PulsarConsumerGroup} - Received null message on Topic: {messagingSettings.Source}");
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Data));
-                            // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, consumerSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                             if (success)
                             {
@@ -95,7 +93,7 @@ namespace Topica.Pulsar.Consumers
                     {
                         if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{consumerSettings.PulsarConsumerGroup}");
+                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{messagingSettings.PulsarConsumerGroup}");
                         }
                     }, cancellationToken);
             }

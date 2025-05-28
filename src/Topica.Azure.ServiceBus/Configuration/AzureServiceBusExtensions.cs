@@ -6,8 +6,6 @@ using Topica.Executors;
 using Topica.Resolvers;
 using Topica.Topics;
 using System.Reflection;
-using Azure.Messaging.ServiceBus;
-using Azure.Messaging.ServiceBus.Administration;
 using Topica.Azure.ServiceBus.Builders;
 using Topica.Azure.ServiceBus.Consumers;
 using Topica.Azure.ServiceBus.Contracts;
@@ -42,9 +40,7 @@ public static class AzureServiceBusExtensions
 
         services.AddScoped<IServiceBusAdministrationClientProvider>(_ => new ServiceBusAdministrationClientProvider(config.ConnectionString!));
         services.AddScoped<IServiceBusClientProvider>(_ => new ServiceBusClientProvider(config.ConnectionString!));
-        services.AddScoped<IConsumer, AzureServiceBusConsumer>();
-        services.AddScoped<IAzureServiceBusConsumerTopicFluentBuilder, AzureServiceBusConsumerTopicFluentBuilder>();
-        services.AddScoped<IProducerBuilder, AzureServiceBusProducerBuilder>();
+        services.AddScoped<IAzureServiceBusTopicFluentBuilder, AzureServiceBusTopicFluentBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AzureServiceBusTopicProvider>();
         services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));

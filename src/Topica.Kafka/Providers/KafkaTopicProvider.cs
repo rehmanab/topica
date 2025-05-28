@@ -5,50 +5,56 @@ using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
+using Topica.Kafka.Consumers;
+using Topica.Kafka.Producers;
 using Topica.Settings;
 
-namespace Topica.Kafka.Providers
+namespace Topica.Kafka.Providers;
+
+public class KafkaTopicProvider(IMessageHandlerExecutor messageHandlerExecutor, ILogger<KafkaTopicProvider> logger) : ITopicProvider
 {
-    public class KafkaTopicProvider(ILogger<KafkaTopicProvider> logger) : ITopicProvider
+    public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
+
+    public async Task CreateTopicAsync(MessagingSettings settings)
     {
-        public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
+        using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", settings.KafkaBootstrapServers!) }).Build();
         
-        public async Task CreateTopicAsync(ConsumerSettings settings)
+        try
         {
-            await CreateTopicAsync(settings.Source!, settings.KafkaBootstrapServers!, settings.KafkaNumberOfTopicPartitions!);
-        }
+            var meta = adminClient.GetMetadata(TimeSpan.FromSeconds(5));
 
-        public async Task CreateTopicAsync(ProducerSettings settings)
-        {
-            await CreateTopicAsync(settings.Source, settings.KafkaBootstrapServers, settings.KafkaNumberOfTopicPartitions);
-        }
-        
-        private async Task CreateTopicAsync(string source, string[] kafkaBootstrapServers, int? kafkaNumberOfTopicPartitions)
-        {
-            using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", kafkaBootstrapServers) }).Build();
-            
-            try
+            if (meta.Topics.Any(x => string.Equals(settings.Source, x.Topic, StringComparison.CurrentCultureIgnoreCase)))
             {
-                var meta = adminClient.GetMetadata(TimeSpan.FromSeconds(5));
-
-                if (meta.Topics.Any(x => string.Equals(source, x.Topic, StringComparison.CurrentCultureIgnoreCase)))
-                {
-                    logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName} topic {Source} already exists!", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), source);
-                    return;
-                }
-                
+                logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName} topic {Source} already exists!", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), settings.Source);
+            }
+            else
+            {
                 await adminClient.CreateTopicsAsync([
-                    new TopicSpecification { Name = source, ReplicationFactor = 1, NumPartitions = kafkaNumberOfTopicPartitions ?? 1 }
+                    new TopicSpecification { Name = settings.Source, ReplicationFactor = 1, NumPartitions = settings.KafkaNumberOfTopicPartitions }
                 ]);
-                
-                logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), source);
-            }
-            catch (CreateTopicsException ex)
-            {
-                logger.LogError(ex, "{KafkaTopicProviderName}.{CreateTopicAsyncName}: An error occured creating topic {Topic}: {ErrorReason}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), ex.Results[0].Topic, ex.Results[0].Error.Reason);
-                
-                throw;
+
+                logger.LogInformation("{KafkaTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), settings.Source);
             }
         }
+        catch (CreateTopicsException ex)
+        {
+            logger.LogError(ex, "{KafkaTopicProviderName}.{CreateTopicAsyncName}: An error occured creating topic {Topic}: {ErrorReason}", nameof(KafkaTopicProvider), nameof(CreateTopicAsync), ex.Results[0].Topic, ex.Results[0].Error.Reason);
+
+            throw;
+        }
+    }
+
+    public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+    {
+        await Task.CompletedTask;
+        
+        return new KafkaTopicConsumer(messageHandlerExecutor, messagingSettings, logger);
+    }
+
+    public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
+    {
+        await Task.CompletedTask;
+        
+        return new KafkaTopicProducer(producerName, messagingSettings);
     }
 }

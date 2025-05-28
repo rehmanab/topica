@@ -4,9 +4,9 @@ using Topica.Contracts;
 
 namespace Topica.RabbitMq.Contracts
 {
-    public interface IRabbitMqConsumerTopicFluentBuilder
+    public interface IRabbitMqTopicFluentBuilder
     {
-        IRabbitMqConsumerTopicBuilderWithTopic WithConsumerName(string consumerName);
+        IRabbitMqConsumerTopicBuilderWithTopic WithWorkerName(string workerName);
     }
 
     public interface IRabbitMqConsumerTopicBuilderWithTopic
@@ -16,11 +16,12 @@ namespace Topica.RabbitMq.Contracts
     
     public interface IRabbitMqConsumerTopicBuilderWithQueues
     {
-        IRabbitMqConsumerTopicBuilder WithSubscribedQueues(params string[] queueNames);
+        IRabbitMqConsumerTopicBuilder WithSubscribedQueues(string subscribeToQueueName, params string[] queueNames);
     }
     
     public interface IRabbitMqConsumerTopicBuilder
     {
-        Task StartConsumingAsync<T>(string subscribeToQueueName, int numberOfInstances, CancellationToken cancellationToken = default) where T : class, IHandler;
+        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default);
+        Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);
     }
 }

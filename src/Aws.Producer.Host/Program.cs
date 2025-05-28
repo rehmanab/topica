@@ -1,11 +1,12 @@
 ﻿using System.Reflection;
 using Aws.Producer.Host;
+using Aws.Producer.Host.Settings;
+using Aws.Producer.Host.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Aws.Settings;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting Aws.Producer.Host *******");
 
@@ -29,28 +30,27 @@ var host = Host.CreateDefaultBuilder()
         }));
         
         // Configuration
-        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var awsHostSettings = hostSettings.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
+        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var hostSettings = configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
+        var producerSettings = configuration.GetSection(AwsProducerSettings.SectionName).Get<AwsProducerSettings>();
 
-        if (awsHostSettings == null)
-        {
-            throw new ApplicationException("AwsHostSettings not found");
-        }
+        if (hostSettings == null) throw new InvalidOperationException($"{nameof(AwsHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (producerSettings == null) throw new InvalidOperationException($"{nameof(AwsProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
         
-        services.AddSingleton(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ProducerSettings.SectionName).Get<ProducerSettings>() ?? throw new InvalidOperationException("ConsumerSettings not found");
-        });
+        new AwsHostSettingsValidator().ValidateAndThrow(hostSettings);
+        new AwsProducerSettingsValidator().ValidateAndThrow(producerSettings);
 
+        services.AddSingleton(hostSettings);
+        services.AddSingleton(producerSettings);
+        
         // Add MessagingPlatform Components
         services.AddAwsTopica(c =>
         {
-            c.ProfileName = awsHostSettings.ProfileName;
-            c.AccessKey = awsHostSettings.AccessKey;
-            c.SecretKey = awsHostSettings.SecretKey;
-            c.ServiceUrl = awsHostSettings.ServiceUrl;
-            c.RegionEndpoint = awsHostSettings.RegionEndpoint;
+            c.ProfileName = hostSettings.ProfileName;
+            c.AccessKey = hostSettings.AccessKey;
+            c.SecretKey = hostSettings.SecretKey;
+            c.ServiceUrl = hostSettings.ServiceUrl;
+            c.RegionEndpoint = hostSettings.RegionEndpoint;
         }, Assembly.GetExecutingAssembly());
         
         services.Configure<HostOptions>(options =>

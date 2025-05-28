@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
 using Azure.ServiceBus.Producer.Host;
+using Azure.ServiceBus.Producer.Host.Settings;
+using Azure.ServiceBus.Producer.Host.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Azure.ServiceBus.Settings;
 using Topica.Settings;
 
 Console.WriteLine("******* Starting Azure.ServiceBus.Producer.Host *******");
@@ -32,23 +34,21 @@ var host = Host.CreateDefaultBuilder()
         }));
 
         // Configuration
-        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var azureServiceBusHostSettings = hostSettings.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
-        if (azureServiceBusHostSettings == null || string.IsNullOrEmpty(azureServiceBusHostSettings.ConnectionString))
-        {
-            throw new ApplicationException("AzureServiceBusHostSettings not found or ConnectionString is empty");
-        }
+        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var hostSettings = configuration.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
+        var producerSettings = configuration.GetSection(AzureServiceBusProducerSettings.SectionName).Get<AzureServiceBusProducerSettings>();
+        
+        if (hostSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (producerSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
-        services.AddSingleton(azureServiceBusHostSettings);
+        new AzureServiceBusHostSettingsValidator().ValidateAndThrow(hostSettings);
+        new AzureServiceBusProducerSettingsValidator().ValidateAndThrow(producerSettings);
 
-        services.AddSingleton(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(ProducerSettings.SectionName).Get<ProducerSettings>() ?? throw new InvalidOperationException("ConsumerSettings not found");
-        });
+        services.AddSingleton(hostSettings);
+        services.AddSingleton(producerSettings);
 
         // Add MessagingPlatform Components
-        services.AddAzureServiceBusTopica(c => { c.ConnectionString = azureServiceBusHostSettings.ConnectionString; }, Assembly.GetExecutingAssembly());
+        services.AddAzureServiceBusTopica(c => { c.ConnectionString = hostSettings.ConnectionString; }, Assembly.GetExecutingAssembly());
 
         services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
 

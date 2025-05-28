@@ -12,7 +12,7 @@ public static class CloudConnectionStringHelper
             .ToDictionary(x => x[0], x => x[1]);
     }
     
-    public static string ParseEndpointCloudConnectionString(string connectionString)
+    public static string? ParseEndpointCloudConnectionString(string connectionString)
     {
         var dic = ParseCloudConnectionString(connectionString);
         

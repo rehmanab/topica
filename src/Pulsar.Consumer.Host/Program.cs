@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulsar.Consumer.Host;
-using Topica.Pulsar.Settings;
+using Pulsar.Consumer.Host.Settings;
+using Pulsar.Consumer.Host.Validators;
 
 Console.WriteLine("******* Starting Pulsar.Consumer.Host *******");
 
@@ -28,26 +30,25 @@ var host = Host.CreateDefaultBuilder()
         }));
         
         // Configuration
-        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var pulsarHostSettings = hostSettings.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
+        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
+        var consumerSettings = configuration.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>();
 
-        if (pulsarHostSettings == null)
-        {
-            throw new ApplicationException("PulsarHostSettings not found");
-        }
+        if (hostSettings == null) throw new InvalidOperationException($"{nameof(PulsarHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(PulsarConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+
+        new PulsarHostSettingsValidator().ValidateAndThrow(hostSettings);
+        new PulsarConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
         
-        services.AddSingleton(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>() ?? throw new ApplicationException("PulsarConsumerSettings not found");
-        });
+        services.AddSingleton(hostSettings);
+        services.AddSingleton(consumerSettings);
         
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
         {
-            c.ServiceUrl = pulsarHostSettings.ServiceUrl;
-            c.PulsarManagerBaseUrl = pulsarHostSettings.PulsarManagerBaseUrl;
-            c.PulsarAdminBaseUrl = pulsarHostSettings.PulsarAdminBaseUrl;
+            c.ServiceUrl = hostSettings.ServiceUrl;
+            c.PulsarManagerBaseUrl = hostSettings.PulsarManagerBaseUrl;
+            c.PulsarAdminBaseUrl = hostSettings.PulsarAdminBaseUrl;
         }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();

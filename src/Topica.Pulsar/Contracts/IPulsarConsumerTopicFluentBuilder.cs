@@ -6,7 +6,7 @@ namespace Topica.Pulsar.Contracts
 {
     public interface IPulsarConsumerTopicFluentBuilder
     {
-        IPulsarConsumerTopicBuilderWithTopic WithConsumerName(string consumerName);
+        IPulsarConsumerTopicBuilderWithTopic WithWorkerName(string workerName);
     }
 
     public interface IPulsarConsumerTopicBuilderWithTopic
@@ -21,16 +21,18 @@ namespace Topica.Pulsar.Contracts
     
     public interface IPulsarConsumerTopicBuilderWithConfiguration
     {
-        IPulsarConsumerTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace);
+        IPulsarConsumerTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions);
     }
     
     public interface IPulsarConsumerTopicBuilderWithOptions
     {
-        IPulsarConsumerTopicBuilder WithTopicOptions(bool startNewConsumerEarliest);
+        IPulsarConsumerTopicBuilder WithTopicOptions(bool? startNewConsumerEarliest);
     }
     
     public interface IPulsarConsumerTopicBuilder
     {
-        Task StartConsumingAsync<T>(int numberOfInstances, CancellationToken cancellationToken = default) where T : class, IHandler;
+        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default);
+        IPulsarConsumerTopicBuilder WithProducerOptions( bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds);
+        Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);
     }
 }

@@ -17,19 +17,19 @@ namespace Topica.Aws.Consumers
 {
     public class AwsQueueConsumer : IConsumer
     {
-        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly IAmazonSQS _client;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IAwsQueueService _awsQueueService;
+        private readonly MessagingSettings _messagingSettings;
         private readonly ResiliencePipeline _retryPipeline;
-        private readonly ILogger<AwsQueueConsumer> _logger;
+        private readonly ILogger _logger;
 
-        public AwsQueueConsumer(ITopicProviderFactory topicProviderFactory, IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, ILogger<AwsQueueConsumer> logger)
+        public AwsQueueConsumer(IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, MessagingSettings messagingSettings, ILogger logger)
         {
-            _topicProviderFactory = topicProviderFactory;
             _client = client;
             _messageHandlerExecutor = messageHandlerExecutor;
             _awsQueueService = awsQueueService;
+            _messagingSettings = messagingSettings;
             _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
             {
                 BackoffType = DelayBackoffType.Constant,
@@ -37,38 +37,44 @@ namespace Topica.Aws.Consumers
                 MaxRetryAttempts = int.MaxValue,
                 OnRetry = args =>
                 {
-                    logger.LogWarning("Retrying: {ArgsAttemptNumber} in {RetryDelayTotalSeconds} seconds", args.AttemptNumber + 1, args.RetryDelay.TotalSeconds);
+                    logger.LogWarning("Retrying until connected and/or Topic/Queue exists: retry attempt: {ArgsAttemptNumber} - Retry in {RetryDelayTotalSeconds} seconds", args.AttemptNumber + 1, args.RetryDelay.TotalSeconds);
                     return default;
                 }
             }).Build();
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
         {
-            await _topicProviderFactory.Create(MessagingPlatform.Aws).CreateTopicAsync(consumerSettings);
-
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
             });
+
+            await Task.CompletedTask;
         }
 
-        private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T: IHandler
+        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T: IHandler
         {
             try
             {
-                var queueUrl = await _awsQueueService.GetQueueUrlAsync(consumerSettings.SubscribeToSource);
+                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.AwsIsFifoQueue && !messagingSettings.SubscribeToSource.EndsWith(".fifo") ? $"{messagingSettings.SubscribeToSource}.fifo" : messagingSettings.SubscribeToSource);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    _logger.LogError("{AwsQueueConsumerName}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), consumerSettings.SubscribeToSource);
-                    throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {consumerSettings.SubscribeToSource} does not exist.");
+                    _logger.LogError("{AwsQueueConsumerName}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), messagingSettings.SubscribeToSource);
+                    throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {messagingSettings.SubscribeToSource} does not exist.");
                 }
 
                 _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {QueueUrl}", nameof(AwsQueueConsumer), consumerName, queueUrl);
 
-                var receiveMessageRequest = new ReceiveMessageRequest { QueueUrl = queueUrl, MaxNumberOfMessages = consumerSettings.AwsReceiveMaximumNumberOfMessages, WaitTimeSeconds = 20};
+                var receiveMessageRequest = new ReceiveMessageRequest
+                {
+                    QueueUrl = queueUrl, 
+                    MaxNumberOfMessages = messagingSettings.AwsQueueReceiveMaximumNumberOfMessages, 
+                    VisibilityTimeout = messagingSettings.AwsMessageVisibilityTimeoutSeconds, 
+                    WaitTimeSeconds = messagingSettings.AwsQueueReceiveMessageWaitTimeSeconds
+                };
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -113,16 +119,16 @@ namespace Topica.Aws.Consumers
 
                         if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {
-                            _logger.LogError("{AwsQueueConsumerName}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
+                            _logger.LogError("{AwsQueueConsumerName}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                         }
                     }
                 }
 
-                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
+                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
             }
             catch (TaskCanceledException)
             {
-                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
+                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                 _client.Dispose();
             }
             catch (AggregateException ex)

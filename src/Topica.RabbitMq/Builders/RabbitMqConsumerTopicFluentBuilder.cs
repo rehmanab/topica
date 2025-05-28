@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Topica.Contracts;
 using Topica.RabbitMq.Contracts;
 using Topica.Settings;
 
 namespace Topica.RabbitMq.Builders;
 
-public class RabbitMqConsumerTopicFluentBuilder(IConsumer consumer) : IRabbitMqConsumerTopicFluentBuilder, IRabbitMqConsumerTopicBuilderWithTopic, IRabbitMqConsumerTopicBuilderWithQueues, IRabbitMqConsumerTopicBuilder
+public class RabbitMqTopicFluentBuilder(ITopicProviderFactory topicProviderFactory, ILogger<RabbitMqTopicFluentBuilder> logger) : IRabbitMqTopicFluentBuilder, IRabbitMqConsumerTopicBuilderWithTopic, IRabbitMqConsumerTopicBuilderWithQueues, IRabbitMqConsumerTopicBuilder
 {
-    private string _consumerName = null!;
+    private string _workerName = null!;
     private string _topicName = null!;
     private string[] _queueNames = null!;
+    private string _subscribeToQueueName = null!;
 
-    public IRabbitMqConsumerTopicBuilderWithTopic WithConsumerName(string consumerName)
+    public IRabbitMqConsumerTopicBuilderWithTopic WithWorkerName(string workerName)
     {
-        _consumerName = consumerName;
+        _workerName = workerName;
         return this;
     }
 
@@ -25,29 +27,45 @@ public class RabbitMqConsumerTopicFluentBuilder(IConsumer consumer) : IRabbitMqC
         return this;
     }
 
-    public IRabbitMqConsumerTopicBuilder WithSubscribedQueues(params string[] queueNames)
+    public IRabbitMqConsumerTopicBuilder WithSubscribedQueues(string subscribeToQueueName, params string[] queueNames)
     {
+        _subscribeToQueueName = subscribeToQueueName;
         _queueNames = queueNames;
         return this;
     }
 
-    public async Task StartConsumingAsync<T>(string subscribeToQueueName, int numberOfInstances, CancellationToken cancellationToken = default) where T : class, IHandler
+    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default)
     {
-        var instances = numberOfInstances switch
-        {
-            < 1 => 1,
-            > 10 => 10,
-            _ => numberOfInstances
-        };
+        var topicProvider = topicProviderFactory.Create(MessagingPlatform.RabbitMq);
+        var messagingSettings = GetMessagingSettings(_subscribeToQueueName, numberOfInstances);
+        
+        logger.LogInformation("***** Connecting {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.RabbitMq, _workerName, messagingSettings.Source);
+        await topicProvider.CreateTopicAsync(messagingSettings);
+        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
 
-        var consumerSettings = new ConsumerSettings
-        {
-            Source = _topicName ?? throw new ApplicationException($"{nameof(_topicName)} cannot be null."),
-            RabbitMqWithSubscribedQueues = _queueNames ?? throw new ApplicationException($"{nameof(_queueNames)} cannot be null."),
-            SubscribeToSource = subscribeToQueueName ?? throw new ApplicationException($"{nameof(subscribeToQueueName)} cannot be null."),
-            NumberOfInstances = instances,
-        };
+        return await topicProvider.ProvideConsumerAsync(_workerName, messagingSettings);
+    }
 
-        await consumer.ConsumeAsync<T>(_consumerName, consumerSettings, cancellationToken);
+    public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
+    {        
+        var topicProvider = topicProviderFactory.Create(MessagingPlatform.RabbitMq);
+        var messagingSettings = GetMessagingSettings(_subscribeToQueueName);
+
+        logger.LogInformation("***** Connecting {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.RabbitMq, _workerName, messagingSettings.Source);
+        await topicProvider.CreateTopicAsync(messagingSettings);
+        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        
+        return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
+    }
+
+    private MessagingSettings GetMessagingSettings(string subscribeToQueueName, int? numberOfInstances = null)
+    {
+        return new MessagingSettings
+        {
+            Source = _topicName,
+            RabbitMqWithSubscribedQueues = _queueNames,
+            SubscribeToSource = subscribeToQueueName ?? throw new ArgumentNullException(nameof(subscribeToQueueName), "SubscribeToQueueName cannot be null"),
+            NumberOfInstances = numberOfInstances ?? 1,
+        };
     }
 }

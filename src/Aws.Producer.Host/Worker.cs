@@ -1,66 +1,83 @@
-﻿using Amazon.SimpleNotificationService;
-using Amazon.SimpleNotificationService.Model;
-using Aws.Producer.Host.Messages.V1;
+﻿using Aws.Producer.Host.Messages.V1;
+using Aws.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RandomNameGeneratorLibrary;
 using Topica.Aws.Contracts;
-using Topica.Contracts;
-using Topica.Settings;
 
 namespace Aws.Producer.Host;
 
-public class Worker(IAwsTopicService awsTopicService, IProducerBuilder producerBuilder, ProducerSettings producerSettings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IAwsTopicFluentBuilder builder, IAwsTopicService awsTopicService, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var producer = await producerBuilder.BuildProducerAsync<IAmazonSimpleNotificationService>(null, producerSettings, stoppingToken);
-        var topicArns = awsTopicService.GetAllTopics(producerSettings.Source, producerSettings.AwsIsFifoQueue).ToBlockingEnumerable(cancellationToken: stoppingToken).SelectMany(x => x).ToList();
+        const string workerName = $"{nameof(OrderPlacedMessageV1)}_aws_producer_host_1";
+        
+        var orderPlacedTopicProducer = await builder
+            .WithWorkerName(workerName)
+            .WithTopicName(settings.OrderPlacedTopicSettings.Source)
+            .WithSubscribedQueues(
+                settings.OrderPlacedTopicSettings.SubscribeToSource,
+                settings.OrderPlacedTopicSettings.WithSubscribedQueues
+            )
+            .WithErrorQueueSettings(
+                settings.OrderPlacedTopicSettings.BuildWithErrorQueue,
+                settings.OrderPlacedTopicSettings.ErrorQueueMaxReceiveCount
+            )
+            .WithFifoSettings(
+                settings.OrderPlacedTopicSettings.IsFifoQueue,
+                settings.OrderPlacedTopicSettings.IsFifoContentBasedDeduplication
+            )
+            .WithTemporalSettings(
+                settings.OrderPlacedTopicSettings.MessageVisibilityTimeoutSeconds,
+                settings.OrderPlacedTopicSettings.QueueMessageDelaySeconds,
+                settings.OrderPlacedTopicSettings.QueueMessageRetentionPeriodSeconds,
+                settings.OrderPlacedTopicSettings.QueueReceiveMessageWaitTimeSeconds
+            )
+            .WithQueueSettings(settings.OrderPlacedTopicSettings.QueueMaximumMessageSize)
+            .BuildProducerAsync(stoppingToken);
+        
+        var topicArns = awsTopicService.GetAllTopics(settings.OrderPlacedTopicSettings.Source, settings.OrderPlacedTopicSettings.IsFifoQueue).ToBlockingEnumerable(cancellationToken: stoppingToken).SelectMany(x => x).ToList();
 
         switch (topicArns.Count)
         {
             case 0:
-                throw new Exception($"No topic found for prefix: {producerSettings?.Source}");
+                throw new Exception($"No topic found for prefix: {settings.OrderPlacedTopicSettings.Source}");
             case > 1:
-                throw new Exception($"More than 1 topic found for prefix: {producerSettings?.Source}");
+                throw new Exception($"More than 1 topic found for prefix: {settings.OrderPlacedTopicSettings.Source}");
         }
         
-        var topic = topicArns.First().TopicArn;
+        var topicArn = topicArns.First().TopicArn;
         
         var count = 1;
         while(!stoppingToken.IsCancellationRequested)
         {
-            var message = new OrderPlacedMessageV1{ConversationId = Guid.NewGuid(), OrderId = count, OrderName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(OrderPlacedMessageV1)};
-            var request = new PublishRequest
+            var messageGroupId = Guid.NewGuid().ToString();
+            
+            var message = new OrderPlacedMessageV1
             {
-                TopicArn = topic, 
-                Message = JsonConvert.SerializeObject(message),
-                MessageAttributes = new Dictionary<string, MessageAttributeValue>
-                {
-                    {
-                        "SignatureVersion", new MessageAttributeValue { StringValue = "2", DataType = "String"} 
-                    }
-                }
+                ConversationId = Guid.NewGuid(), 
+                OrderId = count, 
+                OrderName = Random.Shared.GenerateRandomMaleFirstAndLastName(), 
+                Type = nameof(OrderPlacedMessageV1),
+                MessageGroupId = messageGroupId
             };
-    
-            if (topic.EndsWith(".fifo"))
+
+            var awsMessageAttributes = new Dictionary<string, string>
             {
-                request.MessageGroupId = Guid.NewGuid().ToString();
-                request.MessageDeduplicationId = Guid.NewGuid().ToString();
-            }
-    
-            await producer.PublishAsync(request, stoppingToken);
-    
+                {"SignatureVersion", "2" }
+            };
+            await orderPlacedTopicProducer.ProduceAsync(topicArn, message, awsMessageAttributes, cancellationToken: stoppingToken);
+            
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.OrderPlacedTopicSettings.Source, $"{message.OrderId} : {message.OrderName}");
+            
             count++;
-    
-            logger.LogInformation("Produced message to {ProducerSettingsSource}: {Count}", producerSettings?.Source, count);
-    
+
             await Task.Delay(1000, stoppingToken);
         }
 
-        producer.Dispose();
+        await orderPlacedTopicProducer.DisposeAsync();
 
-        logger.LogInformation("Finished: {Count} messages sent.", count);
+        logger.LogInformation("Finished: {Count} messages sent", count);
     }
 }

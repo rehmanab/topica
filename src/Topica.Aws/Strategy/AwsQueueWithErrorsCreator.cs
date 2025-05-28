@@ -15,7 +15,6 @@ namespace Topica.Aws.Strategy
     {
         private const string ErrorQueueSuffix = "_error";
         private const string FifoQueueSuffix = ".fifo";
-        private const int DefaultMaxReceiveCount = 3;
 
         public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
@@ -26,7 +25,7 @@ namespace Topica.Aws.Strategy
             var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{ErrorQueueSuffix}{(isFifo ? FifoQueueSuffix : "")}", configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
-            var redrivePolicy = new AwsRedrivePolicy(configuration.MaxReceiveCount ?? DefaultMaxReceiveCount, errorQueueArn).ToJson();
+            var redrivePolicy = new AwsRedrivePolicy(configuration.ErrorQueueMaxReceiveCount, errorQueueArn).ToJson();
             
             var mainQueueUrl = await InternalMainCreateQueue($"{queueName}{(isFifo ? FifoQueueSuffix : "")}", configuration, redrivePolicy);
 

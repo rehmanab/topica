@@ -12,7 +12,7 @@ namespace Topica
         AzureEventGrid,
         Mqtt,
         IbmMq,
-        Zmq,
+        Zeromq,
         ActiveMq,
         Google,
         DotNetChannels,

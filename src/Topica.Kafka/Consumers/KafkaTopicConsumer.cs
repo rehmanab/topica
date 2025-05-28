@@ -13,15 +13,15 @@ namespace Topica.Kafka.Consumers
 {
     public class KafkaTopicConsumer : IConsumer
     {
-        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
+        private readonly MessagingSettings _messagingSettings;
         private readonly ResiliencePipeline _retryPipeline;
-        private readonly ILogger<KafkaTopicConsumer> _logger;
+        private readonly ILogger _logger;
 
-        public KafkaTopicConsumer(ITopicProviderFactory topicProviderFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<KafkaTopicConsumer> logger)
+        public KafkaTopicConsumer(IMessageHandlerExecutor messageHandlerExecutor, MessagingSettings messagingSettings, ILogger logger)
         {
-            _topicProviderFactory = topicProviderFactory;
             _messageHandlerExecutor = messageHandlerExecutor;
+            _messagingSettings = messagingSettings;
             _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
             {
                 BackoffType = DelayBackoffType.Constant,
@@ -36,29 +36,27 @@ namespace Topica.Kafka.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
         {
-            await _topicProviderFactory.Create(MessagingPlatform.Kafka).CreateTopicAsync(consumerSettings);
-
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
             });
         }
         
-        private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers!),
+                BootstrapServers = string.Join(",", messagingSettings.KafkaBootstrapServers!),
                 
                 // Each unique consumer group will will handle a share of the messages for that Topic
                 // e.g. group1 with 10 conumers, share the messages
                 // group2 will be like a new subscribed queue, and get all the messages
                 // So each consumer GroupId is a subscribed queue
                 // https://www.confluent.io/blog/configuring-apache-kafka-consumer-group-ids/
-                GroupId = consumerSettings.KafkaConsumerGroup,
-                AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages.HasValue && consumerSettings.KafkaStartFromEarliestMessages.Value
+                GroupId = messagingSettings.KafkaConsumerGroup,
+                AutoOffsetReset = messagingSettings.KafkaStartFromEarliestMessages
                     ? AutoOffsetReset.Earliest
                     : AutoOffsetReset.Latest,
                 SaslMechanism = SaslMechanism.Plain
@@ -68,7 +66,7 @@ namespace Topica.Kafka.Consumers
             try
             {
                 var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-                consumer.Subscribe(consumerSettings.Source);
+                consumer.Subscribe(messagingSettings.Source);
 
                 _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerName}", nameof(KafkaTopicConsumer), consumerName);
 
@@ -80,7 +78,7 @@ namespace Topica.Kafka.Consumers
 
                             if (message == null)
                             {
-                                throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {consumerSettings.Source}");
+                                throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {messagingSettings.Source}");
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message.Message.Value);

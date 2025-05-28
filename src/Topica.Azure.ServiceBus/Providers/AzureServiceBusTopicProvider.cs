@@ -1,105 +1,55 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.Logging;
+using Topica.Azure.ServiceBus.Consumers;
 using Topica.Azure.ServiceBus.Contracts;
+using Topica.Azure.ServiceBus.Producers;
 using Topica.Contracts;
 using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Providers;
 
-public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvider administrationClientProvider, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
+public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvider administrationClientProvider, IServiceBusClientProvider serviceBusClientProvider, IMessageHandlerExecutor messageHandlerExecutor, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.AzureServiceBus;
     
-    public async Task CreateTopicAsync(ConsumerSettings settings)
+    public async Task CreateTopicAsync(MessagingSettings settings)
     {
-        await CreateTopicAsync(
-            settings.Source!,
-            settings.AzureServiceBusAutoDeleteOnIdle!,
-            settings.AzureServiceBusDefaultMessageTimeToLive!,
-            settings.AzureServiceBusDuplicateDetectionHistoryTimeWindow!,
-            settings.AzureServiceBusEnableBatchedOperations,
-            settings.AzureServiceBusEnablePartitioning,
-            settings.AzureServiceBusMaxSizeInMegabytes,
-            settings.AzureServiceBusRequiresDuplicateDetection,
-            settings.AzureServiceBusUserMetadata,
-            settings.AzureServiceBusMaxMessageSizeInKilobytes,
-            settings.AzureServiceBusEnabledStatus,
-            settings.AzureServiceBusSupportOrdering,
-            settings.AzureServiceBusSubscriptions
-        );
-    }
-
-    public async Task CreateTopicAsync(ProducerSettings settings)
-    {
-        await CreateTopicAsync(
-            settings.Source,
-            settings.AzureServiceBusAutoDeleteOnIdle!,
-            settings.AzureServiceBusDefaultMessageTimeToLive!,
-            settings.AzureServiceBusDuplicateDetectionHistoryTimeWindow!,
-            settings.AzureServiceBusEnableBatchedOperations,
-            settings.AzureServiceBusEnablePartitioning,
-            settings.AzureServiceBusMaxSizeInMegabytes,
-            settings.AzureServiceBusRequiresDuplicateDetection,
-            settings.AzureServiceBusUserMetadata,
-            settings.AzureServiceBusMaxMessageSizeInKilobytes,
-            settings.AzureServiceBusEnabledStatus,
-            settings.AzureServiceBusSupportOrdering,
-            settings.AzureServiceBusSubscriptions
-        );
-    }
-    
-    private async Task CreateTopicAsync(
-        string source, 
-        string azureServiceBusAutoDeleteOnIdle,
-        string azureServiceBusDefaultMessageTimeToLive,
-        string azureServiceBusDuplicateDetectionHistoryTimeWindow,
-        bool? azureServiceBusEnableBatchedOperations,
-        bool? azureServiceBusEnablePartitioning,
-        int? azureServiceBusMaxSizeInMegabytes,
-        bool? azureServiceBusRequiresDuplicateDetection,
-        string? azureServiceBusUserMetadata,
-        int? azureServiceBusMaxMessageSizeInKilobytes,
-        bool? azureServiceBusEnabledStatus,
-        bool? azureServiceBusSupportOrdering,
-        AzureServiceBusTopicSubscriptionSettings[]? azureServiceBusSubscriptions
-        )
-    {
-        var topicOptions = new CreateTopicOptions(source)
+        var topicOptions = new CreateTopicOptions(settings.Source)
         {
-            AutoDeleteOnIdle = TimeSpan.TryParse(azureServiceBusAutoDeleteOnIdle, out var autoDeleteOnIdleTopic) ? autoDeleteOnIdleTopic : TimeSpan.MaxValue, // Default
-            DefaultMessageTimeToLive = TimeSpan.TryParse(azureServiceBusDefaultMessageTimeToLive, out var defaultMessageTimeToLiveTopic) ? defaultMessageTimeToLiveTopic : TimeSpan.MaxValue, // Default
-            DuplicateDetectionHistoryTimeWindow = TimeSpan.TryParse(azureServiceBusDuplicateDetectionHistoryTimeWindow, out var duplicateDetectionHistoryTimeWindowTopic) ? duplicateDetectionHistoryTimeWindowTopic : TimeSpan.FromMinutes(1), // Default
-            EnableBatchedOperations = azureServiceBusEnableBatchedOperations ?? true, // Default
-            EnablePartitioning = azureServiceBusEnablePartitioning ?? false, // Default
-            MaxSizeInMegabytes = azureServiceBusMaxSizeInMegabytes ?? 1024, // Default
-            RequiresDuplicateDetection = azureServiceBusRequiresDuplicateDetection ?? true,
-            UserMetadata = azureServiceBusUserMetadata ?? "", // Default
-            MaxMessageSizeInKilobytes = azureServiceBusMaxMessageSizeInKilobytes ?? 256, // Default - 256 KB (standard tier) or 100 MB (premium tier)
-            Status = azureServiceBusEnabledStatus.HasValue && !azureServiceBusEnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
-            SupportOrdering = azureServiceBusSupportOrdering ?? false // Default
+            AutoDeleteOnIdle = TimeSpan.TryParse(settings.AzureServiceBusAutoDeleteOnIdle!, out var autoDeleteOnIdleTopic) ? autoDeleteOnIdleTopic : TimeSpan.MaxValue, // Default
+            DefaultMessageTimeToLive = TimeSpan.TryParse(settings.AzureServiceBusDefaultMessageTimeToLive!, out var defaultMessageTimeToLiveTopic) ? defaultMessageTimeToLiveTopic : TimeSpan.MaxValue, // Default
+            DuplicateDetectionHistoryTimeWindow = TimeSpan.TryParse(settings.AzureServiceBusDuplicateDetectionHistoryTimeWindow!, out var duplicateDetectionHistoryTimeWindowTopic) ? duplicateDetectionHistoryTimeWindowTopic : TimeSpan.FromMinutes(1), // Default
+            EnableBatchedOperations = settings.AzureServiceBusEnableBatchedOperations ?? true, // Default
+            EnablePartitioning = settings.AzureServiceBusEnablePartitioning ?? false, // Default
+            MaxSizeInMegabytes = settings.AzureServiceBusMaxSizeInMegabytes ?? 1024, // Default
+            RequiresDuplicateDetection = settings.AzureServiceBusRequiresDuplicateDetection ?? true,
+            UserMetadata = settings.AzureServiceBusUserMetadata ?? "", // Default
+            MaxMessageSizeInKilobytes = settings.AzureServiceBusMaxMessageSizeInKilobytes ?? 256, // Default - 256 KB (standard tier) or 100 MB (premium tier)
+            Status = settings.AzureServiceBusEnabledStatus.HasValue && !settings.AzureServiceBusEnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
+            SupportOrdering = settings.AzureServiceBusSupportOrdering ?? false // Default
         };
         
         topicOptions.AuthorizationRules.Add(new SharedAccessAuthorizationRule("allClaims", [AccessRights.Manage, AccessRights.Send, AccessRights.Listen]));
 
-        if(!await administrationClientProvider.AdminClient.TopicExistsAsync(source))
+        if(!await administrationClientProvider.AdminClient.TopicExistsAsync(settings.Source))
         {
             await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions);
-            logger.LogInformation("Created topic: {TopicName}", source);
+            logger.LogInformation("Created topic: {TopicName}", settings.Source);
         }
         else
         {
-            logger.LogInformation("Topic: {TopicName} already exists!", source);
+            logger.LogInformation("Topic: {TopicName} already exists!", settings.Source);
         }
         
-        foreach (var subscription in azureServiceBusSubscriptions!)
+        foreach (var subscription in settings.AzureServiceBusSubscriptions!)
         {
-            if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(source, subscription.Source))
+            if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(settings.Source, subscription.Source))
             {
-                logger.LogInformation("Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, source);
+                logger.LogInformation("Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, settings.Source);
                 continue;
             }
 		
-            var subscriptionOptions = new CreateSubscriptionOptions(source, subscription.Source)
+            var subscriptionOptions = new CreateSubscriptionOptions(settings.Source, subscription.Source)
             {
                 AutoDeleteOnIdle = TimeSpan.TryParse(subscription.AutoDeleteOnIdle, out var autoDeleteOnIdleSubscription) ? autoDeleteOnIdleSubscription : TimeSpan.MaxValue, // Default
                 DefaultMessageTimeToLive = TimeSpan.TryParse(subscription.DefaultMessageTimeToLive, out var defaultMessageTimeToLiveSubscription) ? defaultMessageTimeToLiveSubscription :TimeSpan.MaxValue, // Default
@@ -116,7 +66,21 @@ public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvide
             };
 
             var createdSubscription = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions);
-            logger.LogInformation("Created subscription: {SubscriptionName} for topic: {TopicName} - Result: {Result}", subscription.Source, source, createdSubscription.Value.Status);
+            logger.LogInformation("Created subscription: {SubscriptionName} for topic: {TopicName} - Result: {Result}", subscription.Source, settings.Source, createdSubscription.Value.Status);
         }
+    }
+
+    public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+    {
+        await Task.CompletedTask;
+
+        return new AzureServiceBusTopicSubscriptionConsumer(serviceBusClientProvider, messageHandlerExecutor, messagingSettings, logger);
+    }
+
+    public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
+    {
+        await Task.CompletedTask;
+        
+        return new AzureServiceBusTopicProducer(producerName, serviceBusClientProvider);
     }
 }

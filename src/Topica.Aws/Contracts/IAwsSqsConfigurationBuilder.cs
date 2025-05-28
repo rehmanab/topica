@@ -8,7 +8,7 @@ namespace Topica.Aws.Contracts
         AwsSqsConfiguration BuildQueue(AwsQueueAttributes awsQueueAttributes);
         AwsSqsConfiguration BuildDefaultQueueWithErrorQueue();
         AwsSqsConfiguration BuildDefaultQueueWithErrorQueue(int maxReceiveCount);
-        AwsSqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes);
+        AwsSqsConfiguration BuildQueueWithErrorQueue(int errorQueueMaxReceiveCount, AwsQueueAttributes awsQueueAttributes);
         AwsSqsConfiguration BuildWithCreationTypeQueue(AwsQueueCreationType awsQueueCreationType);
         AwsSqsConfiguration BuildUpdatePolicyQueue(string policy);
     }

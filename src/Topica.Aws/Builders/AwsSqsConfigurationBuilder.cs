@@ -27,12 +27,12 @@ namespace Topica.Aws.Builders
             return BuildQueueWithErrorQueue(maxReceiveCount, GetDefaultQueueAttributes());
         }
 
-        public AwsSqsConfiguration BuildQueueWithErrorQueue(int maxReceiveCount, AwsQueueAttributes awsQueueAttributes)
+        public AwsSqsConfiguration BuildQueueWithErrorQueue(int errorQueueMaxReceiveCount, AwsQueueAttributes awsQueueAttributes)
         {
             var config = new AwsSqsConfiguration
             {
                 CreateErrorQueue = true,
-                MaxReceiveCount = maxReceiveCount,
+                ErrorQueueMaxReceiveCount = errorQueueMaxReceiveCount,
                 QueueAttributes = GetDefaultQueueAttributes(awsQueueAttributes)
             };
 
@@ -59,20 +59,20 @@ namespace Topica.Aws.Builders
 
         public AwsSqsConfiguration BuildUpdatePolicyQueue(string policy)
         {
-            return new AwsSqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy} };
+            return new AwsSqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy =  policy } };
         }
 
         private static AwsQueueAttributes GetDefaultQueueAttributes(AwsQueueAttributes? awsQueueAttributeOverrides = null)
         {
             return new AwsQueueAttributes
             {
-                VisibilityTimeout = awsQueueAttributeOverrides?.VisibilityTimeout ?? 30,
+                MessageVisibilityTimeout = awsQueueAttributeOverrides?.MessageVisibilityTimeout ?? 30,
                 IsFifoQueue = awsQueueAttributeOverrides?.IsFifoQueue ?? false,
                 IsFifoContentBasedDeduplication = awsQueueAttributeOverrides?.IsFifoContentBasedDeduplication ?? false,
-                MaximumMessageSize = awsQueueAttributeOverrides?.MaximumMessageSize ?? AwsQueueAttributes.MaximumMessageSizeMax,
-                MessageRetentionPeriod = awsQueueAttributeOverrides?.MessageRetentionPeriod ?? AwsQueueAttributes.MessageRetentionPeriodMax,
-                DelaySeconds = awsQueueAttributeOverrides?.DelaySeconds ?? 0,
-                ReceiveMessageWaitTimeSeconds = awsQueueAttributeOverrides?.ReceiveMessageWaitTimeSeconds ?? 0
+                QueueMaximumMessageSize = awsQueueAttributeOverrides?.QueueMaximumMessageSize ?? AwsQueueAttributes.QueueMaximumMessageSizeMax,
+                QueueMessageRetentionPeriodSeconds = awsQueueAttributeOverrides?.QueueMessageRetentionPeriodSeconds ?? AwsQueueAttributes.QueueMessageRetentionPeriodMax,
+                QueueMessageDelaySeconds = awsQueueAttributeOverrides?.QueueMessageDelaySeconds ?? 0,
+                QueueReceiveMessageWaitTimeSeconds = awsQueueAttributeOverrides?.QueueReceiveMessageWaitTimeSeconds ?? 0
             };
         }
     }

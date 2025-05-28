@@ -1,7 +1,10 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Amazon.SimpleNotificationService;
+using Amazon.SQS;
 using Microsoft.Extensions.Logging;
+using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
+using Topica.Aws.Producer;
 using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Settings;
@@ -9,64 +12,60 @@ using Topica.Settings;
 namespace Topica.Aws.Providers
 {
     public class AwsTopicProvider(
-        IAwsTopicBuilder awsTopicBuilder,
+        IAwsProviderTopicBuilder awsProviderTopicBuilder,
         IAwsSqsConfigurationBuilder awsSqsConfigurationBuilder,
-        ILogger<AwsTopicProvider> logger)
-        : ITopicProvider
+        IAmazonSimpleNotificationService snsClient,
+        IAmazonSQS sqsClient,
+        IMessageHandlerExecutor messageHandlerExecutor,
+        IAwsQueueService awsQueueService,
+        ILogger<AwsTopicProvider> logger) : ITopicProvider
     {
-        private const int ErrorQueueMaxReceiveCountDefault = 5;
-
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Aws;
 
-        public async Task CreateTopicAsync(ConsumerSettings settings)
+        public async Task CreateTopicAsync(MessagingSettings settings)
         {
-            await CreateTopicAsync(settings.Source, settings.AwsWithSubscribedQueues, settings.AwsVisibilityTimeout,
-                settings.AwsIsFifoQueue, settings.AwsIsFifoContentBasedDeduplication, settings.AwsMaximumMessageSize,
-                settings.AwsMessageRetentionPeriod, settings.AwsDelaySeconds, settings.AwsReceiveMessageWaitTimeSeconds,
-                settings.AwsBuildWithErrorQueue, settings.AwsErrorQueueMaxReceiveCount);
-        }
-
-        public async Task CreateTopicAsync(ProducerSettings settings)
-        {
-            await CreateTopicAsync(settings.Source, settings.WithSubscribedQueues, settings.AwsVisibilityTimeout,
-                settings.AwsIsFifoQueue, settings.AwsIsFifoContentBasedDeduplication, settings.AwsMaximumMessageSize,
-                settings.AwsMessageRetentionPeriod, settings.AwsDelaySeconds, settings.AwsReceiveMessageWaitTimeSeconds,
-                settings.AwsBuildWithErrorQueue, settings.AwsErrorQueueMaxReceiveCount);
-        }
-
-        private async Task CreateTopicAsync(string source, IEnumerable<string> withSubscribedQueues, int? awsVisibilityTimeout,
-            bool awsIsFifoQueue, bool awsIsFifoContentBasedDeduplication, int? awsMaximumMessageSize,
-            int? awsMessageRetentionPeriod, int? awsDelaySeconds, int? awsReceiveMessageWaitTimeSeconds,
-            bool awsBuildWithErrorQueue, int? awsErrorQueueMaxReceiveCount)
-        {
-            var creator = awsTopicBuilder.WithTopicName(source);
-            foreach (var subscribedQueueName in withSubscribedQueues)
+            var creator = awsProviderTopicBuilder.WithTopicName(settings.Source);
+            foreach (var subscribedQueueName in settings.AwsWithSubscribedQueues)
             {
                 creator = creator.WithSubscribedQueue(subscribedQueueName);
             }
 
             var awsQueueAttributes = new AwsQueueAttributes
             {
-                VisibilityTimeout = awsVisibilityTimeout,
-                IsFifoQueue = awsIsFifoQueue,
-                IsFifoContentBasedDeduplication = awsIsFifoContentBasedDeduplication,
-                MaximumMessageSize = awsMaximumMessageSize,
-                MessageRetentionPeriod = awsMessageRetentionPeriod,
-                DelaySeconds = awsDelaySeconds,
-                ReceiveMessageWaitTimeSeconds = awsReceiveMessageWaitTimeSeconds
+                MessageVisibilityTimeout = settings.AwsMessageVisibilityTimeoutSeconds,
+                IsFifoQueue = settings.AwsIsFifoQueue,
+                IsFifoContentBasedDeduplication = settings.AwsIsFifoContentBasedDeduplication,
+                QueueMaximumMessageSize = settings.AwsQueueMaximumMessageSize,
+                QueueMessageRetentionPeriodSeconds = settings.AwsQueueMessageRetentionPeriodSeconds,
+                QueueMessageDelaySeconds = settings.AwsQueueMessageDelaySeconds,
+                QueueReceiveMessageWaitTimeSeconds = settings.AwsQueueReceiveMessageWaitTimeSeconds
             };
             
             var sqsConfiguration = awsSqsConfigurationBuilder.BuildQueue(awsQueueAttributes);
             
-            if (awsBuildWithErrorQueue)
+            if (settings.AwsBuildWithErrorQueue)
             {
                 sqsConfiguration.CreateErrorQueue = true;
-                sqsConfiguration.MaxReceiveCount = awsErrorQueueMaxReceiveCount ?? ErrorQueueMaxReceiveCountDefault;
+                sqsConfiguration.ErrorQueueMaxReceiveCount = settings.AwsErrorQueueMaxReceiveCount;
             }
 
             var topic = await creator.WithSqsConfiguration(sqsConfiguration).BuildAsync();
             
             logger.LogInformation("{AwsTopicProviderName}.{CreateTopicAsyncName}: Created topic {Topic}", nameof(AwsTopicProvider), nameof(CreateTopicAsync), topic);
+        }
+
+        public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+        {
+            await Task.CompletedTask;
+            
+            return new AwsQueueConsumer(sqsClient, messageHandlerExecutor, awsQueueService, messagingSettings, logger);
+        }
+
+        public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
+        {
+            await Task.CompletedTask;
+            
+            return new AwsTopicProducer(producerName, snsClient);
         }
     }
 }

@@ -6,8 +6,9 @@ namespace Topica.Contracts
     public interface ITopicProvider
     {
         MessagingPlatform MessagingPlatform { get; }
-        
-        Task CreateTopicAsync(ConsumerSettings settings);
-        Task CreateTopicAsync(ProducerSettings settings);
+
+        Task CreateTopicAsync(MessagingSettings settings);
+        Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings);
+        Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings);
     }
 }

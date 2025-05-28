@@ -2,11 +2,13 @@
 using System.IO;
 using System.Reflection;
 using Azure.ServiceBus.Consumer.Host;
+using Azure.ServiceBus.Consumer.Host.Settings;
+using Azure.ServiceBus.Consumer.Host.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Azure.ServiceBus.Settings;
 
 Console.WriteLine("******* Starting AzureServiceBus.Consumer.Host *******");
 
@@ -33,24 +35,23 @@ var host = Host.CreateDefaultBuilder()
         }));
         
         // Configuration
-        var hostSettings = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var azureServiceBusHostSettings = hostSettings.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
-        if (azureServiceBusHostSettings == null || string.IsNullOrEmpty(azureServiceBusHostSettings.ConnectionString))
-        {
-            throw new ApplicationException("AzureServiceBusHostSettings not found or ConnectionString is empty");
-        }
-        services.AddSingleton(azureServiceBusHostSettings);
+        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+        var hostSettings = configuration.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
+        var consumerSettings = configuration.GetSection(AzureServiceBusConsumerSettings.SectionName).Get<AzureServiceBusConsumerSettings>();
         
-        services.AddSingleton(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            return config.GetSection(AzureServiceBusConsumerSettings.SectionName).Get<AzureServiceBusConsumerSettings>() ?? throw new ApplicationException("AzureServiceBusConsumerSettings not found");
-        });
+        if (hostSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+
+        new AzureServiceBusHostSettingsValidator().ValidateAndThrow(hostSettings);
+        new AzureServiceBusConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
+        
+        services.AddSingleton(hostSettings);
+        services.AddSingleton(consumerSettings);
         
         // Add MessagingPlatform Components
         services.AddAzureServiceBusTopica(c =>
         {
-            c.ConnectionString = azureServiceBusHostSettings.ConnectionString;
+            c.ConnectionString = hostSettings.ConnectionString;
         }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();

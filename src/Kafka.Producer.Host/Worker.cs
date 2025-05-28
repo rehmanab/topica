@@ -1,40 +1,42 @@
-﻿using Confluent.Kafka;
-using Kafka.Producer.Host.Messages.V1;
+﻿using Kafka.Producer.Host.Messages.V1;
+using Kafka.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RandomNameGeneratorLibrary;
-using Topica.Contracts;
-using Topica.Settings;
+using Topica.Kafka.Contracts;
 
 namespace Kafka.Producer.Host;
 
-public class Worker(IProducerBuilder producerBuilder, ProducerSettings producerSettings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IKafkaTopicFluentBuilder builder, KafkaProducerSettings settings, KafkaHostSettings hostSettings, ILogger<Worker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var producer = await producerBuilder.BuildProducerAsync<IProducer<string, string>>("kafka_producer_host_1", producerSettings, stoppingToken);
+        const string workerName = $"{nameof(PersonCreatedMessageV1)}_kafka_producer_host_1";
+        
+        var personCreatedProducer = await builder
+            .WithWorkerName(workerName)
+            .WithTopicName(settings.PersonCreatedTopicSettings.Source)
+            .WithConsumerGroup(settings.PersonCreatedTopicSettings.ConsumerGroup)
+            .WithTopicSettings(settings.PersonCreatedTopicSettings.StartFromEarliestMessages, settings.PersonCreatedTopicSettings.NumberOfTopicPartitions)
+            .WithBootstrapServers(hostSettings.BootstrapServers)
+            .BuildProducerAsync(stoppingToken);
         
         var count = 1;
         var personNameGenerator = new PersonNameGenerator();
         while(!stoppingToken.IsCancellationRequested)
         {
             var name = personNameGenerator.GenerateRandomFirstAndLastName();
-            var result = await producer.ProduceAsync(producerSettings?.Source, new Message<string, string>
-            {
-                Key = name,
-                Value = JsonConvert.SerializeObject(new PersonCreatedMessageV1 { PersonId = count, PersonName = name, ConversationId = Guid.NewGuid(), Type = nameof(PersonCreatedMessageV1) })
-            }, stoppingToken);
-            // FLush will wait for all messages sent to be confirmed/delivered, so dont use after each Produce()
-            //producer.Flush(TimeSpan.FromSeconds(2));
+            var message = new PersonCreatedMessageV1 { PersonId = count, PersonName = name, ConversationId = Guid.NewGuid(), Type = nameof(PersonCreatedMessageV1) };
 
+            await personCreatedProducer.ProduceAsync(settings.PersonCreatedTopicSettings.Source, message, new Dictionary<string, string> { { "bootstrapservers", string.Join(",", hostSettings.BootstrapServers) } }, stoppingToken);
+
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.PersonCreatedTopicSettings.Source, $"{message.PersonId} : {message.PersonName}");
+            
             count++;
-    
-            logger.LogInformation("Produced message to {ProducerSettingsSource}: {Count}", producerSettings?.Source, count);
-    
+
             await Task.Delay(1000, stoppingToken);
         }
 
-        producer.Dispose();
+        await personCreatedProducer.DisposeAsync();
     }
 }

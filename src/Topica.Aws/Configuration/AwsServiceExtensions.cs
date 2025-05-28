@@ -1,8 +1,5 @@
 using System;
 using System.Reflection;
-using Amazon;
-using Amazon.Runtime;
-using Amazon.Runtime.CredentialManagement;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Microsoft.Extensions.Logging;
@@ -12,7 +9,7 @@ using Topica.Aws.Configuration;
 using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
 using Topica.Aws.Factories;
-using Topica.Aws.Producers;
+using Topica.Aws.Producer;
 using Topica.Aws.Providers;
 using Topica.Aws.Services;
 using Topica.Contracts;
@@ -46,18 +43,18 @@ public static class AwsServiceExtensions
             
         logger.LogDebug("******* Aws Service Extensions ******* ");
 
-        services.AddScoped<IAmazonSimpleNotificationService>(_ => GetSnsClient(logger, config));
-        services.AddScoped<IAmazonSQS>(_ => GetSqsClient(logger, config));
+        var awsClientService = new AwsClientService(logger);
+        services.AddScoped<IAwsClientService>(_ => awsClientService);
+        services.AddScoped<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
+        services.AddScoped<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
         services.AddScoped<IAwsQueueService, AwsQueueService>();
         services.AddScoped<IAwsSqsConfigurationBuilder, AwsSqsConfigurationBuilder>();
         services.AddScoped<IAwsQueueCreationFactory, AwsQueueCreationFactory>();
         services.AddScoped<IAwsPolicyBuilder, AwsPolicyBuilder>();
         services.AddScoped<IAwsTopicService, AwsTopicService>();
-        services.AddScoped<IAwsTopicBuilder, AwsTopicBuilder>();
+        services.AddScoped<IAwsProviderTopicBuilder, AwsProviderTopicBuilder>();
         services.AddScoped<IAwsQueueBuilder, AwsQueueBuilder>();
-        services.AddScoped<IConsumer, AwsQueueConsumer>();
-        services.AddScoped<IAwsConsumerTopicFluentBuilder, AwsConsumerTopicFluentBuilder>();
-        services.AddScoped<IProducerBuilder, AwsProducerBuilder>();
+        services.AddScoped<IAwsTopicFluentBuilder, AwsTopicFluentBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AwsTopicProvider>();
         services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
@@ -65,77 +62,11 @@ public static class AwsServiceExtensions
             
         // Scan for IHandlers from Entry assembly
         services.Scan(s => s
-            .FromAssemblies(assembly!)
+            .FromAssemblies(assembly)
             .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
         return services;
-    }
-        
-    public static IAmazonSQS GetSqsClient(ILogger<MessagingPlatform> logger, AwsTopicaConfiguration awsSettings)
-    {
-        var sharedFile = new SharedCredentialsFile();
-        var config = new AmazonSQSConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };
-
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile))
-        {
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-            logger.LogInformation($"Using AWS profile: {awsSettings.ProfileName} for {nameof(GetSqsClient)}");
-            return new AmazonSQSClient(credentials, config);
-        }
-            
-        if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
-        {
-            logger.LogInformation($"Using AccessKey and SecretKey for {nameof(GetSqsClient)}");
-
-            if (!string.IsNullOrEmpty(awsSettings.ServiceUrl))
-            {
-                config.ServiceURL = awsSettings.ServiceUrl;
-            }
-            return new AmazonSQSClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
-        }
-            
-        if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
-        {
-            throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(GetSqsClient)}");
-        }
-            
-        logger.LogInformation($"Using LocalStack for {nameof(GetSqsClient)}");
-        config.ServiceURL = awsSettings.ServiceUrl;
-        return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
-    }
-        
-    public static IAmazonSimpleNotificationService GetSnsClient(ILogger<MessagingPlatform> logger, AwsTopicaConfiguration awsSettings)
-    {
-        var sharedFile = new SharedCredentialsFile();
-        var config = new AmazonSimpleNotificationServiceConfig { RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.RegionEndpoint) };
-
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile))
-        {
-            AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
-            logger.LogInformation("Using AWS profile: {AwsSettingsProfileName} for {GetSnsClientName}", awsSettings.ProfileName, nameof(GetSnsClient));
-            return new AmazonSimpleNotificationServiceClient(credentials, config);
-        }
-            
-        if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
-        {
-            logger.LogInformation($"Using AccessKey and SecretKey for {nameof(GetSnsClient)}");
-
-            if (!string.IsNullOrEmpty(awsSettings.ServiceUrl))
-            {
-                config.ServiceURL = awsSettings.ServiceUrl;
-            }
-            return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
-        }
-            
-        if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
-        {
-            throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(GetSnsClient)}");
-        }
-            
-        logger.LogInformation($"Using LocalStack for {nameof(GetSnsClient)}");
-        config.ServiceURL = awsSettings.ServiceUrl;
-        return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
     }
 }

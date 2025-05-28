@@ -82,7 +82,7 @@ services:
       - managedLedgerDefaultWriteQuorum=1
       - managedLedgerDefaultAckQuorum=1
       - advertisedAddress=pulsarbroker
-      - advertisedListeners=external:pulsar://192.168.0.5:6650
+      - advertisedListeners=external:pulsar://dockerhost:6650
       - PULSAR_MEM=-Xms512m -Xmx512m -XX:MaxDirectMemorySize=256m
     depends_on:
       zookeeper:

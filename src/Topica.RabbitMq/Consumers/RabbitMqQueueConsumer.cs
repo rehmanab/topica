@@ -15,18 +15,18 @@ namespace Topica.RabbitMq.Consumers
 {
     public class RabbitMqQueueConsumer : IConsumer, IDisposable
     {
-        private readonly ITopicProviderFactory _topicProviderFactory;
         private readonly ConnectionFactory _rabbitMqConnectionFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
+        private readonly MessagingSettings _messagingSettings;
         private readonly ResiliencePipeline _retryPipeline;
-        private readonly ILogger<RabbitMqQueueConsumer> _logger;
+        private readonly ILogger _logger;
         private IChannel? _channel;
 
-        public RabbitMqQueueConsumer(ITopicProviderFactory topicProviderFactory, ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, ILogger<RabbitMqQueueConsumer> logger)
+        public RabbitMqQueueConsumer(ConnectionFactory rabbitMqConnectionFactory, IMessageHandlerExecutor messageHandlerExecutor, MessagingSettings messagingSettings, ILogger logger)
         {
-            _topicProviderFactory = topicProviderFactory;
             _rabbitMqConnectionFactory = rabbitMqConnectionFactory;
             _messageHandlerExecutor = messageHandlerExecutor;
+            _messagingSettings = messagingSettings;
             _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
             {
                 BackoffType = DelayBackoffType.Constant,
@@ -41,17 +41,15 @@ namespace Topica.RabbitMq.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
         {
-            await _topicProviderFactory.Create(MessagingPlatform.RabbitMq).CreateTopicAsync(consumerSettings);
-            
-            Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+            Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
             });
         }
 
-        private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
         {
             try
             {
@@ -65,14 +63,14 @@ namespace Topica.RabbitMq.Consumers
                     var message = Encoding.UTF8.GetString(body);
 
                     var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message);
-                    // _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, consumerSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
+                    // _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, messagingSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
                 };
 
                 await Task.Run(() =>
                     {
-                        _logger.LogInformation("{RabbitMqQueueConsumerName}: {ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", nameof(RabbitMqQueueConsumer), consumerName, consumerSettings.SubscribeToSource);
+                        _logger.LogInformation("{RabbitMqQueueConsumerName}: {ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", nameof(RabbitMqQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
 
-                        _channel.BasicConsumeAsync(consumerSettings.SubscribeToSource, true, consumer, cancellationToken: cancellationToken);
+                        _channel.BasicConsumeAsync(messagingSettings.SubscribeToSource, true, consumer, cancellationToken: cancellationToken);
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
