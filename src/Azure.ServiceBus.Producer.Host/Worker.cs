@@ -22,20 +22,20 @@ public class Worker(IProducerBuilder producerBuilder, AzureServiceBusHostSetting
         var producer = await producerBuilder.BuildProducerAsync<IServiceBusClientProvider>(consumerName, producerSettings, stoppingToken);
         var sender = producer.Client.CreateSender(topicName, new ServiceBusSenderOptions { Identifier = consumerName });
 
-        var theMessage = JsonConvert.SerializeObject(new PriceSubmittedMessageV1
-        {
-            PriceId = 1234L,
-            PriceName = "Some Price",
-            ConversationId = Guid.NewGuid(),
-            Type = nameof(PriceSubmittedMessageV1),
-            RaisingComponent = consumerName,
-            Version = "V1",
-            AdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
-        });
-
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
         {
+            var theMessage = JsonConvert.SerializeObject(new PriceSubmittedMessageV1
+            {
+                PriceId = count,
+                PriceName = "Some Price",
+                ConversationId = Guid.NewGuid(),
+                Type = nameof(PriceSubmittedMessageV1),
+                RaisingComponent = consumerName,
+                Version = "V1",
+                AdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
+            });
+            
             var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(theMessage))
             {
                 MessageId = Guid.NewGuid().ToString() // MessageId is or can be used for deduplication
@@ -43,7 +43,7 @@ public class Worker(IProducerBuilder producerBuilder, AzureServiceBusHostSetting
             //message.ApplicationProperties.Add("userProp1", "value1");
 
             await sender.SendMessageAsync(message, stoppingToken);
-            logger.LogInformation("Sent: {Count}", count);
+            logger.LogInformation("Sent to {Topic}: {Count}", topicName, count);
             count++;
 
             await Task.Delay(1000, stoppingToken);

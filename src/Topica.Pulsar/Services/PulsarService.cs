@@ -9,29 +9,16 @@ using Topica.Pulsar.Models;
 
 namespace Topica.Pulsar.Services
 {
-    public class PulsarService : IPulsarService
+    public class PulsarService(string pulsarManagerBaseUrl, string pulsarAdminUrl, IHttpClientService httpClientService, ILogger<PulsarService> logger) : IPulsarService
     {
-        private readonly string _pulsarManagerBaseUrl;
-        private readonly string _pulsarAdminUrl;
-        private readonly IHttpClientService _httpClientService;
-        private readonly ILogger<PulsarService> _logger;
-
-        public PulsarService(string pulsarManagerBaseUrl, string pulsarAdminUrl, IHttpClientService httpClientService, ILogger<PulsarService> logger)
-        {
-            _pulsarManagerBaseUrl = pulsarManagerBaseUrl;
-            _pulsarAdminUrl = pulsarAdminUrl;
-            _httpClientService = httpClientService;
-            _logger = logger;
-        }
-
         public async Task<bool> CreateDefaultUserAsync()
         {
-            var token = await _httpClientService.GetAsync($"{_pulsarManagerBaseUrl}/pulsar-manager/csrf-token");
-            _httpClientService.AddHeader("X-XSRF-TOKEN", token);
+            var token = await httpClientService.GetAsync($"{pulsarManagerBaseUrl}/pulsar-manager/csrf-token");
+            httpClientService.AddHeader("X-XSRF-TOKEN", token);
 
             var createUser = new CreateUserRequest { Name = "admin", Password = "apachepulsar", Description = "Admin user", Email = "test@test.com" };
 
-            var result = await _httpClientService.PutAsync<CreateUserRequest, CreateUserResponse>($"{_pulsarManagerBaseUrl}/pulsar-manager/users/superuser", createUser);
+            var result = await httpClientService.PutAsync<CreateUserRequest, CreateUserResponse>($"{pulsarManagerBaseUrl}/pulsar-manager/users/superuser", createUser);
 
             if (!string.IsNullOrWhiteSpace(result.Error) && !result.Error.StartsWith("Super user role is exist"))
             {
@@ -44,8 +31,8 @@ namespace Topica.Pulsar.Services
         // Namespaces
         public async Task<IEnumerable<string>> GetNamespacesAsync(string tenant)
         {
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.GetAsync<IEnumerable<string>>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}");
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.GetAsync<IEnumerable<string>>($"{pulsarAdminUrl}/admin/v2/namespaces/{tenant}");
 
             return response;
         }
@@ -61,7 +48,7 @@ namespace Topica.Pulsar.Services
                     return;
                 }
 
-                var createResponse = await _httpClientService.PutAsync<object>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}", null!);
+                var createResponse = await httpClientService.PutAsync<object>($"{pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}", null!);
 
                 if (!createResponse.IsSuccessStatusCode)
                 {
@@ -70,7 +57,7 @@ namespace Topica.Pulsar.Services
 
                 // Add retention
                 var retentionRequest = new RetentionPolicies { RetentionSizeInMb = -1, RetentionTimeInMinutes = -1 };
-                var retentionResponse = await _httpClientService.PostAsync<object>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}/retention", retentionRequest);
+                var retentionResponse = await httpClientService.PostAsync<object>($"{pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}/retention", retentionRequest);
 
                 if (!retentionResponse.IsSuccessStatusCode)
                 {
@@ -79,7 +66,7 @@ namespace Topica.Pulsar.Services
 
                 // Add Inactive topic policy
                 var inactiveTopicPoliciesRequest = new InactiveTopicPolicies { DeleteWhileInactive = false, InactiveTopicDeleteMode = "delete_when_subscriptions_caught_up" };
-                var inactiveTopicPoliciesResponse = await _httpClientService.PostAsync<object>($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}/inactiveTopicPolicies", inactiveTopicPoliciesRequest);
+                var inactiveTopicPoliciesResponse = await httpClientService.PostAsync<object>($"{pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}/inactiveTopicPolicies", inactiveTopicPoliciesRequest);
 
                 if (!inactiveTopicPoliciesResponse.IsSuccessStatusCode)
                 {
@@ -88,7 +75,7 @@ namespace Topica.Pulsar.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{ServiceName}: Error: {Message}", nameof(PulsarService), ex.Message);
+                logger.LogError(ex, "{ServiceName}: Error: {Message}", nameof(PulsarService), ex.Message);
             }
         }
 
@@ -109,14 +96,14 @@ namespace Topica.Pulsar.Services
                 await DeleteTopicAsync(tenant, @namespace, topicPaths[3]);
             }
 
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.DeleteAsync($"{_pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}");
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.DeleteAsync($"{pulsarAdminUrl}/admin/v2/namespaces/{tenant}/{@namespace}");
 
             response.EnsureSuccessStatusCode();
         }
 
         // Topics 
-        public async Task<IEnumerable<string>> GetTopicsAsync(string tenant, string @namespace, bool isPersistent = true)
+        public async Task<IEnumerable<string>> GetTopicsAsync(string tenant, string @namespace, bool isPersistent = true, bool isPartitioned = false)
         {
             var namespaces = await GetNamespacesAsync(tenant);
 
@@ -125,13 +112,29 @@ namespace Topica.Pulsar.Services
                 return [];
             }
 
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.GetAsync<IEnumerable<string>>($"{_pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}");
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.GetAsync<IEnumerable<string>>($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}{(isPartitioned ? "/partitioned" : "")}");
+
+            return response;
+        }
+        
+        public async Task<PartitionedTopicMetaData?> GetPartitionTopicMetaDataAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
+        {
+            var namespaces = await GetNamespacesAsync(tenant);
+
+            if (!namespaces.Any(x => x.EndsWith($"{tenant}/{@namespace}")))
+            {
+                return null;
+            }
+
+            httpClientService.ClearHeaders();
+
+            var response = await httpClientService.GetAsync<PartitionedTopicMetaData>($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/partitions");
 
             return response;
         }
 
-        public async Task CreateTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
+        public async Task CreateNonPartitionedTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
         {
             var topics = await GetTopicsAsync(tenant, @namespace, isPersistent);
 
@@ -140,9 +143,53 @@ namespace Topica.Pulsar.Services
                 return;
             }
 
-            var createResponse = await _httpClientService.PutAsync($"{_pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}", null);
+            var createResponse = await httpClientService.PutAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}", null);
 
             createResponse.EnsureSuccessStatusCode();
+        }
+        
+        public async Task CreatePartitionedTopicAsync(string tenant, string @namespace, string topicName, int numberOfPartitions, bool isPersistent = true)
+        {
+            var topics = await GetTopicsAsync(tenant, @namespace, isPersistent, isPartitioned: true);
+
+            if (topics.Any(x => x.EndsWith($"/{tenant}/{@namespace}/{topicName}")))
+            {
+                return;
+            }
+
+            var createResponse = await httpClientService.PutAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/partitions", numberOfPartitions);
+
+            createResponse.EnsureSuccessStatusCode();
+        }
+        
+        // When topic auto-creation is disabled, and you have a partitioned topic without any partitions, you can use the create-missed-partitions command to create partitions for the topic.
+        public async Task CreateMissedPartitionsTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
+        {
+            var topics = await GetTopicsAsync(tenant, @namespace, isPersistent, isPartitioned: true);
+
+            if (topics.Any(x => x.EndsWith($"/{tenant}/{@namespace}/{topicName}")))
+            {
+                return;
+            }
+
+            var createResponse = await httpClientService.PostAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/createMissedPartitions", (string)null);
+
+            createResponse.EnsureSuccessStatusCode();
+        }
+        
+        // You can only increase the number of partitions
+        public async Task UpdatePartitionedTopicAsync(string tenant, string @namespace, string topicName, int numberOfPartitions, bool isPersistent = true)
+        {
+            var topics = await GetTopicsAsync(tenant, @namespace, isPersistent, isPartitioned: true);
+
+            if (topics.Any(x => x.EndsWith($"/{tenant}/{@namespace}/{topicName}")))
+            {
+                return;
+            }
+
+            var response = await httpClientService.PostAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/partitions", numberOfPartitions);
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task TerminatePersistentTopicAsync(string tenant, string @namespace, string topicName)
@@ -154,31 +201,31 @@ namespace Topica.Pulsar.Services
                 return;
             }
 
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.PostAsync($"{_pulsarAdminUrl}/admin/v2/persistent/{tenant}/{@namespace}/{topicName}/terminate", null);
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.PostAsync($"{pulsarAdminUrl}/admin/v2/persistent/{tenant}/{@namespace}/{topicName}/terminate", null);
 
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task DeleteTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
+        public async Task DeleteTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true, bool isPartitioned = false)
         {
-            var topics = await GetTopicsAsync(tenant, @namespace);
+            var topics = await GetTopicsAsync(tenant, @namespace, isPersistent: isPersistent, isPartitioned: isPartitioned);
 
             if (!topics.Any(x => x.EndsWith($"/{tenant}/{@namespace}/{topicName}")))
             {
                 return;
             }
 
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.DeleteAsync($"{_pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}");
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.DeleteAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}{(isPartitioned ? "/partitions" : "")}");
 
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<TopicStatsResponse> GetTopicsStatsAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
         {
-            _httpClientService.ClearHeaders();
-            var response = await _httpClientService.GetAsync<TopicStatsResponse>($"{_pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/stats");
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.GetAsync<TopicStatsResponse>($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/stats");
 
             return response;
         }

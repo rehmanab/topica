@@ -40,26 +40,26 @@ namespace Topica.Pulsar.Consumers
             _logger = logger;
         }
 
-        public Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
+            await _topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(consumerSettings);
+
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", $"{consumerSettings.PulsarConsumerGroup}_{index}", consumerSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings.PulsarConsumerGroup, consumerSettings, x), cancellationToken);
             });
-
-            return Task.CompletedTask;
         }
         
         private async ValueTask StartAsync<T>(string consumerName, string consumerGroup, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
             try
             {
-                await _topicProviderFactory.Create(MessagingPlatform.Pulsar).CreateTopicAsync(consumerSettings);
-
                 var client = await _clientBuilder.BuildAsync();
                 var consumer = await client.NewConsumer()
                     .Topic($"persistent://{consumerSettings.PulsarTenant}/{consumerSettings.PulsarNamespace}/{consumerSettings.Source}")
-                    .SubscriptionName(consumerGroup)
+                    .ConsumerName(consumerName)
+                    .SubscriptionName(consumerGroup) // will act as a new subscriber and read all messages if the name is unique
+                    .SubscriptionType(SubscriptionType.Shared) // If the topic is partitioned, then shared will allow other concurrent consumers (scale horizontally), with the same subscription name to split the messages between them
                     .SubscriptionInitialPosition(consumerSettings.PulsarStartNewConsumerEarliest.HasValue && consumerSettings.PulsarStartNewConsumerEarliest.Value
                         ? SubscriptionInitialPosition.Earliest
                         : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only

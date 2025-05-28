@@ -51,6 +51,12 @@ namespace Topica.Kafka.Consumers
             var config = new ConsumerConfig
             {
                 BootstrapServers = string.Join(",", consumerSettings.KafkaBootstrapServers!),
+                
+                // Each unique consumer group will will handle a share of the messages for that Topic
+                // e.g. group1 with 10 conumers, share the messages
+                // group2 will be like a new subscribed queue, and get all the messages
+                // So each consumer GroupId is a subscribed queue
+                // https://www.confluent.io/blog/configuring-apache-kafka-consumer-group-ids/
                 GroupId = consumerSettings.KafkaConsumerGroup,
                 AutoOffsetReset = consumerSettings.KafkaStartFromEarliestMessages.HasValue && consumerSettings.KafkaStartFromEarliestMessages.Value
                     ? AutoOffsetReset.Earliest

@@ -41,22 +41,20 @@ namespace Topica.RabbitMq.Consumers
             _logger = logger;
         }
 
-        public Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
+            await _topicProviderFactory.Create(MessagingPlatform.RabbitMq).CreateTopicAsync(consumerSettings);
+            
             Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
             {
                 _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
             });
-            
-            return Task.CompletedTask;
         }
 
         private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
         {
             try
             {
-                await _topicProviderFactory.Create(MessagingPlatform.RabbitMq).CreateTopicAsync(consumerSettings);
-
                 var connection = await _rabbitMqConnectionFactory.CreateConnectionAsync(cancellationToken);
                 _channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 

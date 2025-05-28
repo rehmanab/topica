@@ -10,7 +10,7 @@ namespace Azure.ServiceBus.Consumer.Host.Handlers.V1
     {
         public async Task<bool> HandleAsync(QuantityUpdatedMessageV1 source)
         {
-            // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Quantity: {Quantity}", nameof(QuantityUpdatedMessageV1), source.ConversationId, $"{source.QuantityId} : {source.QuantityName}");
+            logger.LogInformation("Handle: {Name} for CID: {ConversationId} for Quantity: {Quantity}", nameof(QuantityUpdatedMessageV1), source.ConversationId, $"{source.QuantityId} : {source.QuantityName}");
             
             return await Task.FromResult(true);
         }

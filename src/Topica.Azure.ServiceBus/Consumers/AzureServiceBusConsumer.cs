@@ -55,11 +55,10 @@ public class AzureServiceBusConsumer : IConsumer
             _logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} is using the Emulator endpoint: {ConnectionStringEndpoint} .. Skipping Creation as it's not supported", consumerName, connectionStringEndpoint);
         }
 
-        Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances),
-            index =>
-            {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
-            });
+        Parallel.ForEach(Enumerable.Range(1, consumerSettings.NumberOfInstances), index =>
+        {
+            _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{consumerName}-consumer-({index})", consumerSettings, x), cancellationToken);
+        });
     }
 
     private async ValueTask StartAsync<T>(string consumerName, ConsumerSettings consumerSettings, CancellationToken cancellationToken) where T : IHandler
@@ -83,7 +82,7 @@ public class AzureServiceBusConsumer : IConsumer
                 if (message == null) continue;
                 
                 var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Body));
-                _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AzureServiceBusConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AzureServiceBusConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
                 if (!success) continue;
                     

@@ -10,7 +10,7 @@ public class PulsarConsumerSettings
 
 public class PulsarConsumerTopicSettings
 {
-    public string? Source { get; } = null!;
+    public string? Source { get; set; } = null!;
     public int NumberOfInstances { get; set; } = 1;
     
     public string? Tenant { get; set; }

@@ -23,7 +23,7 @@ namespace Topica.Pulsar.Providers
         private async Task CreateTopicAsync(string tenant, string @namespace, string source)
         {
             await pulsarService.CreateNamespaceAsync(tenant, @namespace);
-            await pulsarService.CreateTopicAsync(tenant, @namespace, source);
+            await pulsarService.CreatePartitionedTopicAsync(tenant, @namespace, source, 6);
             
             logger.LogInformation("{PulsarTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), source);
         }
