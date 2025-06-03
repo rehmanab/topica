@@ -1,9 +1,8 @@
-﻿using Aws.Producer.Host.Messages.V1;
-using Aws.Producer.Host.Settings;
+﻿using Aws.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RandomNameGeneratorLibrary;
 using Topica.Aws.Contracts;
+using Topica.Host.Shared.Messages.V1;
 
 namespace Aws.Producer.Host;
 
@@ -11,40 +10,38 @@ public class Worker(IAwsTopicFluentBuilder builder, IAwsTopicService awsTopicSer
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const string workerName = $"{nameof(OrderPlacedMessageV1)}_aws_producer_host_1";
-        
-        var orderPlacedTopicProducer = await builder
-            .WithWorkerName(workerName)
-            .WithTopicName(settings.OrderPlacedTopicSettings.Source)
+        var producer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
             .WithSubscribedQueues(
-                settings.OrderPlacedTopicSettings.SubscribeToSource,
-                settings.OrderPlacedTopicSettings.WithSubscribedQueues
+                settings.WebAnalyticsTopicSettings.SubscribeToSource,
+                settings.WebAnalyticsTopicSettings.WithSubscribedQueues
             )
             .WithErrorQueueSettings(
-                settings.OrderPlacedTopicSettings.BuildWithErrorQueue,
-                settings.OrderPlacedTopicSettings.ErrorQueueMaxReceiveCount
+                settings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
+                settings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
             )
             .WithFifoSettings(
-                settings.OrderPlacedTopicSettings.IsFifoQueue,
-                settings.OrderPlacedTopicSettings.IsFifoContentBasedDeduplication
+                settings.WebAnalyticsTopicSettings.IsFifoQueue,
+                settings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
             )
             .WithTemporalSettings(
-                settings.OrderPlacedTopicSettings.MessageVisibilityTimeoutSeconds,
-                settings.OrderPlacedTopicSettings.QueueMessageDelaySeconds,
-                settings.OrderPlacedTopicSettings.QueueMessageRetentionPeriodSeconds,
-                settings.OrderPlacedTopicSettings.QueueReceiveMessageWaitTimeSeconds
+                settings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
+                settings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
             )
-            .WithQueueSettings(settings.OrderPlacedTopicSettings.QueueMaximumMessageSize)
+            .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
             .BuildProducerAsync(stoppingToken);
         
-        var topicArns = awsTopicService.GetAllTopics(settings.OrderPlacedTopicSettings.Source, settings.OrderPlacedTopicSettings.IsFifoQueue).ToBlockingEnumerable(cancellationToken: stoppingToken).SelectMany(x => x).ToList();
+        var topicArns = awsTopicService.GetAllTopics(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue).ToBlockingEnumerable(cancellationToken: stoppingToken).SelectMany(x => x).ToList();
 
         switch (topicArns.Count)
         {
             case 0:
-                throw new Exception($"No topic found for prefix: {settings.OrderPlacedTopicSettings.Source}");
+                throw new Exception($"No topic found for prefix: {settings.WebAnalyticsTopicSettings.Source}");
             case > 1:
-                throw new Exception($"More than 1 topic found for prefix: {settings.OrderPlacedTopicSettings.Source}");
+                throw new Exception($"More than 1 topic found for prefix: {settings.WebAnalyticsTopicSettings.Source}");
         }
         
         var topicArn = topicArns.First().TopicArn;
@@ -54,12 +51,12 @@ public class Worker(IAwsTopicFluentBuilder builder, IAwsTopicService awsTopicSer
         {
             var messageGroupId = Guid.NewGuid().ToString();
             
-            var message = new OrderPlacedMessageV1
+            var message = new ButtonClickedMessageV1
             {
                 ConversationId = Guid.NewGuid(), 
-                OrderId = count, 
-                OrderName = Random.Shared.GenerateRandomMaleFirstAndLastName(), 
-                Type = nameof(OrderPlacedMessageV1),
+                EventId = count, 
+                EventName = "button.clicked.web.v1", 
+                Type = nameof(ButtonClickedMessageV1),
                 MessageGroupId = messageGroupId
             };
 
@@ -67,16 +64,16 @@ public class Worker(IAwsTopicFluentBuilder builder, IAwsTopicService awsTopicSer
             {
                 {"SignatureVersion", "2" }
             };
-            await orderPlacedTopicProducer.ProduceAsync(topicArn, message, awsMessageAttributes, cancellationToken: stoppingToken);
+            await producer1.ProduceAsync(topicArn, message, awsMessageAttributes, cancellationToken: stoppingToken);
             
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.OrderPlacedTopicSettings.Source, $"{message.OrderId} : {message.OrderName}");
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
             
             count++;
 
-            await Task.Delay(1000, stoppingToken);
+            await Task.Delay(10, stoppingToken);
         }
 
-        await orderPlacedTopicProducer.DisposeAsync();
+        await producer1.DisposeAsync();
 
         logger.LogInformation("Finished: {Count} messages sent", count);
     }

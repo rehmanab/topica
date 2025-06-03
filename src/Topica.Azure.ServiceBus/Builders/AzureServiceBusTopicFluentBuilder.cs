@@ -96,7 +96,7 @@ public class AzureServiceBusTopicFluentBuilder(ITopicProviderFactory topicProvid
             logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} is using the Emulator endpoint: {ConnectionStringEndpoint} .. Skipping Creation as it's not supported", _workerName, connectionStringEndpoint);
         }
 
-        return await topicProvider.ProvideConsumerAsync(_workerName, messagingSettings);
+        return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
 
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
@@ -125,6 +125,7 @@ public class AzureServiceBusTopicFluentBuilder(ITopicProviderFactory topicProvid
     {
         return new MessagingSettings
         {
+            WorkerName = _workerName,
             Source = _topicName,
             AzureServiceBusSubscriptions = _subscriptions.Select(x => new AzureServiceBusTopicSubscriptionSettings
             {

@@ -7,25 +7,15 @@ public class PulsarConsumerSettingsValidator : AbstractValidator<PulsarConsumerS
 {
     public PulsarConsumerSettingsValidator()
     {
-        RuleFor(x => x.DataSentTopicSettings)
+        RuleFor(x => x.WebAnalyticsTopicSettings)
             .NotNull().DependentRules(() =>
             {
-                RuleFor(x => x.DataSentTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.DataSentTopicSettings.Tenant).NotNull().NotEmpty();
-                RuleFor(x => x.DataSentTopicSettings.Namespace).NotNull().NotEmpty();
-                RuleFor(x => x.DataSentTopicSettings.ConsumerGroup).NotNull().NotEmpty();
-                RuleFor(x => x.DataSentTopicSettings.StartNewConsumerEarliest).NotNull().NotEmpty();
-            });
-
-
-        RuleFor(x => x.MatchStartedTopicSettings)
-            .NotNull().DependentRules(() =>
-            {
-                RuleFor(x => x.MatchStartedTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.MatchStartedTopicSettings.Tenant).NotNull().NotEmpty();
-                RuleFor(x => x.MatchStartedTopicSettings.Namespace).NotNull().NotEmpty();
-                RuleFor(x => x.MatchStartedTopicSettings.ConsumerGroup).NotNull().NotEmpty();
-                RuleFor(x => x.MatchStartedTopicSettings.StartNewConsumerEarliest).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.WorkerName).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Source).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Tenant).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Namespace).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.ConsumerGroup).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.StartNewConsumerEarliest).NotNull().NotEmpty();
             });
     }
 }

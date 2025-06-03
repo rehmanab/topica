@@ -1,8 +1,7 @@
-﻿using Kafka.Producer.Host.Messages.V1;
-using Kafka.Producer.Host.Settings;
+﻿using Kafka.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RandomNameGeneratorLibrary;
+using Topica.Host.Shared.Messages.V1;
 using Topica.Kafka.Contracts;
 
 namespace Kafka.Producer.Host;
@@ -11,32 +10,28 @@ public class Worker(IKafkaTopicFluentBuilder builder, KafkaProducerSettings sett
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const string workerName = $"{nameof(PersonCreatedMessageV1)}_kafka_producer_host_1";
-        
-        var personCreatedProducer = await builder
-            .WithWorkerName(workerName)
-            .WithTopicName(settings.PersonCreatedTopicSettings.Source)
-            .WithConsumerGroup(settings.PersonCreatedTopicSettings.ConsumerGroup)
-            .WithTopicSettings(settings.PersonCreatedTopicSettings.StartFromEarliestMessages, settings.PersonCreatedTopicSettings.NumberOfTopicPartitions)
+        var producer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
+            .WithTopicSettings(settings.WebAnalyticsTopicSettings.StartFromEarliestMessages, settings.WebAnalyticsTopicSettings.NumberOfTopicPartitions)
             .WithBootstrapServers(hostSettings.BootstrapServers)
             .BuildProducerAsync(stoppingToken);
         
         var count = 1;
-        var personNameGenerator = new PersonNameGenerator();
         while(!stoppingToken.IsCancellationRequested)
         {
-            var name = personNameGenerator.GenerateRandomFirstAndLastName();
-            var message = new PersonCreatedMessageV1 { PersonId = count, PersonName = name, ConversationId = Guid.NewGuid(), Type = nameof(PersonCreatedMessageV1) };
+            var message = new CustomEventMessageV1 { EventId = count, EventName = "custom.event.web.v1", ConversationId = Guid.NewGuid(), Type = nameof(CustomEventMessageV1) };
 
-            await personCreatedProducer.ProduceAsync(settings.PersonCreatedTopicSettings.Source, message, new Dictionary<string, string> { { "bootstrapservers", string.Join(",", hostSettings.BootstrapServers) } }, stoppingToken);
+            await producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, stoppingToken);
 
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.PersonCreatedTopicSettings.Source, $"{message.PersonId} : {message.PersonName}");
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
             
             count++;
 
             await Task.Delay(1000, stoppingToken);
         }
 
-        await personCreatedProducer.DisposeAsync();
+        await producer1.DisposeAsync();
     }
 }

@@ -40,30 +40,31 @@ namespace Topica.Pulsar.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings.PulsarConsumerGroup, _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
             });
         }
         
-        private async ValueTask StartAsync<T>(string consumerName, string consumerGroup, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             try
             {
                 var client = await _clientBuilder.BuildAsync();
                 var consumer = await client.NewConsumer()
-                    .Topic($"persistent://{messagingSettings.PulsarTenant}/{messagingSettings.PulsarNamespace}/{messagingSettings.Source}")
+                    .Topic($"persistent://{_messagingSettings.PulsarTenant}/{_messagingSettings.PulsarNamespace}/{_messagingSettings.Source}")
                     .ConsumerName(consumerName)
-                    .SubscriptionName(consumerGroup) // will act as a new subscriber and read all messages if the name is unique
+                    .SubscriptionName(_messagingSettings.PulsarConsumerGroup) // will act as a new subscriber and read all messages if the name is unique
                     .SubscriptionType(SubscriptionType.Shared) // If the topic is partitioned, then shared will allow other concurrent consumers (scale horizontally), with the same subscription name to split the messages between them
-                    .SubscriptionInitialPosition(messagingSettings.PulsarStartNewConsumerEarliest.HasValue && messagingSettings.PulsarStartNewConsumerEarliest.Value
+                    .AcknowledgementsGroupTime(TimeSpan.FromSeconds(5)) // Acknowledgements will be sent immediately after processing the message, no batching, set this higher if you want to batch acknowledgements and less network traffic
+                    .SubscriptionInitialPosition(_messagingSettings.PulsarStartNewConsumerEarliest
                         ? SubscriptionInitialPosition.Earliest
                         : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                     .SubscribeAsync();
 
-                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), messagingSettings.Source, messagingSettings.PulsarConsumerGroup);
+                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), _messagingSettings.Source, _messagingSettings.PulsarConsumerGroup);
 
                 await Task.Run(async () =>
                     {
@@ -73,16 +74,15 @@ namespace Topica.Pulsar.Consumers
 
                             if (message == null)
                             {
-                                throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{messagingSettings.PulsarConsumerGroup} - Received null message on Topic: {messagingSettings.Source}");
+                                throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{_messagingSettings.PulsarConsumerGroup} - Received null message on Topic: {_messagingSettings.Source}");
                             }
 
-                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Data));
-                            // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Data));
 
-                            if (success)
-                            {
-                                await consumer.AcknowledgeAsync(message.MessageId);
-                            }
+                            // Need to Acknowledge all the messages whether success or not, I think when using partitioned topics, else the messages are sent again after restarting the worker..
+                            await consumer.AcknowledgeAsync(message.MessageId);
+
+                            _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, _messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
                         }
 
                         await consumer.DisposeAsync();
@@ -93,7 +93,7 @@ namespace Topica.Pulsar.Consumers
                     {
                         if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{messagingSettings.PulsarConsumerGroup}");
+                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{_messagingSettings.PulsarConsumerGroup}");
                         }
                     }, cancellationToken);
             }

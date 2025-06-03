@@ -8,7 +8,7 @@ namespace Topica.Contracts
         MessagingPlatform MessagingPlatform { get; }
 
         Task CreateTopicAsync(MessagingSettings settings);
-        Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings);
+        Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings);
         Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings);
     }
 }

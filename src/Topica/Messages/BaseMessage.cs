@@ -8,6 +8,10 @@ namespace Topica.Messages
     {
         public string Id() => Guid.NewGuid().ToString();
         public string? Type { get; set; }
+        
+        public long EventId { get; set; }   
+        public string? EventName { get; set; }
+        
         public Guid ConversationId { get; set; }
         public DateTime TimeStampUtc { get; set; } = DateTime.UtcNow;
         public string? RaisingComponent { get; set; }
@@ -18,9 +22,9 @@ namespace Topica.Messages
         public string? MessageGroupId { get; set; }
         public IReadOnlyDictionary<string, string>? AdditionalProperties { get; set; }
         
-        public static BaseMessage Parse<T>(string messageBody) where T: BaseMessage
+        public static BaseMessage? Parse<T>(string messageBody) where T: BaseMessage
         {
-            return JsonConvert.DeserializeObject<T>(messageBody) ?? throw new InvalidOperationException("Failed to deserialize message body.");
+            return JsonConvert.DeserializeObject<T>(messageBody);
         }
     }
 }

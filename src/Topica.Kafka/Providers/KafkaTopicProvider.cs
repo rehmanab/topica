@@ -44,7 +44,7 @@ public class KafkaTopicProvider(IMessageHandlerExecutor messageHandlerExecutor, 
         }
     }
 
-    public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+    public async Task<IConsumer> ProvideConsumerAsync( MessagingSettings messagingSettings)
     {
         await Task.CompletedTask;
         

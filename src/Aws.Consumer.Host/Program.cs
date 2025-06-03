@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Host.Shared;
 
 Console.WriteLine("******* Starting Aws.Consumer.Host *******");
 
@@ -51,7 +52,8 @@ var host = Host.CreateDefaultBuilder()
             c.SecretKey = hostSettings.SecretKey;
             c.ServiceUrl = hostSettings.ServiceUrl;
             c.RegionEndpoint = hostSettings.RegionEndpoint;
-        }, Assembly.GetExecutingAssembly());
+        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        // Assembly.GetExecutingAssembly()
         
         services.AddHostedService<Worker>();
     })

@@ -36,15 +36,15 @@ namespace Topica.Kafka.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
             });
         }
         
-        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig
             {
@@ -81,8 +81,8 @@ namespace Topica.Kafka.Consumers
                                 throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {messagingSettings.Source}");
                             }
 
-                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message.Message.Value);
-                            // _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message.Message.Value);
+                            _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                             // _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
                         }
 

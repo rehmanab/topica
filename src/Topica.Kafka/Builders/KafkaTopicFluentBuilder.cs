@@ -56,7 +56,7 @@ public class KafkaTopicFluentBuilder(ITopicProviderFactory topicProviderFactory,
         await topicProvider.CreateTopicAsync(messagingSettings);
         await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
 
-        return await topicProvider.ProvideConsumerAsync(_workerName, messagingSettings);
+        return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
 
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
@@ -76,6 +76,7 @@ public class KafkaTopicFluentBuilder(ITopicProviderFactory topicProviderFactory,
     {
         return new MessagingSettings
         {
+            WorkerName = _workerName,
             Source = _topicName,
             KafkaConsumerGroup = _consumerGroup,
             KafkaStartFromEarliestMessages = _startFromEarliestMessages ?? false,

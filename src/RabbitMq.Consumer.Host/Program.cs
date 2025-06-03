@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMq.Consumer.Host;
 using RabbitMq.Consumer.Host.Settings;
 using RabbitMq.Consumer.Host.Validators;
+using Topica.Host.Shared;
 
 Console.WriteLine("******* Starting RabbitMq.Consumer.Host *******");
 
@@ -28,7 +29,7 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
@@ -39,10 +40,10 @@ var host = Host.CreateDefaultBuilder()
 
         new RabbitMqHostSettingsValidator().ValidateAndThrow(hostSettings);
         new RabbitMqConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+
         services.AddSingleton(hostSettings);
         services.AddSingleton(consumerSettings);
-        
+
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>
         {
@@ -54,8 +55,8 @@ var host = Host.CreateDefaultBuilder()
             c.ManagementPort = hostSettings.ManagementPort;
             c.ManagementScheme = hostSettings.ManagementScheme;
             c.VHost = hostSettings.VHost;
-        }, Assembly.GetExecutingAssembly());
-        
+        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        // Assembly.GetExecutingAssembly()
         services.AddHostedService<Worker>();
     })
     .Build();

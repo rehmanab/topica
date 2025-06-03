@@ -1,8 +1,8 @@
-﻿using Azure.ServiceBus.Producer.Host.Messages.V1;
-using Azure.ServiceBus.Producer.Host.Settings;
+﻿using Azure.ServiceBus.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
+using Topica.Host.Shared.Messages.V1;
 
 namespace Azure.ServiceBus.Producer.Host;
 
@@ -10,48 +10,46 @@ public class Worker(IAzureServiceBusTopicFluentBuilder builder, AzureServiceBusP
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const string workerName = $"{nameof(PriceSubmittedMessageV1)}_azure_service_bus_producer_host_1";
-        
-        var priceSubmittedProducer = await builder
-            .WithWorkerName(workerName)
-            .WithTopicName(settings.PriceSubmittedTopicSettings.Source)
-            .WithSubscriptions(settings.PriceSubmittedTopicSettings.Subscriptions)
+        var producer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscriptions(settings.WebAnalyticsTopicSettings.Subscriptions)
             .WithTimings
             (
-                settings.PriceSubmittedTopicSettings.AutoDeleteOnIdle, 
-                settings.PriceSubmittedTopicSettings.DefaultMessageTimeToLive, 
-                settings.PriceSubmittedTopicSettings.DuplicateDetectionHistoryTimeWindow
+                settings.WebAnalyticsTopicSettings.AutoDeleteOnIdle, 
+                settings.WebAnalyticsTopicSettings.DefaultMessageTimeToLive, 
+                settings.WebAnalyticsTopicSettings.DuplicateDetectionHistoryTimeWindow
             )
             .WithOptions
             (
-                settings.PriceSubmittedTopicSettings.EnableBatchedOperations,
-                settings.PriceSubmittedTopicSettings.EnablePartitioning,
-                settings.PriceSubmittedTopicSettings.MaxSizeInMegabytes,
-                settings.PriceSubmittedTopicSettings.RequiresDuplicateDetection,
-                settings.PriceSubmittedTopicSettings.MaxMessageSizeInKilobytes,
-                settings.PriceSubmittedTopicSettings.EnabledStatus,
-                settings.PriceSubmittedTopicSettings.SupportOrdering
+                settings.WebAnalyticsTopicSettings.EnableBatchedOperations,
+                settings.WebAnalyticsTopicSettings.EnablePartitioning,
+                settings.WebAnalyticsTopicSettings.MaxSizeInMegabytes,
+                settings.WebAnalyticsTopicSettings.RequiresDuplicateDetection,
+                settings.WebAnalyticsTopicSettings.MaxMessageSizeInKilobytes,
+                settings.WebAnalyticsTopicSettings.EnabledStatus,
+                settings.WebAnalyticsTopicSettings.SupportOrdering
             )
-            .WithMetadata(settings.PriceSubmittedTopicSettings.UserMetadata)
+            .WithMetadata(settings.WebAnalyticsTopicSettings.UserMetadata)
             .BuildProducerAsync(stoppingToken);
         
 
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
         {
-            var message = new PriceSubmittedMessageV1
+            var message = new VideoPlayedMessageV1
             {
-                PriceId = count,
-                PriceName = "Some Price",
+                EventId = count,
+                EventName = "video.played.web.v1",
                 ConversationId = Guid.NewGuid(),
-                Type = nameof(PriceSubmittedMessageV1),
-                RaisingComponent = workerName,
+                Type = nameof(VideoPlayedMessageV1),
+                RaisingComponent = settings.WebAnalyticsTopicSettings.WorkerName,
                 Version = "V1",
                 AdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
             };
             
-            await priceSubmittedProducer.ProduceAsync(settings.PriceSubmittedTopicSettings.Source, message, null, stoppingToken);
-            logger.LogInformation("Sent to {Topic}: {Count}", settings.PriceSubmittedTopicSettings.Source, count);
+            await producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, stoppingToken);
+            logger.LogInformation("Sent to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, count);
             count++;
 
             await Task.Delay(1000, stoppingToken);

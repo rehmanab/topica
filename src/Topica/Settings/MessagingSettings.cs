@@ -4,6 +4,7 @@ public class MessagingSettings
 {
     public static string SectionName => nameof(MessagingSettings);
 
+    public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;
     public string SubscribeToSource { get; set; } = null!;
     public int NumberOfInstances { get; set; }
@@ -53,7 +54,7 @@ public class MessagingSettings
     // i.e. each consumer name is an independent subscription and acknowledges messages per subscription
     public string PulsarConsumerGroup { get; set; } = null!;
     // Sets any NEW consumers only to the earliest cursor position (can't be changed for existing subscription)
-    public bool? PulsarStartNewConsumerEarliest { get; set; }
+    public bool PulsarStartNewConsumerEarliest { get; set; }
     
     // Pulsar Producer settings
     public bool PulsarBlockIfQueueFull { get; set; }

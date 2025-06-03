@@ -7,9 +7,7 @@ using Topica.Resolvers;
 using Topica.Topics;
 using System.Reflection;
 using Topica.Azure.ServiceBus.Builders;
-using Topica.Azure.ServiceBus.Consumers;
 using Topica.Azure.ServiceBus.Contracts;
-using Topica.Azure.ServiceBus.Producers;
 using Topica.Azure.ServiceBus.Providers;
 
 // ReSharper disable once CheckNamespace
@@ -43,7 +41,7 @@ public static class AzureServiceBusExtensions
         services.AddScoped<IAzureServiceBusTopicFluentBuilder, AzureServiceBusTopicFluentBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AzureServiceBusTopicProvider>();
-        services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
+        services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
         services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             
         // Scan for IHandlers from Entry assembly

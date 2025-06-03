@@ -21,7 +21,7 @@ namespace Topica.Pulsar.Providers
             logger.LogInformation("{PulsarTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), settings.Source);
         }
 
-        public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+        public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)
         {
             await Task.CompletedTask;
 

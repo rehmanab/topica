@@ -54,7 +54,7 @@ namespace Topica.Aws.Providers
             logger.LogInformation("{AwsTopicProviderName}.{CreateTopicAsyncName}: Created topic {Topic}", nameof(AwsTopicProvider), nameof(CreateTopicAsync), topic);
         }
 
-        public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+        public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)
         {
             await Task.CompletedTask;
             

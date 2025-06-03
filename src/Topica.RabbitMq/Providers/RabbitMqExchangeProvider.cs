@@ -28,7 +28,7 @@ namespace Topica.RabbitMq.Providers
             logger.LogInformation("{RabbitMqExchangeProviderName}.{CreateTopicAsyncName}: Created exchange {Source}", nameof(RabbitMqExchangeProvider), nameof(CreateTopicAsync), settings.Source);
         }
 
-        public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+        public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)
         {
             await Task.CompletedTask;
 

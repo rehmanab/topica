@@ -6,12 +6,12 @@ public class AzureServiceBusProducerSettings
 {
     public const string SectionName = nameof(AzureServiceBusProducerSettings);
 
-    public AzureServiceBusTopicSettings PriceSubmittedTopicSettings { get; init; } = null!;
-    public AzureServiceBusTopicSettings QuantityUpdatedTopicSettings { get; init; } = null!;
+    public AzureServiceBusTopicSettings WebAnalyticsTopicSettings { get; init; } = null!;
 }
 
 public class AzureServiceBusTopicSettings
 {
+    public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;
     public AzureServiceBusTopicSubscriptionSettings[] Subscriptions { get; set; } = null!;
     public string SubscribeToSource { get; set; } = null!;

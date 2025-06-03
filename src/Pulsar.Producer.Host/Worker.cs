@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Pulsar.Producer.Host.Messages.V1;
 using Pulsar.Producer.Host.Settings;
-using RandomNameGeneratorLibrary;
+using Topica.Host.Shared.Messages.V1;
 using Topica.Pulsar.Contracts;
 
 namespace Pulsar.Producer.Host;
@@ -11,44 +10,42 @@ public class Worker(IPulsarConsumerTopicFluentBuilder builder, PulsarProducerSet
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const string workerName = $"{nameof(DataSentMessageV1)}_pulsar_producer_host_1";
-
-        var dataSentProducer = await builder
-            .WithWorkerName(workerName)
-            .WithTopicName(settings.DataSentTopicSettings.Source)
-            .WithConsumerGroup(settings.DataSentTopicSettings.ConsumerGroup)
+        var producer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
             .WithConfiguration(
-                settings.DataSentTopicSettings.Tenant,
-                settings.DataSentTopicSettings.Namespace,
-                settings.DataSentTopicSettings.NumberOfPartitions
+                settings.WebAnalyticsTopicSettings.Tenant,
+                settings.WebAnalyticsTopicSettings.Namespace,
+                settings.WebAnalyticsTopicSettings.NumberOfPartitions
             )
-            .WithTopicOptions(settings.DataSentTopicSettings.StartNewConsumerEarliest)
+            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
             .WithProducerOptions(
-                settings.DataSentTopicSettings.BlockIfQueueFull,
-                settings.DataSentTopicSettings.MaxPendingMessages,
-                settings.DataSentTopicSettings.MaxPendingMessagesAcrossPartitions,
-                settings.DataSentTopicSettings.EnableBatching,
-                settings.DataSentTopicSettings.EnableChunking,
-                settings.DataSentTopicSettings.BatchingMaxMessages,
-                settings.DataSentTopicSettings.BatchingMaxPublishDelayMilliseconds
+                settings.WebAnalyticsTopicSettings.BlockIfQueueFull,
+                settings.WebAnalyticsTopicSettings.MaxPendingMessages,
+                settings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
+                settings.WebAnalyticsTopicSettings.EnableBatching,
+                settings.WebAnalyticsTopicSettings.EnableChunking,
+                settings.WebAnalyticsTopicSettings.BatchingMaxMessages,
+                settings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
             )
             .BuildProducerAsync(stoppingToken);
 
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
         {
-            var message = new DataSentMessageV1 { ConversationId = Guid.NewGuid(), DataId = count, DataName = Random.Shared.GenerateRandomMaleFirstAndLastName(), Type = nameof(DataSentMessageV1) };
+            var message = new FileDownloadedMessageV1 { ConversationId = Guid.NewGuid(), EventId = count, EventName = "file.downloaded.web.v1", Type = nameof(FileDownloadedMessageV1) };
 
-            await dataSentProducer.ProduceAsync(settings.DataSentTopicSettings.Source, message, null, stoppingToken);
+            await producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, stoppingToken);
             
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.DataSentTopicSettings.Source, $"{message.DataId} : {message.DataName}");
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
             
             count++;
 
             await Task.Delay(1000, stoppingToken);
         }
 
-        await dataSentProducer.DisposeAsync();
+        await producer1.DisposeAsync();
 
         logger.LogInformation("Finished: {Count} messages sent", count);
     }

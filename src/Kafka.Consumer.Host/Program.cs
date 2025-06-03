@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Host.Shared;
 
 Console.WriteLine("******* Starting Kafka.Consumer.Host *******");
 
@@ -28,7 +29,7 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(KafkaHostSettings.SectionName).Get<KafkaHostSettings>();
@@ -39,20 +40,17 @@ var host = Host.CreateDefaultBuilder()
 
         new KafkaHostSettingsValidator().ValidateAndThrow(hostSettings);
         new KafkaConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+
         services.AddSingleton(hostSettings);
         services.AddSingleton(consumerSettings);
-        
+
         // Add MessagingPlatform Components
-        services.AddKafkaTopica(Assembly.GetExecutingAssembly());
-        
-        services.Configure<HostOptions>(options =>
-        {
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-        });
-        
+        services.AddKafkaTopica(Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        // Assembly.GetExecutingAssembly()
+
+        services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
+
         services.AddHostedService<Worker>();
     })
     .Build();
-
 await host.RunAsync();

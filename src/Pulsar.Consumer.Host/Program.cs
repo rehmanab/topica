@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Consumer.Host;
 using Pulsar.Consumer.Host.Settings;
 using Pulsar.Consumer.Host.Validators;
+using Topica.Host.Shared;
 
 Console.WriteLine("******* Starting Pulsar.Consumer.Host *******");
 
@@ -28,7 +29,7 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
@@ -39,18 +40,19 @@ var host = Host.CreateDefaultBuilder()
 
         new PulsarHostSettingsValidator().ValidateAndThrow(hostSettings);
         new PulsarConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+
         services.AddSingleton(hostSettings);
         services.AddSingleton(consumerSettings);
-        
+
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
         {
             c.ServiceUrl = hostSettings.ServiceUrl;
             c.PulsarManagerBaseUrl = hostSettings.PulsarManagerBaseUrl;
             c.PulsarAdminBaseUrl = hostSettings.PulsarAdminBaseUrl;
-        }, Assembly.GetExecutingAssembly());
-        
+        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        // Assembly.GetExecutingAssembly()
+
         services.AddHostedService<Worker>();
     })
     .Build();

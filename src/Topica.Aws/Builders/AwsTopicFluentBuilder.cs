@@ -82,7 +82,7 @@ public class AwsTopicFluentBuilder(ITopicProviderFactory topicProviderFactory, I
         await topicProvider.CreateTopicAsync(messagingSettings);
         await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
 
-        return await topicProvider.ProvideConsumerAsync(_workerName, messagingSettings);
+        return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
 
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
@@ -109,12 +109,13 @@ public class AwsTopicFluentBuilder(ITopicProviderFactory topicProviderFactory, I
         var awsMessageVisibilityTimeoutSeconds = _messageVisibilityTimeoutSeconds ?? 30;
         var awsQueueReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages ?? 1;
         var awsNumberOfInstances = numberOfInstances ?? 1;
-        
-        var messagingSettings = new MessagingSettings
+
+        return new MessagingSettings
         {
+            WorkerName = _workerName,
             Source = _topicName,
             SubscribeToSource = !string.IsNullOrWhiteSpace(subscribeToQueueName) && isFifoQueue && subscribeToQueueName.EndsWith(".fifo") ? $"{subscribeToQueueName}.fifo" : subscribeToQueueName ?? throw new ArgumentNullException(nameof(subscribeToQueueName), "SubscribeToQueueName cannot be null"),
-            NumberOfInstances = awsNumberOfInstances is < 1 or > 10 ? 1 : awsNumberOfInstances, // Default - 1, (1 - 10)
+            NumberOfInstances = awsNumberOfInstances,
 
             AwsIsFifoQueue = isFifoQueue,
             AwsWithSubscribedQueues = _queueNames,
@@ -128,6 +129,5 @@ public class AwsTopicFluentBuilder(ITopicProviderFactory topicProviderFactory, I
             AwsQueueReceiveMessageWaitTimeSeconds = awsQueueReceiveMessageWaitTimeSeconds is < AwsQueueAttributes.QueueReceiveMessageWaitTimeSecondsMin or > AwsQueueAttributes.QueueReceiveMessageWaitTimeSecondsMax ? 0 : awsQueueReceiveMessageWaitTimeSeconds, // Default - is 0 seconds
             AwsQueueMaximumMessageSize = queueMaximumMessageSizeMax is < AwsQueueAttributes.QueueMaximumMessageSizeMin or > AwsQueueAttributes.QueueMaximumMessageSizeMax ? 262144 : queueMaximumMessageSizeMax // Default - Between 1 and 262144 bytes (256 KB),
         };
-        return messagingSettings;
     }
 }

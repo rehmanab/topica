@@ -9,9 +9,7 @@ using Topica.Executors;
 using Topica.RabbitMq.Builders;
 using Topica.RabbitMq.Clients;
 using Topica.RabbitMq.Configuration;
-using Topica.RabbitMq.Consumers;
 using Topica.RabbitMq.Contracts;
-using Topica.RabbitMq.Producers;
 using Topica.RabbitMq.Providers;
 using Topica.Resolvers;
 using Topica.Topics;
@@ -56,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IRabbitMqTopicFluentBuilder, RabbitMqTopicFluentBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
-            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
+            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
             services.AddScoped<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new ConnectionFactory
             {

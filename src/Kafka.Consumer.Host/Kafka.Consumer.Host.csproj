@@ -11,6 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Topica.Host.Shared\Topica.Host.Shared.csproj" />
       <ProjectReference Include="..\Topica.Kafka\Topica.Kafka.csproj" />
       <ProjectReference Include="..\Topica\Topica.csproj" />
     </ItemGroup>

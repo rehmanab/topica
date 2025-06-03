@@ -21,7 +21,7 @@
         ],
         "Topics": [
           {
-            "Name": "ar_price_submitted_v1",
+            "Name": "topica_web_analytics_topic_v1",
             "Properties": {
               "DefaultMessageTimeToLive": "PT1H",
               "DuplicateDetectionHistoryTimeWindow": "PT20S",
@@ -29,7 +29,7 @@
             },
             "Subscriptions": [
               {
-                "Name": "ar_price_submitted_warehouse_subscription_v1",
+                "Name": "topica_web_analytics_subscription_sales_v1",
                 "Properties": {
                   "DeadLetteringOnMessageExpiration": false,
                   "DefaultMessageTimeToLive": "PT1H",
@@ -41,41 +41,7 @@
                 }
               },
               {
-                "Name": "ar_price_submitted_reporting_subscription_v1",
-                "Properties": {
-                  "DeadLetteringOnMessageExpiration": false,
-                  "DefaultMessageTimeToLive": "PT1H",
-                  "LockDuration": "PT1M",
-                  "MaxDeliveryCount": 3,
-                  "ForwardDeadLetteredMessagesTo": "",
-                  "ForwardTo": "",
-                  "RequiresSession": false
-                }
-              }
-            ]
-          },
-          {
-            "Name": "ar_quantity_updated_v1",
-            "Properties": {
-              "DefaultMessageTimeToLive": "PT1H",
-              "DuplicateDetectionHistoryTimeWindow": "PT20S",
-              "RequiresDuplicateDetection": false
-            },
-            "Subscriptions": [
-              {
-                "Name": "ar_quantity_updated_warehouse_subscription_v1",
-                "Properties": {
-                  "DeadLetteringOnMessageExpiration": false,
-                  "DefaultMessageTimeToLive": "PT1H",
-                  "LockDuration": "PT1M",
-                  "MaxDeliveryCount": 3,
-                  "ForwardDeadLetteredMessagesTo": "",
-                  "ForwardTo": "",
-                  "RequiresSession": false
-                }
-              },
-              {
-                "Name": "ar_quantity_updated_reporting_subscription_v1",
+                "Name": "topica_web_analytics_subscription_reporting_v1",
                 "Properties": {
                   "DeadLetteringOnMessageExpiration": false,
                   "DefaultMessageTimeToLive": "PT1H",

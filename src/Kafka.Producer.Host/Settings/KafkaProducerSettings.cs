@@ -4,12 +4,12 @@ public class KafkaProducerSettings
 {
     public static string SectionName => nameof(KafkaProducerSettings);
 
-    public KafkaTopicSettings PersonCreatedTopicSettings { get; set; } = null!;
-    public KafkaTopicSettings PlaceCreatedTopicSettings { get; set; } = null!;
+    public KafkaTopicSettings WebAnalyticsTopicSettings { get; set; } = null!;
 }
 
 public class KafkaTopicSettings
 {
+    public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;
     public string ConsumerGroup { get; set; } = null!;
     public bool? StartFromEarliestMessages { get; set; }

@@ -4,12 +4,12 @@ public class PulsarProducerSettings
 {
     public static string SectionName => nameof(PulsarProducerSettings);
     
-    public PulsarTopicSettings DataSentTopicSettings { get; init; } = null!;
-    public PulsarTopicSettings MatchStartedTopicSettings { get; init; } = null!;
+    public PulsarTopicSettings WebAnalyticsTopicSettings { get; init; } = null!;
 }
 
 public class PulsarTopicSettings
 {
+    public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;
     public string Tenant { get; set; } = null!;
     public string Namespace { get; set; } = null!;

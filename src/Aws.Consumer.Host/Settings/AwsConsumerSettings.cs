@@ -4,12 +4,12 @@ public class AwsConsumerSettings
 {
     public static string SectionName => nameof(AwsConsumerSettings);
 
-    public AwsTopicSettings OrderPlacedTopicSettings { get; init; } = null!;
-    public AwsTopicSettings CustomerCreatedTopicSettings { get; init; } = null!;
+    public AwsTopicSettings WebAnalyticsTopicSettings { get; init; } = null!;
 }
 
 public class AwsTopicSettings
 {
+    public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;
     public string SubscribeToSource { get; set; } = null!;
     public string[] WithSubscribedQueues { get; set; } = null!;

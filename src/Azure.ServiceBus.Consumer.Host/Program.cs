@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Host.Shared;
 
 Console.WriteLine("******* Starting AzureServiceBus.Consumer.Host *******");
 
@@ -52,7 +53,8 @@ var host = Host.CreateDefaultBuilder()
         services.AddAzureServiceBusTopica(c =>
         {
             c.ConnectionString = hostSettings.ConnectionString;
-        }, Assembly.GetExecutingAssembly());
+        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        // Assembly.GetExecutingAssembly()
         
         services.AddHostedService<Worker>();
     })

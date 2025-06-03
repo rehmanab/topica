@@ -41,7 +41,7 @@ public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvide
             logger.LogInformation("Topic: {TopicName} already exists!", settings.Source);
         }
         
-        foreach (var subscription in settings.AzureServiceBusSubscriptions!)
+        foreach (var subscription in settings.AzureServiceBusSubscriptions)
         {
             if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(settings.Source, subscription.Source))
             {
@@ -70,7 +70,7 @@ public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvide
         }
     }
 
-    public async Task<IConsumer> ProvideConsumerAsync(string consumerName, MessagingSettings messagingSettings)
+    public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)
     {
         await Task.CompletedTask;
 

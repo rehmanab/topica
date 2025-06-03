@@ -7,21 +7,13 @@ public class AzureServiceBusProducerSettingsValidator : AbstractValidator<AzureS
 {
     public AzureServiceBusProducerSettingsValidator()
     {
-        RuleFor(x => x.PriceSubmittedTopicSettings)
+        RuleFor(x => x.WebAnalyticsTopicSettings)
             .NotNull().DependentRules(() =>
             {
-                RuleFor(x => x.PriceSubmittedTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.PriceSubmittedTopicSettings.SubscribeToSource).NotNull().NotEmpty();
-                RuleFor(x => x.PriceSubmittedTopicSettings.Subscriptions).NotNull().NotEmpty();
-            });
-
-
-        RuleFor(x => x.QuantityUpdatedTopicSettings)
-            .NotNull().DependentRules(() =>
-            {
-                RuleFor(x => x.QuantityUpdatedTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.QuantityUpdatedTopicSettings.SubscribeToSource).NotNull().NotEmpty();
-                RuleFor(x => x.QuantityUpdatedTopicSettings.Subscriptions).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.WorkerName).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Source).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.SubscribeToSource).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Subscriptions).NotNull().NotEmpty();
             });
     }
 }

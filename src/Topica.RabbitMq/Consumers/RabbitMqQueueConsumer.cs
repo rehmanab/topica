@@ -41,15 +41,15 @@ namespace Topica.RabbitMq.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
             });
         }
 
-        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
+        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             try
             {
@@ -62,8 +62,8 @@ namespace Topica.RabbitMq.Consumers
                     var body = e.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
 
-                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(message);
-                    // _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, messagingSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
+                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message);
+                    _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, messagingSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
                 };
 
                 await Task.Run(() =>

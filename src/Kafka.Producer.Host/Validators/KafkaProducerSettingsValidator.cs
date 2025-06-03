@@ -7,21 +7,13 @@ public class KafkaProducerSettingsValidator : AbstractValidator<KafkaProducerSet
 {
     public KafkaProducerSettingsValidator()
     {
-        RuleFor(x => x.PersonCreatedTopicSettings)
+        RuleFor(x => x.WebAnalyticsTopicSettings)
             .NotNull().DependentRules(() =>
             {
-                RuleFor(x => x.PersonCreatedTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.PersonCreatedTopicSettings.ConsumerGroup).NotNull().NotEmpty();
-                RuleFor(x => x.PersonCreatedTopicSettings.StartFromEarliestMessages).NotNull().NotEmpty();
-            });
-
-
-        RuleFor(x => x.PlaceCreatedTopicSettings)
-            .NotNull().DependentRules(() =>
-            {
-                RuleFor(x => x.PlaceCreatedTopicSettings.Source).NotNull().NotEmpty();
-                RuleFor(x => x.PlaceCreatedTopicSettings.ConsumerGroup).NotNull().NotEmpty();
-                RuleFor(x => x.PlaceCreatedTopicSettings.StartFromEarliestMessages).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.WorkerName).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.Source).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.ConsumerGroup).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsTopicSettings.StartFromEarliestMessages).NotNull().NotEmpty();
             });
     }
 }

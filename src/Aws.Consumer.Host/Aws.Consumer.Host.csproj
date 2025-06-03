@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Topica.Aws\Topica.Aws.csproj" />
+      <ProjectReference Include="..\Topica.Host.Shared\Topica.Host.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>

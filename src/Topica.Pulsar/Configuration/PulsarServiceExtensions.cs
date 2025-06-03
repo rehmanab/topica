@@ -7,9 +7,7 @@ using Topica.Contracts;
 using Topica.Executors;
 using Topica.Pulsar.Builders;
 using Topica.Pulsar.Configuration;
-using Topica.Pulsar.Consumers;
 using Topica.Pulsar.Contracts;
-using Topica.Pulsar.Producers;
 using Topica.Pulsar.Providers;
 using Topica.Pulsar.Services;
 using Topica.Resolvers;
@@ -63,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IPulsarConsumerTopicFluentBuilder, PulsarConsumerTopicFluentBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();
-            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
+            services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
             services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new PulsarClientBuilder().ServiceUrl(config.ServiceUrl));
             

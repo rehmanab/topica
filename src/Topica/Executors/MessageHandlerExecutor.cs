@@ -9,10 +9,12 @@ namespace Topica.Executors
     {
         private readonly ILogger _logger = loggerFactory?.CreateLogger(nameof(MessageHandlerExecutor)) ?? throw new ArgumentNullException(nameof(loggerFactory));
 
-        public async Task<(string, bool)> ExecuteHandlerAsync<T>(string messageBody) where T : IHandler
+        public async Task<(string?, bool)> ExecuteHandlerAsync(string messageBody)
         {
-            var (handlerImpl, methodToValidate, methodToExecute) = handlerResolver.ResolveHandler<T>(messageBody);
+            var (handlerFound, handlerImpl, methodToValidate, methodToExecute) = handlerResolver.ResolveHandler(messageBody);
 
+            if(!handlerFound) return (null, false);
+            
             var validated = (bool)methodToValidate;
             if (!validated)
             {

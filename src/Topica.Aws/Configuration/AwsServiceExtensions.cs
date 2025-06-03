@@ -6,10 +6,8 @@ using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Aws.Builders;
 using Topica.Aws.Configuration;
-using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
 using Topica.Aws.Factories;
-using Topica.Aws.Producer;
 using Topica.Aws.Providers;
 using Topica.Aws.Services;
 using Topica.Contracts;
@@ -57,7 +55,7 @@ public static class AwsServiceExtensions
         services.AddScoped<IAwsTopicFluentBuilder, AwsTopicFluentBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AwsTopicProvider>();
-        services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly));
+        services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
         services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             
         // Scan for IHandlers from Entry assembly

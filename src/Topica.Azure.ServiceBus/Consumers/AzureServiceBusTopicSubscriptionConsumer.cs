@@ -40,15 +40,15 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
         _logger = logger;
     }
 
-    public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
+    public async Task ConsumeAsync(CancellationToken cancellationToken)
     {
         Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
         {
-            _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
+            _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
         });
     }
 
-    private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T : IHandler
+    private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
     {
         try
         {
@@ -68,8 +68,8 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 
                 if (message == null) continue;
                 
-                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(Encoding.UTF8.GetString(message.Body));
-                // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AzureServiceBusConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Body));
+                _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                 if (!success) continue;
                     

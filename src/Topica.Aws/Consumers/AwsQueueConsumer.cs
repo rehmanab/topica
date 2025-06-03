@@ -44,17 +44,17 @@ namespace Topica.Aws.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync<T>(CancellationToken cancellationToken) where T : IHandler
+        public async Task ConsumeAsync(CancellationToken cancellationToken)
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync<T>($"{typeof(T).Name}-consumer-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
             });
 
             await Task.CompletedTask;
         }
 
-        private async ValueTask StartAsync<T>(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken) where T: IHandler
+        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             try
             {
@@ -91,11 +91,16 @@ namespace Topica.Aws.Consumers
                         // _logger.LogDebug("SQS: Original Message from AWS: {SerializeObject}", JsonConvert.SerializeObject(message));
                         
                         var baseMessage = BaseMessage.Parse<BaseMessage>(message.Body);
-                        var messageBody = message.Body;
-
                         if (baseMessage == null)
                         {
                             _logger.LogWarning("SQS: message body could not be serialized into BaseMessage ({MessageId}): {MessageBody}", message.MessageId, message.Body);
+                            continue;
+                        }
+                        
+                        var messageBody = message.Body;
+                        if (string.IsNullOrWhiteSpace(messageBody))
+                        {
+                            _logger.LogWarning("SQS: message body is empty or null ({MessageId})", message.MessageId);
                             continue;
                         }
                         
@@ -110,12 +115,17 @@ namespace Topica.Aws.Consumers
                             }
                             // baseMessage = BaseMessage.Parse<BaseMessage>(notification.Message);
                             messageBody = notification.Message;
+                            if (string.IsNullOrWhiteSpace(messageBody))
+                            {
+                                _logger.LogWarning("SQS: message body for the notification (SNS message) is empty or null ({MessageId})", message.MessageId);
+                                continue;
+                            }
                         }
 
-                        var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync<T>(messageBody);
-                        // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} @ {DateTime} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                        var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(messageBody);
+                        _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                         
-                        if (!success) continue;
+                        if (!success) continue; // Undeleted messages will be retried by AWS SQS, or sent to the error queue if configured
 
                         if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {

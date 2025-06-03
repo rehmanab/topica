@@ -1,6 +1,4 @@
 using Microsoft.Extensions.Hosting;
-using RabbitMq.Consumer.Host.Handlers.V1;
-using RabbitMq.Consumer.Host.Messages.V1;
 using RabbitMq.Consumer.Host.Settings;
 using Topica.RabbitMq.Contracts;
 
@@ -10,30 +8,18 @@ public class Worker(IRabbitMqTopicFluentBuilder builder, RabbitMqConsumerSetting
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await (await builder
-                .WithWorkerName(nameof(ItemDeliveredMessageV1))
-                .WithTopicName(settings.ItemDeliveredTopicSettings.Source)
-                .WithSubscribedQueues(
-                    settings.ItemDeliveredTopicSettings.SubscribeToSource,
-                    settings.ItemDeliveredTopicSettings.WithSubscribedQueues
-                )
-                .BuildConsumerAsync(
-                    settings.ItemDeliveredTopicSettings.NumberOfInstances,
-                    stoppingToken
-                ))
-            .ConsumeAsync<ItemDeliveredMessageHandlerV1>(stoppingToken);
+        var consumer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscribedQueues(
+                settings.WebAnalyticsTopicSettings.SubscribeToSource,
+                settings.WebAnalyticsTopicSettings.WithSubscribedQueues
+            )
+            .BuildConsumerAsync(
+                settings.WebAnalyticsTopicSettings.NumberOfInstances,
+                stoppingToken
+            );
 
-        await (await builder
-                .WithWorkerName(nameof(ItemPostedMessageV1))
-                .WithTopicName(settings.ItemPostedTopicSettings.Source)
-                .WithSubscribedQueues(
-                    settings.ItemPostedTopicSettings.SubscribeToSource,
-                    settings.ItemPostedTopicSettings.WithSubscribedQueues
-                )
-                .BuildConsumerAsync(
-                    settings.ItemPostedTopicSettings.NumberOfInstances,
-                    stoppingToken
-                ))
-            .ConsumeAsync<ItemPostedMessageHandlerV1>(stoppingToken);
+        await consumer1.ConsumeAsync(stoppingToken);
     }
 }

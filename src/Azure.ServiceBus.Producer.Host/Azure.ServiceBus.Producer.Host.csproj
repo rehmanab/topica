@@ -13,6 +13,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Topica.Azure.ServiceBus\Topica.Azure.ServiceBus.csproj" />
+        <ProjectReference Include="..\Topica.Host.Shared\Topica.Host.Shared.csproj" />
         <ProjectReference Include="..\Topica\Topica.csproj" />
     </ItemGroup>
 
@@ -21,7 +22,6 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.5" />
-        <PackageReference Include="RandomNameGeneratorLibrary" Version="1.2.2" />
     </ItemGroup>
 
     <ItemGroup>
