@@ -6,28 +6,25 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json;
 using Topica.Aws.Contracts;
-using Topica.Aws.Policies;
+using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 
 namespace Topica.Aws.Strategy
 {
     public class AwsQueueWithErrorsCreator(IAmazonSQS client) : IAwsQueueCreator
     {
-        private const string ErrorQueueSuffix = "_error";
-        private const string FifoQueueSuffix = ".fifo";
-
         public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
-            if (isFifo) queueName = queueName.Replace(".fifo", string.Empty);
-            var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{ErrorQueueSuffix}{(isFifo ? FifoQueueSuffix : "")}", configuration);
+            if (isFifo) queueName = queueName.Replace(Constants.FifoSuffix, string.Empty);
+            var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{Constants.ErrorQueueSuffix}{(isFifo ? Constants.FifoSuffix : "")}", configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
-            var redrivePolicy = new AwsRedrivePolicy(configuration.ErrorQueueMaxReceiveCount, errorQueueArn).ToJson();
+            var redrivePolicy = $"{{\"maxReceiveCount\":\"{configuration.ErrorQueueMaxReceiveCount}\", \"deadLetterTargetArn\":\"{errorQueueArn}\"}}";
             
-            var mainQueueUrl = await InternalMainCreateQueue($"{queueName}{(isFifo ? FifoQueueSuffix : "")}", configuration, redrivePolicy);
+            var mainQueueUrl = await InternalMainCreateQueue($"{queueName}{(isFifo ? Constants.FifoSuffix : "")}", configuration, redrivePolicy);
 
             return mainQueueUrl;
         }
@@ -67,13 +64,13 @@ namespace Topica.Aws.Strategy
         {
             var getQueueAttributesRequest = new GetQueueAttributesRequest
             {
-                AttributeNames = new List<string> { AwsQueueAttributes.QueueArnName },
+                AttributeNames = [AwsQueueAttributes.QueueArnName],
                 QueueUrl = queueUrl
             };
 
-            var queueAttributes = (await client.GetQueueAttributesAsync(getQueueAttributesRequest)).Attributes;
+            var getQueueAttributesResponse = await client.GetQueueAttributesAsync(getQueueAttributesRequest);
 
-            return queueAttributes[AwsQueueAttributes.QueueArnName];
+            return getQueueAttributesResponse.Attributes[AwsQueueAttributes.QueueArnName];
         }
     }
 }

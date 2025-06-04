@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Aws.Messages;
 using Topica.Contracts;
 using Topica.Messages;
@@ -58,7 +59,7 @@ namespace Topica.Aws.Consumers
         {
             try
             {
-                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.AwsIsFifoQueue && !messagingSettings.SubscribeToSource.EndsWith(".fifo") ? $"{messagingSettings.SubscribeToSource}.fifo" : messagingSettings.SubscribeToSource);
+                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.AwsIsFifoQueue && !messagingSettings.SubscribeToSource.EndsWith(Constants.FifoSuffix) ? $"{messagingSettings.SubscribeToSource}{Constants.FifoSuffix}" : messagingSettings.SubscribeToSource);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {

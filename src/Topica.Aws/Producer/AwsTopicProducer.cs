@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Newtonsoft.Json;
+using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Messages;
 
@@ -38,7 +39,7 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
             DataType = "String"
         });
 
-        if (source.EndsWith(".fifo"))
+        if (source.EndsWith(Constants.FifoSuffix))
         {
             request.MessageGroupId = message.MessageGroupId; // TODO - should be the same for all messages in a group for it to be first in first out
             request.MessageDeduplicationId = Guid.NewGuid().ToString();

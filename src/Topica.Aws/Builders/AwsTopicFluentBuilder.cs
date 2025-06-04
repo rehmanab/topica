@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Settings;
@@ -114,7 +115,7 @@ public class AwsTopicFluentBuilder(ITopicProviderFactory topicProviderFactory, I
         {
             WorkerName = _workerName,
             Source = _topicName,
-            SubscribeToSource = !string.IsNullOrWhiteSpace(subscribeToQueueName) && isFifoQueue && subscribeToQueueName.EndsWith(".fifo") ? $"{subscribeToQueueName}.fifo" : subscribeToQueueName ?? throw new ArgumentNullException(nameof(subscribeToQueueName), "SubscribeToQueueName cannot be null"),
+            SubscribeToSource = !string.IsNullOrWhiteSpace(subscribeToQueueName) && isFifoQueue && subscribeToQueueName.EndsWith(Constants.FifoSuffix) ? $"{subscribeToQueueName}{Constants.FifoSuffix}" : subscribeToQueueName ?? throw new ArgumentNullException(nameof(subscribeToQueueName), "SubscribeToQueueName cannot be null"),
             NumberOfInstances = awsNumberOfInstances,
 
             AwsIsFifoQueue = isFifoQueue,

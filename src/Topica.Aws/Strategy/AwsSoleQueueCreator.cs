@@ -5,22 +5,21 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 
 namespace Topica.Aws.Strategy
 {
     public class AwsSoleQueueCreator(IAmazonSQS client) : IAwsQueueCreator
     {
-        private const string FifoSuffix = ".fifo";
-
         public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
             var isFifo = configuration.QueueAttributes.IsFifoQueue;
-            if (isFifo) queueName = queueName.Replace(FifoSuffix, string.Empty);
+            if (isFifo) queueName = queueName.Replace(Constants.FifoSuffix, string.Empty);
             
             var request = new CreateQueueRequest
             {
-                QueueName = $"{queueName}{(isFifo ? FifoSuffix : "")}",
+                QueueName = $"{queueName}{(isFifo ? Constants.FifoSuffix : "")}",
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 
