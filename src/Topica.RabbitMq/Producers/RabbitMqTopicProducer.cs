@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,20 @@ public class RabbitMqTopicProducer(ConnectionFactory rabbitMqConnectionFactory) 
         }
 
         await _channel.BasicPublishAsync(source, "", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)), cancellationToken);
+    }
+
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    {
+        if (_channel == null)
+        {
+            var connection = await rabbitMqConnectionFactory.CreateConnectionAsync(cancellationToken);
+            _channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+        }
+
+        var tasks = new List<ValueTask>();
+        tasks.AddRange(messages.Select(x => _channel.BasicPublishAsync(source, "", Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(x)), cancellationToken)));
+        
+        await Task.WhenAll(tasks.Select(x => x.AsTask()));
     }
 
     public async Task FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)

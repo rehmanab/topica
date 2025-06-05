@@ -1,0 +1,14 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RabbitMq.Queue.Producer.Host/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="localhost">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="rabbitmq.queue.producer.host:latest" />
+        <option name="containerName" value="rabbitmq.queue.producer.host" />
+        <option name="contextFolderPath" value="." />
+        <option name="sourceFilePath" value="RabbitMq.Queue.Producer.Host/Dockerfile" />
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="false" isSslEnabled="false" />
+    <method v="2" />
+  </configuration>
+</component>

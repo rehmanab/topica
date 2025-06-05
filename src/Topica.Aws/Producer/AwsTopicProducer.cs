@@ -5,10 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
+using Amazon.SQS.Model;
 using Newtonsoft.Json;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
+using Topica.Helpers;
 using Topica.Messages;
+using MessageAttributeValue = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 
 namespace Topica.Aws.Producer;
 
@@ -48,6 +51,33 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
         if (snsClient != null)
         {
             await snsClient.PublishAsync(request, cancellationToken);
+        }
+    }
+
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    {
+        // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
+        foreach (var messageBatch in messages.GetByBatch(10))
+        {
+            var baseMessages = messageBatch.ToList();
+            
+            var request = new PublishBatchRequest
+            {
+                TopicArn = source,
+                PublishBatchRequestEntries = baseMessages.Select(x => new PublishBatchRequestEntry
+                {
+                    Id = x.Id(),
+                    MessageGroupId = x.MessageGroupId,
+                    MessageDeduplicationId = Guid.NewGuid().ToString(),
+                    Message = JsonConvert.SerializeObject(x),
+                })
+                .ToList()
+            };
+
+            if (snsClient != null)
+            {
+                await snsClient.PublishBatchAsync(request, cancellationToken);
+            }
         }
     }
 

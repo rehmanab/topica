@@ -52,6 +52,16 @@ namespace Topica.RabbitMq.Clients
             await SendAsync($"{VhostsPath}/{vhostName}", HttpMethod.Put, new { Description = vhostDescription});
         }
 
+        public async Task CreateVHostIfNotExistAsync()
+        {
+            var vhostResponse = await GetVHostAsync(_vhost);
+
+            if (vhostResponse == null)
+            {
+                await CreateVHostsAsync(_vhost, $"{_vhost} created for Topica messaging");
+            }
+        }
+
         public async Task DeleteVHostsAsync(string vhostName)
         {
             await SendAsync($"{VhostsPath}/{vhostName}", HttpMethod.Delete, null);
@@ -69,13 +79,6 @@ namespace Topica.RabbitMq.Clients
         // Create Exchange with queues and bindings
         public async Task CreateExchangeAndBindingsAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues)
         {
-            var vhostResponse = await GetVHostAsync(_vhost);
-
-            if (vhostResponse == null)
-            {
-                await CreateVHostsAsync(_vhost, $"{_vhost} created for Topica messaging");
-            }
-            
             await CreateExchangesAsync(type, durable, [exchangeName]);
 
             foreach (var queue in queues)

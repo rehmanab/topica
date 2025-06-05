@@ -12,8 +12,9 @@ public class AwsQueueAttributes
     public const int QueueMessageRetentionPeriodMax = 1209600;
     public const int QueueReceiveMessageWaitTimeSecondsMin = 0;
     public const int QueueReceiveMessageWaitTimeSecondsMax = 20;
-    public const int MessageVisibilityTimeoutMin = 0;
-    public const int MessageVisibilityTimeoutMax = 43200;
+    public const int MessageVisibilityTimeoutSecondsDefault = 30;
+    public const int MessageVisibilityTimeoutSecondsMin = 0;
+    public const int MessageVisibilityTimeoutSecondsMax = 43200;
 
     public const string AllName = "All";
     public const string QueueMessageDelaySecondsName = "DelaySeconds";
@@ -73,7 +74,7 @@ public class AwsQueueAttributes
         if (QueueReceiveMessageWaitTimeSeconds is < QueueReceiveMessageWaitTimeSecondsMin or > QueueReceiveMessageWaitTimeSecondsMax)
             throw new AwsQueueAttributesException($"AWS: ReceiveMessageWaitTimeSeconds must be between 0 and 20, currently: {QueueReceiveMessageWaitTimeSeconds.Value}");
 
-        if (MessageVisibilityTimeout is < MessageVisibilityTimeoutMin or > MessageVisibilityTimeoutMax)
+        if (MessageVisibilityTimeout is < MessageVisibilityTimeoutSecondsMin or > MessageVisibilityTimeoutSecondsMax)
             throw new AwsQueueAttributesException($"AWS: VisibilityTimeout must be between 0 and 43200, currently: {MessageVisibilityTimeout.Value}");
     }
 }

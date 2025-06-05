@@ -16,7 +16,7 @@ Add for project NOT to be packagble into a .nupkg in the .csproj
 
 ## Docker local Usage
 ```
-docker build -f Aws.Consumer.Host\Dockerfile -t aws.consumer.host:latest . && docker run -d --name aws.consumer.host aws.consumer.host:latest
+docker build -f Aws.Topic.Consumer.Host\Dockerfile -t aws.topic.consumer.host:latest . && docker run -d --name aws.topic.consumer.host aws.topic.consumer.host:latest
 or run after image created
-docker run -d --name aws.consumer.host --pull missing aws.consumer.host:latest
+docker run -d --name aws.topic.consumer.host --pull missing aws.topic.consumer.host:latest
 ```

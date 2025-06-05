@@ -10,6 +10,7 @@ namespace Topica.RabbitMq.Contracts
         Task<IEnumerable<VhostDetail>> GetVHostsAsync();
         Task<VhostDetail?> GetVHostAsync(string vhostName);
         Task CreateVHostsAsync(string vhostName, string vhostDescription);
+        Task CreateVHostIfNotExistAsync();
         Task DeleteVHostsAsync(string vhostName);
         Task<ExchangeBinding> GetExchangeAndBindingsAsync(string name);
         Task CreateExchangeAndBindingsAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues);

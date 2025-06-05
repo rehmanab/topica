@@ -2,37 +2,51 @@
 #  docker-compose -f .docker/docker-compose-all-consumers.yml -p topica_consumers down
 
 services:
-  aws.consumer.host:
+  aws.queue.consumer.host:
     build:
       context: ../src
-      dockerfile: Aws.Consumer.Host/Dockerfile
-    environment:
-      - SOME_VAR=variable
-  
-  azure.servicebus.consumer.host:
-    build:
-      context: ../src
-      dockerfile: Azure.ServiceBus.Consumer.Host/Dockerfile
+      dockerfile: Aws.Queue.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
 
-  kafka.consumer.host:
+  aws.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: Kafka.Consumer.Host/Dockerfile
+      dockerfile: Aws.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  pulsar.consumer.host:
+  azure.servicebus.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: Pulsar.Consumer.Host/Dockerfile
+      dockerfile: Azure.ServiceBus.Topic.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+
+  kafka.topic.consumer.host:
+    build:
+      context: ../src
+      dockerfile: Kafka.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  rabbitmq.consumer.host:
+  pulsar.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: RabbitMq.Consumer.Host/Dockerfile
+      dockerfile: Pulsar.Topic.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.queue.consumer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Queue.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.topic.consumer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable

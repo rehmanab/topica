@@ -4,73 +4,101 @@
 services:
   
   # Consumers
-  aws.consumer.host:
+  aws.queue.consumer.host:
     build:
       context: ../src
-      dockerfile: Aws.Consumer.Host/Dockerfile
+      dockerfile: Aws.Queue.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  azure.servicebus.consumer.host:
+  aws.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: Azure.ServiceBus.Consumer.Host/Dockerfile
+      dockerfile: Aws.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  kafka.consumer.host:
+  azure.servicebus.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: Kafka.Consumer.Host/Dockerfile
+      dockerfile: Azure.ServiceBus.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  pulsar.consumer.host:
+  kafka.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: Pulsar.Consumer.Host/Dockerfile
+      dockerfile: Kafka.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  rabbitmq.consumer.host:
+  pulsar.topic.consumer.host:
     build:
       context: ../src
-      dockerfile: RabbitMq.Consumer.Host/Dockerfile
+      dockerfile: Pulsar.Topic.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.queue.consumer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Queue.Consumer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.topic.consumer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Topic.Consumer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
   # Producers
-  aws.producer.host:
+  aws.queue.producer.host:
     build:
       context: ../src
-      dockerfile: Aws.Producer.Host/Dockerfile
+      dockerfile: Aws.Queue.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  azure.servicebus.producer.host:
+  aws.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Azure.ServiceBus.Producer.Host/Dockerfile
+      dockerfile: Aws.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  kafka.producer.host:
+  azure.servicebus.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Kafka.Producer.Host/Dockerfile
+      dockerfile: Azure.ServiceBus.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  pulsar.producer.host:
+  kafka.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Pulsar.Producer.Host/Dockerfile
+      dockerfile: Kafka.Topic.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  pulsar.topic.producer.host:
+    build:
+      context: ../src
+      dockerfile: Pulsar.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
 
-  rabbitmq.producer.host:
+  rabbitmq.queue.producer.host:
     build:
       context: ../src
-      dockerfile: RabbitMq.Producer.Host/Dockerfile
+      dockerfile: RabbitMq.Queue.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+  
+  rabbitmq.topic.producer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable

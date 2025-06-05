@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,30 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
         }
         
         await _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
+    }
+
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    {
+        if (_producer == null)
+        {
+            var client = await clientBuilder.BuildAsync();
+            _producer = await client.NewProducer(Schema.BYTES())
+                .ProducerName(producerName)
+                .Topic($"persistent://{messagingSettings.PulsarTenant}/{messagingSettings.PulsarNamespace}/{messagingSettings.Source}")
+                .BlockIfQueueFull(messagingSettings.PulsarBlockIfQueueFull)
+                .MaxPendingMessages(messagingSettings.PulsarMaxPendingMessages)
+                .MaxPendingMessagesAcrossPartitions(messagingSettings.PulsarMaxPendingMessagesAcrossPartitions)
+                .EnableBatching(true)
+                .EnableChunking(messagingSettings.PulsarEnableChunking) // Big messages are chuncked into smaller pieces
+                .BatchingMaxMessages(5000) // Batch, consumer will only ack messages after consumer has read all messages in the batch
+                .BatchingMaxPublishDelay(TimeSpan.FromMilliseconds(1000)) // Will delay upto this value before sending batch. Have to wait at least this amount before disposing
+                .CreateAsync();
+        }
+        
+        var tasks = new List<Task>();
+        tasks.AddRange(messages.Select(x => _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(x)))));
+        
+        await Task.WhenAll(tasks);
     }
 
     public async Task FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)

@@ -46,8 +46,11 @@ public static class AwsServiceExtensions
         services.AddScoped<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
         services.AddScoped<IAwsQueueService, AwsQueueService>();
         services.AddScoped<IAwsTopicService, AwsTopicService>();
-        services.AddScoped<IAwsTopicFluentBuilder, AwsTopicFluentBuilder>();
+        services.AddScoped<IAwsQueueCreationBuilder, AwsQueueCreationBuilder>();
+        services.AddScoped<IAwsTopicCreationBuilder, AwsTopicCreationBuilder>();
+        services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
+        services.AddScoped<IQueueProvider, AwsQueueProvider>();
         services.AddScoped<ITopicProvider, AwsTopicProvider>();
         services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
         services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();

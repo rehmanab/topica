@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Polly;
 using Polly.Retry;
 using Topica.Aws.Contracts;
@@ -83,6 +84,7 @@ namespace Topica.Aws.Consumers
 
                     if (receiveMessageResponse?.Messages == null)
                     {
+                        // _logger.LogWarning("{AwsQueueConsumerName}: {ConsumerName}: No messages received from Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                         await Task.Delay(50, cancellationToken);
                         continue;
                     }

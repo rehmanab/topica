@@ -2,37 +2,51 @@
 #  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers down
 
 services:
-  aws.producer.host:
+  aws.queue.producer.host:
     build:
       context: ../src
-      dockerfile: Aws.Producer.Host/Dockerfile
+      dockerfile: Aws.Queue.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+
+  aws.topic.producer.host:
+    build:
+      context: ../src
+      dockerfile: Aws.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  azure.servicebus.producer.host:
+  azure.servicebus.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Azure.ServiceBus.Producer.Host/Dockerfile
+      dockerfile: Azure.ServiceBus.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  kafka.producer.host:
+  kafka.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Kafka.Producer.Host/Dockerfile
+      dockerfile: Kafka.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  pulsar.producer.host:
+  pulsar.topic.producer.host:
     build:
       context: ../src
-      dockerfile: Pulsar.Producer.Host/Dockerfile
+      dockerfile: Pulsar.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable
   
-  rabbitmq.producer.host:
+  rabbitmq.queue.producer.host:
     build:
       context: ../src
-      dockerfile: RabbitMq.Producer.Host/Dockerfile
+      dockerfile: RabbitMq.Queue.Producer.Host/Dockerfile
+    environment:
+      - SOME_VAR=variable
+
+  rabbitmq.topic.producer.host:
+    build:
+      context: ../src
+      dockerfile: RabbitMq.Topic.Producer.Host/Dockerfile
     environment:
       - SOME_VAR=variable

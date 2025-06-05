@@ -51,9 +51,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new RabbitMqManagementApiClient(config.VHost, x);
                 });
 
-            services.AddScoped<IRabbitMqTopicFluentBuilder, RabbitMqTopicFluentBuilder>();
+            services.AddScoped<IRabbitMqQueueCreationBuilder, RabbitMqQueueCreationBuilder>();
+            services.AddScoped<IRabbitMqTopicCreationBuilder, RabbitMqTopicCreationBuilder>();
+            services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
-            services.AddScoped<ITopicProvider, RabbitMqExchangeProvider>();
+            services.AddScoped<IQueueProvider, RabbitMqQueueProvider>();
+            services.AddScoped<ITopicProvider, RabbitMqTopicProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
             services.AddScoped<IMessageHandlerExecutor, MessageHandlerExecutor>();
             services.AddSingleton(_ => new ConnectionFactory

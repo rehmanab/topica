@@ -14,5 +14,5 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+      - ~/.docker-data/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-data/rabbitmq/data/log/:/var/log/rabbitmq

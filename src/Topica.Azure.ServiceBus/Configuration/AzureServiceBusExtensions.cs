@@ -36,9 +36,9 @@ public static class AzureServiceBusExtensions
             
         logger.LogDebug("******* AzureServiceBus Service Extensions ******* ");
 
-        services.AddScoped<IServiceBusAdministrationClientProvider>(_ => new ServiceBusAdministrationClientProvider(config.ConnectionString!));
-        services.AddScoped<IServiceBusClientProvider>(_ => new ServiceBusClientProvider(config.ConnectionString!));
-        services.AddScoped<IAzureServiceBusTopicFluentBuilder, AzureServiceBusTopicFluentBuilder>();
+        services.AddScoped<IAzureServiceBusAdministrationClientProvider>(_ => new AzureServiceBusAdministrationClientProvider(config.ConnectionString!));
+        services.AddScoped<IAzureServiceBusClientProvider>(_ => new AzureServiceBusClientProvider(config.ConnectionString!));
+        services.AddScoped<IAzureServiceBusTopicCreationBuilder, AzureServiceBusTopicCreationBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AzureServiceBusTopicProvider>();
         services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));

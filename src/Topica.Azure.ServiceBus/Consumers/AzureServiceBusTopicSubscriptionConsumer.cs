@@ -11,19 +11,19 @@ namespace Topica.Azure.ServiceBus.Consumers;
 
 public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
 {
-    private readonly IServiceBusClientProvider _serviceBusClientProvider;
+    private readonly IAzureServiceBusClientProvider _azureServiceBusClientProvider;
     private readonly IMessageHandlerExecutor _messageHandlerExecutor;
     private readonly MessagingSettings _messagingSettings;
     private readonly ResiliencePipeline _retryPipeline;
     private readonly ILogger _logger;
 
     public AzureServiceBusTopicSubscriptionConsumer(
-        IServiceBusClientProvider serviceBusClientProvider,
+        IAzureServiceBusClientProvider azureServiceBusClientProvider,
         IMessageHandlerExecutor messageHandlerExecutor,
         MessagingSettings messagingSettings, 
         ILogger logger)
     {
-        _serviceBusClientProvider = serviceBusClientProvider;
+        _azureServiceBusClientProvider = azureServiceBusClientProvider;
         _messageHandlerExecutor = messageHandlerExecutor;
         _messagingSettings = messagingSettings;
         _retryPipeline = new ResiliencePipelineBuilder().AddRetry(new RetryStrategyOptions
@@ -60,7 +60,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 ReceiveMode = ServiceBusReceiveMode.PeekLock
             };
             
-            var receiver = _serviceBusClientProvider.Client.CreateReceiver(messagingSettings.Source, messagingSettings.SubscribeToSource, opt);
+            var receiver = _azureServiceBusClientProvider.Client.CreateReceiver(messagingSettings.Source, messagingSettings.SubscribeToSource, opt);
                 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -83,7 +83,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
         catch (TaskCanceledException)
         {
             _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, messagingSettings.SubscribeToSource);
-            await _serviceBusClientProvider.Client.DisposeAsync();
+            await _azureServiceBusClientProvider.Client.DisposeAsync();
         }
         catch (AggregateException ex)
         {

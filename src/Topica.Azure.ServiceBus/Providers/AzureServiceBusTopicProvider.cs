@@ -8,7 +8,7 @@ using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Providers;
 
-public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvider administrationClientProvider, IServiceBusClientProvider serviceBusClientProvider, IMessageHandlerExecutor messageHandlerExecutor, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
+public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider, IMessageHandlerExecutor messageHandlerExecutor, ILogger<AzureServiceBusTopicProvider> logger) : ITopicProvider
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.AzureServiceBus;
     
@@ -74,13 +74,13 @@ public class AzureServiceBusTopicProvider(IServiceBusAdministrationClientProvide
     {
         await Task.CompletedTask;
 
-        return new AzureServiceBusTopicSubscriptionConsumer(serviceBusClientProvider, messageHandlerExecutor, messagingSettings, logger);
+        return new AzureServiceBusTopicSubscriptionConsumer(azureServiceBusClientProvider, messageHandlerExecutor, messagingSettings, logger);
     }
 
     public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
     {
         await Task.CompletedTask;
         
-        return new AzureServiceBusTopicProducer(producerName, serviceBusClientProvider);
+        return new AzureServiceBusTopicProducer(producerName, azureServiceBusClientProvider);
     }
 }

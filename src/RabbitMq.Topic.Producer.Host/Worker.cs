@@ -1,0 +1,69 @@
+﻿using Topica.Host.Shared.Messages.V1;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using RabbitMq.Topic.Producer.Host.Settings;
+using Topica.Contracts;
+using Topica.Messages;
+using Topica.RabbitMq.Contracts;
+
+namespace RabbitMq.Topic.Producer.Host;
+
+public class Worker(IRabbitMqTopicCreationBuilder builder, RabbitMqProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+{
+    private IProducer _producer1 = null!;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _producer1 = await builder
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
+            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
+            .BuildProducerAsync(stoppingToken);
+
+        var count = await SendSingleAsync(stoppingToken);
+        // var count = await SendBatchAsync(stoppingToken);
+
+        await _producer1.DisposeAsync();
+
+        logger.LogInformation("Finished: {Count} messages sent", count);
+    }
+    
+    private async Task<int> SendSingleAsync(CancellationToken stoppingToken)
+    {
+        var count = 1;
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var message = new SearchTriggeredMessageV1 { ConversationId = Guid.NewGuid(), EventId = count, EventName = "search.triggered.web.v1", Type = nameof(SearchTriggeredMessageV1) };
+
+            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, cancellationToken: stoppingToken);
+
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
+            count++;
+            
+            await Task.Delay(1000, stoppingToken);
+        }
+
+        return count;
+    }
+    
+    private async Task<int> SendBatchAsync(CancellationToken stoppingToken)
+    {
+        var messages = Enumerable.Range(1, 500)
+            .Select(index => new SearchTriggeredMessageV1
+            {
+                ConversationId = Guid.NewGuid(), 
+                EventId = index, 
+                EventName = "search.triggered.web.v1", 
+                Type = nameof(SearchTriggeredMessageV1)
+            })
+            .Cast<BaseMessage>()
+            .ToList();
+        
+        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, cancellationToken: stoppingToken);
+            
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, settings.WebAnalyticsTopicSettings.Source);
+
+        return messages.Count;
+    }
+}

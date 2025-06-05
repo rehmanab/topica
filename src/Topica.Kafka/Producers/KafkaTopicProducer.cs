@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -36,6 +37,33 @@ public class KafkaTopicProducer(string consumerName, MessagingSettings messaging
             Key = message.GetType().Name,
             Value = JsonConvert.SerializeObject(message)
         }, cancellationToken);
+    }
+
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    {
+        if (_producer is null)
+        {
+            var config = new ProducerConfig
+            {
+                // TransactionalId = consumerName, // Doesn't work, maybe need to set topic as transactional (Kafka throws "Erroneous state") error
+                BootstrapServers = string.Join(",", messagingSettings.KafkaBootstrapServers),
+                //SaslMechanism = SaslMechanism.Plain
+                //SecurityProtocol = SecurityProtocol.Ssl
+            };
+
+            _producer = new ProducerBuilder<string, string>(config)
+                //.SetValueSerializer(Serializers.ByteArray)
+                .Build();
+        }
+
+        var tasks = new List<Task>();
+        tasks.AddRange(messages.Select(x => _producer.ProduceAsync(source, new Message<string, string>
+        {
+            Key = x.GetType().Name,
+            Value = JsonConvert.SerializeObject(x)
+        }, cancellationToken)));
+        
+        await Task.WhenAll(tasks);
     }
 
     public async Task FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)

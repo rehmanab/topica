@@ -18,21 +18,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Aws", "Topica.Aws\To
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Kafka", "Topica.Kafka\Topica.Kafka.csproj", "{F5373BE8-E23A-477D-B621-2D921CB53553}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Consumer.Host", "Aws.Consumer.Host\Aws.Consumer.Host.csproj", "{CB258294-71AC-4047-BB8D-6B9EE6005050}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Topic.Consumer.Host", "Aws.Topic.Consumer.Host\Aws.Topic.Consumer.Host.csproj", "{CB258294-71AC-4047-BB8D-6B9EE6005050}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka.Consumer.Host", "Kafka.Consumer.Host\Kafka.Consumer.Host.csproj", "{2D1038FE-DD58-4C23-89F3-133E723553FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka.Topic.Consumer.Host", "Kafka.Topic.Consumer.Host\Kafka.Topic.Consumer.Host.csproj", "{2D1038FE-DD58-4C23-89F3-133E723553FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Consumer.Host", "RabbitMq.Consumer.Host\RabbitMq.Consumer.Host.csproj", "{13CF13F9-A924-4A4B-A29C-C711E89D2170}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Topic.Consumer.Host", "RabbitMq.Topic.Consumer.Host\RabbitMq.Topic.Consumer.Host.csproj", "{13CF13F9-A924-4A4B-A29C-C711E89D2170}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.RabbitMq", "Topica.RabbitMq\Topica.RabbitMq.csproj", "{644E8AEB-4B4E-4102-A7A2-ACDA3513CF59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Pulsar", "Topica.Pulsar\Topica.Pulsar.csproj", "{26BE74A5-4AFB-4727-BB4B-CBBC549704C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulsar.Consumer.Host", "Pulsar.Consumer.Host\Pulsar.Consumer.Host.csproj", "{39EE32E9-9144-4B9A-A0AE-BDF4BEBCB196}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulsar.Topic.Consumer.Host", "Pulsar.Topic.Consumer.Host\Pulsar.Topic.Consumer.Host.csproj", "{39EE32E9-9144-4B9A-A0AE-BDF4BEBCB196}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulsar.Producer.Host", "Pulsar.Producer.Host\Pulsar.Producer.Host.csproj", "{CEF24FAE-D43C-4DB4-B262-CC7E695344A7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pulsar.Topic.Producer.Host", "Pulsar.Topic.Producer.Host\Pulsar.Topic.Producer.Host.csproj", "{CEF24FAE-D43C-4DB4-B262-CC7E695344A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Producer.Host", "RabbitMq.Producer.Host\RabbitMq.Producer.Host.csproj", "{D9414D74-796D-4864-8D98-658853DD5B07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Topic.Producer.Host", "RabbitMq.Topic.Producer.Host\RabbitMq.Topic.Producer.Host.csproj", "{D9414D74-796D-4864-8D98-658853DD5B07}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{61A51C6C-9886-457E-9F71-7E41B7909B54}"
 	ProjectSection(SolutionItems) = preProject
@@ -67,17 +67,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{8BB967B8
 		..\.docker\docker-compose-all-hosts.yml = ..\.docker\docker-compose-all-hosts.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Producer.Host", "Aws.Producer.Host\Aws.Producer.Host.csproj", "{21999F35-8D25-49D0-A8B1-7687279EA157}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Topic.Producer.Host", "Aws.Topic.Producer.Host\Aws.Topic.Producer.Host.csproj", "{21999F35-8D25-49D0-A8B1-7687279EA157}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka.Producer.Host", "Kafka.Producer.Host\Kafka.Producer.Host.csproj", "{152F1ADB-E485-4BC5-96AE-40599CC35EF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka.Topic.Producer.Host", "Kafka.Topic.Producer.Host\Kafka.Topic.Producer.Host.csproj", "{152F1ADB-E485-4BC5-96AE-40599CC35EF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.ServiceBus.Consumer.Host", "Azure.ServiceBus.Consumer.Host\Azure.ServiceBus.Consumer.Host.csproj", "{523AE10E-05D7-4D6E-BDEB-1D8CA8D3DC2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.ServiceBus.Topic.Consumer.Host", "Azure.ServiceBus.Topic.Consumer.Host\Azure.ServiceBus.Topic.Consumer.Host.csproj", "{523AE10E-05D7-4D6E-BDEB-1D8CA8D3DC2E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Azure.ServiceBus", "Topica.Azure.ServiceBus\Topica.Azure.ServiceBus.csproj", "{D5B3D229-BE6E-4996-B225-188227F20FAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.ServiceBus.Producer.Host", "Azure.ServiceBus.Producer.Host\Azure.ServiceBus.Producer.Host.csproj", "{E27CC489-752E-46A6-944F-F0F463F4B5E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.ServiceBus.Topic.Producer.Host", "Azure.ServiceBus.Topic.Producer.Host\Azure.ServiceBus.Topic.Producer.Host.csproj", "{E27CC489-752E-46A6-944F-F0F463F4B5E4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Host.Shared", "Topica.Host.Shared\Topica.Host.Shared.csproj", "{4D63C584-164D-4DB5-A955-CBCB5419D632}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Queue.Consumer.Host", "Aws.Queue.Consumer.Host\Aws.Queue.Consumer.Host.csproj", "{F5F078FA-E0AA-4554-BB11-2BD583C719BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Queue.Producer.Host", "Aws.Queue.Producer.Host\Aws.Queue.Producer.Host.csproj", "{7746D86D-865A-471B-B95A-2E2B92B0B00A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Queue.Consumer.Host", "RabbitMq.Queue.Consumer.Host\RabbitMq.Queue.Consumer.Host.csproj", "{C779DD8A-5ECF-4ED4-B697-00985B10D043}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Queue.Producer.Host", "RabbitMq.Queue.Producer.Host\RabbitMq.Queue.Producer.Host.csproj", "{39E92426-E2D2-456F-B19C-5B62A9260AB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +161,22 @@ Global
 		{4D63C584-164D-4DB5-A955-CBCB5419D632}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D63C584-164D-4DB5-A955-CBCB5419D632}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D63C584-164D-4DB5-A955-CBCB5419D632}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5F078FA-E0AA-4554-BB11-2BD583C719BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5F078FA-E0AA-4554-BB11-2BD583C719BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5F078FA-E0AA-4554-BB11-2BD583C719BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5F078FA-E0AA-4554-BB11-2BD583C719BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7746D86D-865A-471B-B95A-2E2B92B0B00A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7746D86D-865A-471B-B95A-2E2B92B0B00A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7746D86D-865A-471B-B95A-2E2B92B0B00A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7746D86D-865A-471B-B95A-2E2B92B0B00A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C779DD8A-5ECF-4ED4-B697-00985B10D043}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C779DD8A-5ECF-4ED4-B697-00985B10D043}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C779DD8A-5ECF-4ED4-B697-00985B10D043}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C779DD8A-5ECF-4ED4-B697-00985B10D043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39E92426-E2D2-456F-B19C-5B62A9260AB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39E92426-E2D2-456F-B19C-5B62A9260AB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39E92426-E2D2-456F-B19C-5B62A9260AB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39E92426-E2D2-456F-B19C-5B62A9260AB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{793565E9-1348-4279-864C-1FCA64AE6B84} = {30870729-1B15-4980-80A6-911976DA7532}
@@ -178,5 +202,9 @@ Global
 		{D5B3D229-BE6E-4996-B225-188227F20FAE} = {D0AADA6D-BA2C-4327-825D-33457AB03DF4}
 		{E27CC489-752E-46A6-944F-F0F463F4B5E4} = {D4049594-00C3-4442-A58C-02349759CE21}
 		{4D63C584-164D-4DB5-A955-CBCB5419D632} = {79224FA1-FB83-402D-A9CE-78F7712F6A1B}
+		{F5F078FA-E0AA-4554-BB11-2BD583C719BB} = {2498F3D0-A2AE-4E82-9166-3F99CFD2AD01}
+		{7746D86D-865A-471B-B95A-2E2B92B0B00A} = {D4049594-00C3-4442-A58C-02349759CE21}
+		{C779DD8A-5ECF-4ED4-B697-00985B10D043} = {2498F3D0-A2AE-4E82-9166-3F99CFD2AD01}
+		{39E92426-E2D2-456F-B19C-5B62A9260AB1} = {D4049594-00C3-4442-A58C-02349759CE21}
 	EndGlobalSection
 EndGlobal
