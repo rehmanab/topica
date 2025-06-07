@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 using Topica.Contracts;
 using Topica.Settings;
@@ -106,11 +107,13 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         var awsQueueReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages ?? 10;
         var awsNumberOfInstances = numberOfInstances ?? 1;
 
+        var queueName = !string.IsNullOrWhiteSpace(_queueName) && isFifoQueue && !_queueName.EndsWith(Constants.FifoSuffix) ? $"{_queueName}{Constants.FifoSuffix}" : _queueName;
+        
         return new MessagingSettings
         {
             WorkerName = _workerName,
-            Source = _queueName,
-            SubscribeToSource = _queueName,
+            Source = queueName,
+            SubscribeToSource = queueName,
             NumberOfInstances = awsNumberOfInstances,
 
             AwsIsFifoQueue = isFifoQueue,

@@ -120,7 +120,7 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         {
             WorkerName = _workerName,
             Source = _topicName,
-            SubscribeToSource = !string.IsNullOrWhiteSpace(subscribeToQueueName) && isFifoQueue && subscribeToQueueName.EndsWith(Constants.FifoSuffix) ? $"{subscribeToQueueName}{Constants.FifoSuffix}" : subscribeToQueueName ?? throw new ArgumentNullException(nameof(subscribeToQueueName), "SubscribeToQueueName cannot be null"),
+            SubscribeToSource = !string.IsNullOrWhiteSpace(subscribeToQueueName) && isFifoQueue && !subscribeToQueueName.EndsWith(Constants.FifoSuffix) ? $"{subscribeToQueueName}{Constants.FifoSuffix}" : subscribeToQueueName,
             NumberOfInstances = awsNumberOfInstances,
 
             AwsIsFifoQueue = isFifoQueue,
