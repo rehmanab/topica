@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
-using Amazon.SQS.Model;
 using Newtonsoft.Json;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
