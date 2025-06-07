@@ -83,7 +83,7 @@ public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicS
             
             count++;
 
-            await Task.Delay(10, stoppingToken);
+            await Task.Delay(1000, stoppingToken);
         }
 
         return count;

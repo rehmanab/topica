@@ -77,7 +77,7 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
             
             count++;
 
-            await Task.Delay(10, stoppingToken);
+            await Task.Delay(1000, stoppingToken);
         }
 
         return count;

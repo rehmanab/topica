@@ -1,6 +1,6 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Aws.Queue.Consumer.Host" type="DotNetProject" factoryName=".NET Project">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/Aws.Queue.Consumer.Host/bin/Debug/net9.0/Aws.Queue.Consumer.Host.exe" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/Aws.Queue.Consumer.Host/bin/Debug/net9.0/Aws.Queue.Consumer.Host" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Aws.Queue.Consumer.Host/bin/Debug/net9.0" />
     <option name="PASS_PARENT_ENVS" value="1" />

@@ -1,6 +1,6 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Azure.ServiceBus.Topic.Producer.Host" type="DotNetProject" factoryName=".NET Project" singleton="false">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/Azure.ServiceBus.Topic.Producer.Host/bin/Debug/net9.0/Azure.ServiceBus.Topic.Producer.Host.exe" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/Azure.ServiceBus.Topic.Producer.Host/bin/Debug/net9.0/Azure.ServiceBus.Topic.Producer.Host" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Azure.ServiceBus.Topic.Producer.Host/bin/Debug/net9.0" />
     <option name="PASS_PARENT_ENVS" value="1" />
