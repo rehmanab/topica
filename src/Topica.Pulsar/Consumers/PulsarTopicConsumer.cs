@@ -64,7 +64,7 @@ namespace Topica.Pulsar.Consumers
                         : SubscriptionInitialPosition.Latest) //Earliest will read unread, Latest will read live incoming messages only
                     .SubscribeAsync();
 
-                _logger.LogInformation("{PulsarTopicConsumerName}: Subscribed: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), _messagingSettings.Source, _messagingSettings.PulsarConsumerGroup);
+                _logger.LogInformation("**** STARTED CONSUMING: {PulsarTopicConsumerName}: {ConsumerSettingsSource}:{ConsumerSettingsPulsarConsumerGroup}", nameof(PulsarTopicConsumer), _messagingSettings.Source, _messagingSettings.PulsarConsumerGroup);
 
                 await Task.Run(async () =>
                     {
@@ -86,20 +86,20 @@ namespace Topica.Pulsar.Consumers
                         }
 
                         await consumer.DisposeAsync();
-                        _logger.LogInformation("{PulsarTopicConsumerName}: Disposed", nameof(PulsarTopicConsumer));
+                        _logger.LogInformation("**** DISPOSED: {PulsarTopicConsumerName}", nameof(PulsarTopicConsumer));
 
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
                         if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{_messagingSettings.PulsarConsumerGroup}");
+                            _logger.LogError(x.Exception, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), $"{consumerName}:{_messagingSettings.PulsarConsumerGroup}");
                         }
                     }, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
+                _logger.LogError(ex, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(PulsarTopicConsumer), consumerName);
                 throw;
             }
         }

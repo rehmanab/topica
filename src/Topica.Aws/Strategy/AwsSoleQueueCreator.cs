@@ -14,12 +14,13 @@ namespace Topica.Aws.Strategy
     {
         public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
         {
-            var isFifo = configuration.QueueAttributes.IsFifoQueue;
-            if (isFifo) queueName = queueName.Replace(Constants.FifoSuffix, string.Empty);
+            queueName = configuration.QueueAttributes.IsFifoQueue
+                ? TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, true)
+                : TopicQueueHelper.RemoveTopicQueueNameFifoSuffix(queueName);
             
             var request = new CreateQueueRequest
             {
-                QueueName = $"{queueName}{(isFifo ? Constants.FifoSuffix : "")}",
+                QueueName = queueName,
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 

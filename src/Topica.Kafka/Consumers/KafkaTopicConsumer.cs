@@ -68,7 +68,7 @@ namespace Topica.Kafka.Consumers
                 var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
                 consumer.Subscribe(messagingSettings.Source);
 
-                _logger.LogInformation("{KafkaTopicConsumerName}: SUBSCRIBED TO: {ConsumerName}", nameof(KafkaTopicConsumer), consumerName);
+                _logger.LogInformation("**** STARTED CONSUMING: {ConsumerName}", consumerName);
 
                 await Task.Run(async () =>
                     {
@@ -87,19 +87,19 @@ namespace Topica.Kafka.Consumers
                         }
 
                         consumer.Dispose(); // Doesn't get here as consumer.Consume blocks
-                        _logger.LogInformation("{KafkaTopicConsumerName}: Disposed", nameof(KafkaTopicConsumer));
+                        _logger.LogInformation("**** Disposed: {KafkaTopicConsumerName}:", nameof(KafkaTopicConsumer));
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {
                         if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
+                            _logger.LogError(x.Exception, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                         }
                     }, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
+                _logger.LogError(ex, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(KafkaTopicConsumer), consumerName);
                 throw;
             }
         }

@@ -2,20 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 using Topica.Aws.Strategy;
 
 namespace Topica.Aws.Services
 {
-    public class AwsQueueService(IAmazonSQS client) : IAwsQueueService
+    public class AwsQueueService(IAmazonSQS client, ILogger<AwsQueueService> logger) : IAwsQueueService
     {
-        public async Task<string?> GetQueueUrlAsync(string queueName)
+        public async Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken = default)
         {
-            var queueUrl = (await GetQueueUrlsAsync(queueName, false))
+            queueName = TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, isFifo);
+            
+            var queueUrl = (await GetQueueUrlsAsync(queueName, false, cancellationToken))
                 .ToList()
                 .FirstOrDefault(x => x.EndsWith(queueName, StringComparison.InvariantCultureIgnoreCase));
 
@@ -36,23 +41,31 @@ namespace Topica.Aws.Services
             return queueAttributes;
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration)
+        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration, CancellationToken cancellationToken = default)
         {
+            var queueUrl = await GetQueueUrlAsync(queueName, awsSqsConfiguration.QueueAttributes.IsFifoQueue, cancellationToken);
+            
+            if (!string.IsNullOrWhiteSpace(queueUrl))
+            {
+                logger.LogDebug("**** EXISTS: queue already exists, queueUrl: {QueueUrl}", queueUrl);
+                return queueUrl;
+            }
+            
             var createQueueType = awsSqsConfiguration.CreateErrorQueue.HasValue && awsSqsConfiguration.CreateErrorQueue.Value
                 ? AwsQueueCreationType.WithErrorQueue
                 : AwsQueueCreationType.SoleQueue;
 
-            return await CreateQueue(createQueueType).CreateQueue(queueName, awsSqsConfiguration);
-        }
-        
-        private IAwsQueueCreator CreateQueue(AwsQueueCreationType awsQueueCreationType)
-        {
-            return awsQueueCreationType switch
+            IAwsQueueCreator queueCreator = createQueueType switch
             {
                 AwsQueueCreationType.SoleQueue => new AwsSoleQueueCreator(client),
                 AwsQueueCreationType.WithErrorQueue => new AwsQueueWithErrorsCreator(client),
-                _ => throw new ApplicationException($"Can not find queue creator for: {awsQueueCreationType}")
+                _ => throw new ApplicationException($"Can not find queue creator for: {createQueueType}")
             };
+
+            queueUrl = await queueCreator.CreateQueue(queueName, awsSqsConfiguration);
+            logger.LogDebug("**** CREATED QUEUE SUCCESS: QueueUrl: {QueueUrl}", queueUrl);
+            
+            return queueUrl;
         }
 
         //TODO - Update method to update all error queues redrive MaxReceiveCount property
@@ -70,9 +83,9 @@ namespace Topica.Aws.Services
             return response.HttpStatusCode == HttpStatusCode.OK;
         }
 
-        private async Task<IEnumerable<string>> GetQueueUrlsAsync(string queueNamePrefix, bool nameOnly)
+        private async Task<IEnumerable<string>> GetQueueUrlsAsync(string queueNamePrefix, bool nameOnly, CancellationToken cancellationToken = default)
         {
-            var response = await client.ListQueuesAsync(queueNamePrefix);
+            var response = await client.ListQueuesAsync(queueNamePrefix, cancellationToken);
             var queueUrls = response.QueueUrls;
 
             if (queueUrls == null || queueUrls.Count == 0) return [];

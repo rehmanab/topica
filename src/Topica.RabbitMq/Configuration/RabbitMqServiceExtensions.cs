@@ -38,8 +38,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new Exception($"{nameof(RabbitMqServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
             
-            logger.LogDebug("******* RabbitMq Service Extensions ******* ");
-
             services
                 .AddHttpClient(nameof(RabbitMqManagementApiClient))
                 .AddTypedClient<IRabbitMqManagementApiClient>(x =>

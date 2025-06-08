@@ -52,7 +52,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
     {
         try
         {
-            _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {Subscription}", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogInformation("**** CONSUMER STARTED: {ConsumerName} started on Queue: {Subscription}", consumerName, messagingSettings.SubscribeToSource);
 
             var opt = new ServiceBusReceiverOptions
             {
@@ -78,25 +78,25 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 // await Task.Delay(1000, cancellationToken); // Simulate processing delay
             }
 
-            _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogInformation("**** CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
         }
         catch (TaskCanceledException)
         {
-            _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogWarning("**** ERROR: CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
             await _azureServiceBusClientProvider.Client.DisposeAsync();
         }
         catch (AggregateException ex)
         {
             foreach (var inner in ex.Flatten().InnerExceptions)
             {
-                _logger.LogError(inner, "{AwsQueueConsumerName}: {ConsumerName}: AggregateException:", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName);
+                _logger.LogError(inner, "****ERROR: CONSUMER STOPPED: {ConsumerName}: AggregateException:", consumerName);
             }
 
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "{AwsQueueConsumerName}: {ConsumerName}: Exception:", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName);
+            _logger.LogError(ex, "**** CONSUMER STOPPED: {ConsumerName}: Exception:", consumerName);
             throw;
         }
     }

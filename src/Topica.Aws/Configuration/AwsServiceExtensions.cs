@@ -38,8 +38,6 @@ public static class AwsServiceExtensions
             throw new Exception($"{nameof(AwsServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
         }
             
-        logger.LogDebug("******* Aws Service Extensions ******* ");
-
         var awsClientService = new AwsClientService(logger);
         services.AddScoped<IAwsClientService>(_ => awsClientService);
         services.AddScoped<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));

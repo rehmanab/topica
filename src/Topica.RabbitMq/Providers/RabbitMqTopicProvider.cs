@@ -26,7 +26,7 @@ namespace Topica.RabbitMq.Providers
             await managementApiClient.CreateVHostIfNotExistAsync();
             await managementApiClient.CreateExchangeAndBindingsAsync(settings.Source, true, ExchangeTypes.Fanout, queues);
             
-            logger.LogInformation("{RabbitMqTopicProvider}.{CreateTopicAsyncName}: Created exchange {Source}", nameof(RabbitMqTopicProvider), nameof(CreateTopicAsync), settings.Source);
+            logger.LogInformation("**** CREATE IF NOT EXIST: {RabbitMqTopicProvider}.{CreateTopicAsyncName}: Created if not already existed: exchange {Source}", nameof(RabbitMqTopicProvider), nameof(CreateTopicAsync), settings.Source);
         }
 
         public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)

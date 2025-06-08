@@ -29,7 +29,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new Exception($"{nameof(KafkaServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
-            logger.LogDebug("******* Kafka Service Extensions ******* ");
             
             services.AddScoped<IKafkaTopicCreationBuilder, KafkaTopicCreationBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();

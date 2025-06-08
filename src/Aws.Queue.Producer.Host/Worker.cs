@@ -35,22 +35,15 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
             .WithQueueSettings(settings.WebAnalyticsQueueSettings.QueueMaximumMessageSize)
             .BuildProducerAsync(stoppingToken);
         
-        var queueUrl = await awsQueueService.GetQueueUrlAsync((settings.WebAnalyticsQueueSettings.IsFifoQueue ?? false) && !settings.WebAnalyticsQueueSettings.Source.EndsWith(Constants.FifoSuffix) ? $"{settings.WebAnalyticsQueueSettings.Source}{Constants.FifoSuffix}" : settings.WebAnalyticsQueueSettings.Source);
-        
-        if (queueUrl == null)
-        {
-            throw new Exception($"No queue found for name: {settings.WebAnalyticsQueueSettings.Source}");
-        }
-        
-        var count = await SendSingleAsync(queueUrl, stoppingToken);
-        // var count = await SendBatchAsync(queueUrl, stoppingToken);
+        // var count = await SendSingleAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
+        var count = await SendBatchAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
 
         await _producer1.DisposeAsync();
 
         logger.LogInformation("Finished: {Count} messages sent", count);
     }
 
-    private async Task<int> SendSingleAsync(string queueUrl, CancellationToken stoppingToken)
+    private async Task<int> SendSingleAsync(string queueName, CancellationToken stoppingToken)
     {
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
@@ -71,9 +64,9 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
                 {"SignatureVersion", "2" }
             };
             
-            await _producer1.ProduceAsync(queueUrl, message, messageAttributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(queueName, message, messageAttributes, cancellationToken: stoppingToken);
             
-            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsQueueSettings.Source, $"{message.EventId} : {message.EventName}");
+            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsQueueSettings.Source, settings.WebAnalyticsQueueSettings.IsFifoQueue ?? false), $"{message.EventId} : {message.EventName}");
             
             count++;
 
@@ -83,7 +76,7 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
         return count;
     }
     
-    private async Task<int> SendBatchAsync(string queueUrl, CancellationToken stoppingToken)
+    private async Task<int> SendBatchAsync(string queueName, CancellationToken stoppingToken)
     {
         var messageGroupId = Guid.NewGuid();
             
@@ -104,9 +97,9 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
             {"SignatureVersion", "2" }
         };
         
-        await _producer1.ProduceBatchAsync(queueUrl, messages, messageAttributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(queueName, messages, messageAttributes, cancellationToken: stoppingToken);
             
-        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, settings.WebAnalyticsQueueSettings.Source);
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsQueueSettings.Source, settings.WebAnalyticsQueueSettings.IsFifoQueue ?? false));
 
         return messages.Count;
     }

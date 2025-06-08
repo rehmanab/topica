@@ -18,7 +18,7 @@ public class RabbitMqQueueProvider(IRabbitMqManagementApiClient managementApiCli
         await managementApiClient.CreateVHostIfNotExistAsync();
         await managementApiClient.CreateQueueAsync(settings.Source, true);
             
-        logger.LogInformation("{RabbitMqQueueProvider}.{CreateQueueAsyncName}: Created queue {Source}", nameof(RabbitMqQueueProvider), nameof(CreateQueueAsync), settings.Source);
+        logger.LogInformation("**** CREATE IF NOT EXIST: {RabbitMqQueueProvider}.{CreateQueueAsyncName}: Created if not already existed: queue {Source}", nameof(RabbitMqQueueProvider), nameof(CreateQueueAsync), settings.Source);
     }
 
     public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)

@@ -23,7 +23,7 @@ namespace Topica.Aws.Providers
 
         public async Task CreateTopicAsync(MessagingSettings settings)
         {
-            var topic = await awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(settings.Source, settings.AwsWithSubscribedQueues, new AwsSqsConfiguration
+            _ = await awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(settings.Source, settings.AwsWithSubscribedQueues, new AwsSqsConfiguration
             {
                 QueueAttributes = new AwsQueueAttributes
                 {
@@ -38,8 +38,6 @@ namespace Topica.Aws.Providers
                 CreateErrorQueue = settings.AwsBuildWithErrorQueue,
                 ErrorQueueMaxReceiveCount = settings.AwsErrorQueueMaxReceiveCount
             });
-
-            logger.LogInformation("{AwsTopicProviderName}.{CreateTopicAsyncName}: Created topic {Topic}", nameof(AwsTopicProvider), nameof(CreateTopicAsync), topic);
         }
 
         public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)
@@ -53,7 +51,7 @@ namespace Topica.Aws.Providers
         {
             await Task.CompletedTask;
 
-            return new AwsTopicProducer(producerName, snsClient);
+            return new AwsTopicProducer(producerName, awsTopicService, snsClient, messagingSettings.AwsIsFifoQueue);
         }
     }
 }

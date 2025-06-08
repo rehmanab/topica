@@ -59,7 +59,7 @@ namespace Topica.Aws.Consumers
         {
             try
             {
-                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.AwsIsFifoQueue && !messagingSettings.SubscribeToSource.EndsWith(Constants.FifoSuffix) ? $"{messagingSettings.SubscribeToSource}{Constants.FifoSuffix}" : messagingSettings.SubscribeToSource);
+                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, cancellationToken);
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
@@ -67,7 +67,7 @@ namespace Topica.Aws.Consumers
                     throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {messagingSettings.SubscribeToSource} does not exist.");
                 }
 
-                _logger.LogInformation("{AwsQueueConsumerName}:: {ConsumerName} started on Queue: {QueueUrl}", nameof(AwsQueueConsumer), consumerName, queueUrl);
+                _logger.LogInformation("**** CONSUMER STARTED: {ConsumerName} consuming from QueueUrl: {QueueUrl}", consumerName, queueUrl);
 
                 var receiveMessageRequest = new ReceiveMessageRequest
                 {
@@ -136,25 +136,25 @@ namespace Topica.Aws.Consumers
                     }
                 }
 
-                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                _logger.LogInformation("**** CONSUMER STOPPED: {ConsumerName}", consumerName);
             }
             catch (TaskCanceledException)
             {
-                _logger.LogInformation("{AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                _logger.LogWarning("**** {AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                 _client.Dispose();
             }
             catch (AggregateException ex)
             {
                 foreach (var inner in ex.Flatten().InnerExceptions)
                 {
-                    _logger.LogError(inner, "{AwsQueueConsumerName}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
+                    _logger.LogError(inner, "**** {AwsQueueConsumerName}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
                 }
 
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{AwsQueueConsumerName}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
+                _logger.LogError(ex, "**** {AwsQueueConsumerName}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
                 throw;
             }
         }

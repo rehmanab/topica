@@ -75,7 +75,7 @@ namespace Topica.Pulsar.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "{ServiceName}: Error: {Message}", nameof(PulsarService), ex.Message);
+                logger.LogError(ex, "**** ERROR: {ServiceName}: Error: {Message}", nameof(PulsarService), ex.Message);
             }
         }
 

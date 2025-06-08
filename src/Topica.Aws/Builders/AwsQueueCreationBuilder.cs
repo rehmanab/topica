@@ -107,13 +107,11 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         var awsQueueReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages ?? 10;
         var awsNumberOfInstances = numberOfInstances ?? 1;
 
-        var queueName = !string.IsNullOrWhiteSpace(_queueName) && isFifoQueue && !_queueName.EndsWith(Constants.FifoSuffix) ? $"{_queueName}{Constants.FifoSuffix}" : _queueName;
-        
         return new MessagingSettings
         {
             WorkerName = _workerName,
-            Source = queueName,
-            SubscribeToSource = queueName,
+            Source = _queueName,
+            SubscribeToSource = _queueName,
             NumberOfInstances = awsNumberOfInstances,
 
             AwsIsFifoQueue = isFifoQueue,

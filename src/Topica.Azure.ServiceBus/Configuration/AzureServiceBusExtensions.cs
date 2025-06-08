@@ -34,8 +34,6 @@ public static class AzureServiceBusExtensions
             throw new Exception($"{nameof(AzureServiceBusExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
         }
             
-        logger.LogDebug("******* AzureServiceBus Service Extensions ******* ");
-
         services.AddScoped<IAzureServiceBusAdministrationClientProvider>(_ => new AzureServiceBusAdministrationClientProvider(config.ConnectionString!));
         services.AddScoped<IAzureServiceBusClientProvider>(_ => new AzureServiceBusClientProvider(config.ConnectionString!));
         services.AddScoped<IAzureServiceBusTopicCreationBuilder, AzureServiceBusTopicCreationBuilder>();

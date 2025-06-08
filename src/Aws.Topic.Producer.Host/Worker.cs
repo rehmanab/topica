@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
+using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Host.Shared.Messages.V1;
 using Topica.Messages;
 
 namespace Aws.Topic.Producer.Host;
 
-public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicService, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IAwsTopicCreationBuilder builder, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     private IProducer _producer1 = null!;
 
@@ -36,27 +37,15 @@ public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicS
             .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
             .BuildProducerAsync(stoppingToken);
         
-        var topicArns = awsTopicService.GetAllTopics(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue).ToBlockingEnumerable(cancellationToken: stoppingToken).SelectMany(x => x).ToList();
-
-        switch (topicArns.Count)
-        {
-            case 0:
-                throw new Exception($"No topic found for prefix: {settings.WebAnalyticsTopicSettings.Source}");
-            case > 1:
-                throw new Exception($"More than 1 topic found for prefix: {settings.WebAnalyticsTopicSettings.Source}");
-        }
-        
-        var topicArn = topicArns.First().TopicArn;
-        
-        var count = await SendSingleAsync(topicArn, stoppingToken);
-        // var count = await SendBatchAsync(topicArn, stoppingToken);
+        // var count = await SendSingleAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
+        var count = await SendBatchAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
 
         await _producer1.DisposeAsync();
 
         logger.LogInformation("Finished: {Count} messages sent", count);
     }
     
-    private async Task<int> SendSingleAsync(string topicArn, CancellationToken stoppingToken)
+    private async Task<int> SendSingleAsync(string topicName, CancellationToken stoppingToken)
     {
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
@@ -77,9 +66,9 @@ public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicS
                 {"SignatureVersion", "2" }
             };
             
-            await _producer1.ProduceAsync(topicArn, message, messageAttributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(topicName, message, messageAttributes, cancellationToken: stoppingToken);
             
-            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
+            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false), $"{message.EventId} : {message.EventName}");
             
             count++;
 
@@ -89,7 +78,7 @@ public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicS
         return count;
     }
     
-    private async Task<int> SendBatchAsync(string topicArn, CancellationToken stoppingToken)
+    private async Task<int> SendBatchAsync(string topicName, CancellationToken stoppingToken)
     {
         var messageGroupId = Guid.NewGuid();
             
@@ -110,9 +99,9 @@ public class Worker(IAwsTopicCreationBuilder builder, IAwsTopicService awsTopicS
             {"SignatureVersion", "2" }
         };
         
-        await _producer1.ProduceBatchAsync(topicArn, messages, messageAttributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(topicName, messages, messageAttributes, cancellationToken: stoppingToken);
             
-        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, settings.WebAnalyticsTopicSettings.Source);
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false));
 
         return messages.Count;
     }

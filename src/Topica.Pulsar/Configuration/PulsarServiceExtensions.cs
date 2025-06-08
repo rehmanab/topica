@@ -38,8 +38,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new Exception($"{nameof(PulsarServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
             
-            logger.LogDebug("******* Pulsar Service Extensions ******* ");
-
             services.AddHttpClient<IHttpClientService, HttpClientService>();
             services.AddScoped<IPulsarService, PulsarService>(provider =>
             {

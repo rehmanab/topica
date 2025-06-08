@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Newtonsoft.Json;
+using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
@@ -14,13 +15,15 @@ using MessageAttributeValue = Amazon.SimpleNotificationService.Model.MessageAttr
 
 namespace Topica.Aws.Producer;
 
-public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationService? snsClient) : IProducer, IAsyncDisposable
+public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, bool isFifo) : IProducer, IAsyncDisposable
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
+        var topicArn = GetTopicArn(source, cancellationToken);
+        
         var request = new PublishRequest
         {
-            TopicArn = source,
+            TopicArn = topicArn,
             Message = JsonConvert.SerializeObject(message)
         };
         
@@ -41,7 +44,7 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
             DataType = "String"
         });
 
-        if (source.EndsWith(Constants.FifoSuffix))
+        if (topicArn.EndsWith(Constants.FifoSuffix))
         {
             request.MessageGroupId = message.MessageGroupId; // TODO - should be the same for all messages in a group for it to be first in first out
             request.MessageDeduplicationId = Guid.NewGuid().ToString();
@@ -55,6 +58,8 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
+        var topicArn = GetTopicArn(source, cancellationToken);
+        
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
         foreach (var messageBatch in messages.GetByBatch(10))
         {
@@ -62,7 +67,7 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
             
             var request = new PublishBatchRequest
             {
-                TopicArn = source,
+                TopicArn = topicArn,
                 PublishBatchRequestEntries = baseMessages.Select(x => new PublishBatchRequestEntry
                 {
                     Id = x.Id(),
@@ -97,5 +102,20 @@ public class AwsTopicProducer(string producerName, IAmazonSimpleNotificationServ
     {
         snsClient?.Dispose();
         await Task.CompletedTask;
+    }
+    
+    private string GetTopicArn(string topicName, CancellationToken cancellationToken)
+    {
+        var topicArns = awsTopicService.GetAllTopics(topicName, isFifo).ToBlockingEnumerable(cancellationToken: cancellationToken).SelectMany(x => x).ToList();
+
+        switch (topicArns.Count)
+        {
+            case 0:
+                throw new Exception($"No topic found for prefix: {topicName}");
+            case > 1:
+                throw new Exception($"More than 1 topic found for prefix: {topicName}");
+        }
+        
+        return topicArns.First().TopicArn;
     }
 }

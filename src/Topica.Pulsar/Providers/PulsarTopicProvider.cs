@@ -18,7 +18,7 @@ namespace Topica.Pulsar.Providers
             await pulsarService.CreateNamespaceAsync(settings.PulsarTenant, settings.PulsarNamespace);
             await pulsarService.CreatePartitionedTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source, settings.PulsarTopicNumberOfPartitions);
             
-            logger.LogInformation("{PulsarTopicProviderName}.{CreateTopicAsyncName}: Created topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), settings.Source);
+            logger.LogInformation("**** CREATED: {PulsarTopicProviderName}.{CreateTopicAsyncName}: topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), settings.Source);
         }
 
         public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)

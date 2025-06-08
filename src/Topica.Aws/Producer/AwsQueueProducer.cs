@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using Newtonsoft.Json;
+using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
@@ -13,13 +14,15 @@ using Topica.Messages;
 
 namespace Topica.Aws.Producer;
 
-public class AwsQueueProducer(string producerName, IAmazonSQS? sqsClient) : IProducer, IAsyncDisposable
+public class AwsQueueProducer(string producerName, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo) : IProducer, IAsyncDisposable
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
+        var queueUrl = await GetQueueUrl(source, cancellationToken);
+        
         var request = new SendMessageRequest
         {
-            QueueUrl = source,
+            QueueUrl = queueUrl,
             MessageBody = JsonConvert.SerializeObject(message)
         };
         
@@ -40,7 +43,7 @@ public class AwsQueueProducer(string producerName, IAmazonSQS? sqsClient) : IPro
             DataType = "String"
         });
 
-        if (source.EndsWith(Constants.FifoSuffix))
+        if (queueUrl.EndsWith(Constants.FifoSuffix))
         {
             request.MessageGroupId = message.MessageGroupId; // TODO - should be the same for all messages in a group for it to be first in first out
             request.MessageDeduplicationId = Guid.NewGuid().ToString();
@@ -54,6 +57,8 @@ public class AwsQueueProducer(string producerName, IAmazonSQS? sqsClient) : IPro
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
+        var queueUrl = await GetQueueUrl(source, cancellationToken);
+        
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
         foreach (var messageBatch in messages.GetByBatch(10))
         {
@@ -61,7 +66,7 @@ public class AwsQueueProducer(string producerName, IAmazonSQS? sqsClient) : IPro
             
             var request = new SendMessageBatchRequest
             {
-                QueueUrl = source,
+                QueueUrl = queueUrl,
                 Entries = baseMessages.Select(x => new SendMessageBatchRequestEntry(x.Id(), JsonConvert.SerializeObject(x)) { MessageGroupId = x.MessageGroupId }).ToList()
             };
 
@@ -89,5 +94,17 @@ public class AwsQueueProducer(string producerName, IAmazonSQS? sqsClient) : IPro
     {
         sqsClient?.Dispose();
         await Task.CompletedTask;
+    }
+    
+    private async Task<string> GetQueueUrl(string queueName, CancellationToken cancellationToken)
+    {
+        var queueUrl = await awsQueueService.GetQueueUrlAsync(queueName, isFifo, cancellationToken);
+
+        if (queueUrl == null)
+        {
+            throw new Exception($"No queue url found for name: {queueName}");
+        }
+        
+        return queueUrl;
     }
 }

@@ -34,18 +34,18 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
         if(!await administrationClientProvider.AdminClient.TopicExistsAsync(settings.Source))
         {
             await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions);
-            logger.LogInformation("Created topic: {TopicName}", settings.Source);
+            logger.LogInformation("**** CREATED: topic: {TopicName}", settings.Source);
         }
         else
         {
-            logger.LogInformation("Topic: {TopicName} already exists!", settings.Source);
+            logger.LogInformation("**** EXISTS: Topic: {TopicName} already exists!", settings.Source);
         }
         
         foreach (var subscription in settings.AzureServiceBusSubscriptions)
         {
             if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(settings.Source, subscription.Source))
             {
-                logger.LogInformation("Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, settings.Source);
+                logger.LogInformation("**** EXISTS: Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, settings.Source);
                 continue;
             }
 		
@@ -65,8 +65,8 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
                 Status = subscription.EnabledStatus.HasValue && !subscription.EnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
             };
 
-            var createdSubscription = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions);
-            logger.LogInformation("Created subscription: {SubscriptionName} for topic: {TopicName} - Result: {Result}", subscription.Source, settings.Source, createdSubscription.Value.Status);
+            _ = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions);
+            logger.LogInformation("**** CREATED: subscription: {SubscriptionName} for topic: {TopicName}", subscription.Source, settings.Source);
         }
     }
 

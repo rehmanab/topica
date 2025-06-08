@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
+using static Topica.Aws.Helpers.TopicQueueHelper;
 
 namespace Topica.Aws.Strategy
 {
@@ -17,14 +18,14 @@ namespace Topica.Aws.Strategy
         {
             //Create Error Queue
             //Create normal queue passing in redrive policy
-            var isFifo = configuration.QueueAttributes.IsFifoQueue;
-            if (isFifo) queueName = queueName.Replace(Constants.FifoSuffix, string.Empty);
-            var errorQueueUrl = await InternalCreateErrorQueue($"{queueName}{Constants.ErrorQueueSuffix}{(isFifo ? Constants.FifoSuffix : "")}", configuration);
+            queueName = RemoveTopicQueueNameFifoSuffix(queueName);
+            
+            var errorQueueUrl = await InternalCreateErrorQueue(AddTopicQueueNameFifoSuffix($"{queueName}{Constants.ErrorQueueSuffix}", configuration.QueueAttributes.IsFifoQueue), configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
             var redrivePolicy = $"{{\"maxReceiveCount\":\"{configuration.ErrorQueueMaxReceiveCount}\", \"deadLetterTargetArn\":\"{errorQueueArn}\"}}";
             
-            var mainQueueUrl = await InternalMainCreateQueue($"{queueName}{(isFifo ? Constants.FifoSuffix : "")}", configuration, redrivePolicy);
+            var mainQueueUrl = await InternalMainCreateQueue(AddTopicQueueNameFifoSuffix(queueName, configuration.QueueAttributes.IsFifoQueue), configuration, redrivePolicy);
 
             return mainQueueUrl;
         }

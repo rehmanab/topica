@@ -68,7 +68,7 @@ namespace Topica.RabbitMq.Consumers
 
                 await Task.Run(() =>
                     {
-                        _logger.LogInformation("{RabbitMqQueueConsumerName}: {ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", nameof(RabbitMqQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                        _logger.LogInformation("**** CONSUMER STARTED:{ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
 
                         _channel.BasicConsumeAsync(messagingSettings.SubscribeToSource, true, consumer, cancellationToken: cancellationToken);
                     }, cancellationToken)
@@ -76,13 +76,13 @@ namespace Topica.RabbitMq.Consumers
                     {
                         if ((x.IsFaulted || x.Exception != null) && !x.IsCanceled)
                         {
-                            _logger.LogError(x.Exception, "{ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);
+                            _logger.LogError(x.Exception, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);
                         }
                     }, cancellationToken);
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogError(ex, "{ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);
+                _logger.LogError(ex, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);
                 throw;
             }
         }
@@ -90,7 +90,7 @@ namespace Topica.RabbitMq.Consumers
         public void Dispose()
         {
             _channel?.Dispose();
-            _logger.LogInformation("{RabbitMqQueueConsumerName}: Disposed", nameof(RabbitMqQueueConsumer));
+            _logger.LogDebug("**** DISPOSED: {RabbitMqQueueConsumerName}: Disposed", nameof(RabbitMqQueueConsumer));
         }
     }
 }
