@@ -3,7 +3,6 @@ using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Consumers;
 using Topica.Aws.Contracts;
-using Topica.Aws.Helpers;
 using Topica.Aws.Producer;
 using Topica.Aws.Queues;
 using Topica.Contracts;

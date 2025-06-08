@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using Topica.Aws.Contracts;
-using Topica.Aws.Helpers;
 using Topica.Aws.Messages;
 using Topica.Contracts;
 using Topica.Messages;
