@@ -10,7 +10,7 @@ namespace Pulsar.Topic.Producer.Host;
 
 public class Worker(IPulsarTopicCreationBuilder builder, PulsarProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
-    private IProducer _producer1;
+    private IProducer _producer1 = null!;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
