@@ -28,7 +28,7 @@ public class AwsQueueProvider(
                 MessageVisibilityTimeout = settings.AwsMessageVisibilityTimeoutSeconds,
                 IsFifoQueue = settings.AwsIsFifoQueue,
                 IsFifoContentBasedDeduplication = settings.AwsIsFifoContentBasedDeduplication,
-                QueueMaximumMessageSize = settings.AwsQueueMaximumMessageSize,
+                QueueMaximumMessageSize = settings.AwsQueueMaximumMessageSizeKb,
                 QueueMessageRetentionPeriodSeconds = settings.AwsQueueMessageRetentionPeriodSeconds,
                 QueueMessageDelaySeconds = settings.AwsQueueMessageDelaySeconds,
                 QueueReceiveMessageWaitTimeSeconds = settings.AwsQueueReceiveMessageWaitTimeSeconds

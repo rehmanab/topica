@@ -19,7 +19,7 @@ namespace Topica.Aws.Contracts
         IAwsQueueBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
         IAwsQueueBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
         IAwsQueueBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
-        IAwsQueueBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSize);
+        IAwsQueueBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb);
         
         /// <summary>
         /// Builds the consumer with the specified number of instances and maximum number of messages to receive.

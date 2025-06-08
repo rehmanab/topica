@@ -20,7 +20,7 @@ public class MessagingSettings
     public int AwsQueueMessageDelaySeconds { get; set; }
     public int AwsQueueMessageRetentionPeriodSeconds { get; set; }
     public int AwsQueueReceiveMessageWaitTimeSeconds { get; set; }
-    public int AwsQueueMaximumMessageSize { get; set; }
+    public int AwsQueueMaximumMessageSizeKb { get; set; }
     public int AwsQueueReceiveMaximumNumberOfMessages { get; set; }
     
     // Azure ServiceBus

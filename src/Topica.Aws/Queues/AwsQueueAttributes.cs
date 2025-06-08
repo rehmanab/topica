@@ -6,15 +6,22 @@ public class AwsQueueAttributes
 {
     public const int QueueMessageDelaySecondsMin = 0;
     public const int QueueMessageDelaySecondsMax = 900;
-    public const int QueueMaximumMessageSizeMin = 1024;
-    public const int QueueMaximumMessageSizeMax = 262144;
-    public const int QueueMessageRetentionPeriodMin = 60;
-    public const int QueueMessageRetentionPeriodMax = 1209600;
+    public const int QueueMaximumMessageSizeMinKb = 1024;
+    public const int QueueMaximumMessageSizeMaxKb = 262144;
+    public const int QueueMessageRetentionPeriodSecondsMin = 60;
+    public const int QueueMessageRetentionPeriodSecondsMax = 1209600;
     public const int QueueReceiveMessageWaitTimeSecondsMin = 0;
     public const int QueueReceiveMessageWaitTimeSecondsMax = 20;
-    public const int MessageVisibilityTimeoutSecondsDefault = 30;
     public const int MessageVisibilityTimeoutSecondsMin = 0;
     public const int MessageVisibilityTimeoutSecondsMax = 43200;
+
+    public const int DefaultMessageVisibilityTimeoutSeconds = 30;
+    public const int DefaultErrorQueueMaxReceiveCount = 1;
+    public const int DefaultQueueReceiveMessageWaitTimeSeconds = 0;
+    public const int DefaultQueueMessageRetentionPeriodSeconds = 345600;
+    public const int DefaultQueueMessageDelaySeconds = 0;
+    public const int DefaultQueueReceiveMaximumNumberOfMessages = 10;
+    public const int DefaultQueueMaximumMessageSizeMaxKb = 262144;
 
     public const string AllName = "All";
     public const string QueueMessageDelaySecondsName = "DelaySeconds";
@@ -65,10 +72,10 @@ public class AwsQueueAttributes
         if (QueueMessageDelaySeconds is < QueueMessageDelaySecondsMin or > QueueMessageDelaySecondsMax) 
             throw new AwsQueueAttributesException($"AWS: DelaySeconds must be between 0 and 300, currently: {QueueMessageDelaySeconds.Value}");
 
-        if (QueueMaximumMessageSize is < QueueMaximumMessageSizeMin or > QueueMaximumMessageSizeMax)
+        if (QueueMaximumMessageSize is < QueueMaximumMessageSizeMinKb or > QueueMaximumMessageSizeMaxKb)
             throw new AwsQueueAttributesException($"AWS: MaximumMessageSize must be between 1024 and 262144, currently: {QueueMaximumMessageSize.Value}");
 
-        if (QueueMessageRetentionPeriodSeconds is < QueueMessageRetentionPeriodMin or > QueueMessageRetentionPeriodMax)
+        if (QueueMessageRetentionPeriodSeconds is < QueueMessageRetentionPeriodSecondsMin or > QueueMessageRetentionPeriodSecondsMax)
             throw new AwsQueueAttributesException($"AWS: MessageRetentionPeriod must be between 60 and 1209600, currently: {QueueMessageRetentionPeriodSeconds.Value}");
 
         if (QueueReceiveMessageWaitTimeSeconds is < QueueReceiveMessageWaitTimeSecondsMin or > QueueReceiveMessageWaitTimeSecondsMax)
