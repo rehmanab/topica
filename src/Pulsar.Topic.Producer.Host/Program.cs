@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Producer.Host;
 using Pulsar.Topic.Producer.Host.Settings;
 using Pulsar.Topic.Producer.Host.Validators;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting Pulsar.Topic.Producer.Host *******");
 

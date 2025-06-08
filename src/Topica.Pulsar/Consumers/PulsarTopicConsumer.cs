@@ -82,7 +82,7 @@ namespace Topica.Pulsar.Consumers
                             // Need to Acknowledge all the messages whether success or not, I think when using partitioned topics, else the messages are sent again after restarting the worker..
                             await consumer.AcknowledgeAsync(message.MessageId);
 
-                            _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, _messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
+                            // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, _messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
                         }
 
                         await consumer.DisposeAsync();

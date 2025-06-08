@@ -52,8 +52,7 @@ var host = Host.CreateDefaultBuilder()
             c.SecretKey = hostSettings.SecretKey;
             c.ServiceUrl = hostSettings.ServiceUrl;
             c.RegionEndpoint = hostSettings.RegionEndpoint;
-        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
-        // Assembly.GetExecutingAssembly()
+        }, Assembly.GetExecutingAssembly());
         
         services.AddHostedService<Worker>();
     })

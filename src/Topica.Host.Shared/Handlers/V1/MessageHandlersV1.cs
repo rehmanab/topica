@@ -8,7 +8,7 @@ public class ButtonClickedMessageHandlerV1(ILogger<ButtonClickedMessageHandlerV1
 {
     public async Task<bool> HandleAsync(ButtonClickedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(ButtonClickedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(ButtonClickedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -23,7 +23,7 @@ public class CookiesAcceptedMessageHandlerV1(ILogger<CookiesAcceptedMessageHandl
 {
     public async Task<bool> HandleAsync(CookiesAcceptedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(CookiesAcceptedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(CookiesAcceptedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -38,7 +38,7 @@ public class CustomEventMessageHandlerV1(ILogger<CustomEventMessageHandlerV1> lo
 {
     public async Task<bool> HandleAsync(CustomEventMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(CustomEventMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(CustomEventMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -53,7 +53,7 @@ public class FileDownloadedMessageHandlerV1(ILogger<FileDownloadedMessageHandler
 {
     public async Task<bool> HandleAsync(FileDownloadedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(FileDownloadedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(FileDownloadedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -68,7 +68,7 @@ public class LinkClickedMessageHandlerV1(ILogger<LinkClickedMessageHandlerV1> lo
 {
     public async Task<bool> HandleAsync(LinkClickedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(LinkClickedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(LinkClickedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -83,7 +83,7 @@ public class PageLoadedMessageHandlerV1(ILogger<PageLoadedMessageHandlerV1> logg
 {
     public async Task<bool> HandleAsync(PageLoadedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(PageLoadedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(PageLoadedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -98,7 +98,7 @@ public class SearchTriggeredMessageHandlerV1(ILogger<SearchTriggeredMessageHandl
 {
     public async Task<bool> HandleAsync(SearchTriggeredMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(SearchTriggeredMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(SearchTriggeredMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -113,7 +113,7 @@ public class UserLoginMessageHandlerV1(ILogger<UserLoginMessageHandlerV1> logger
 {
     public async Task<bool> HandleAsync(UserLoginMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(UserLoginMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(UserLoginMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 
@@ -128,7 +128,7 @@ public class VideoPlayedMessageHandlerV1(ILogger<VideoPlayedMessageHandlerV1> lo
 {
     public async Task<bool> HandleAsync(VideoPlayedMessageV1 source)
     {
-        // logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(VideoPlayedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(VideoPlayedMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 

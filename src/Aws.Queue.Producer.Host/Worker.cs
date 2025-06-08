@@ -35,8 +35,8 @@ public class Worker(IAwsQueueCreationBuilder queueCreationBuilder, IAwsQueueServ
             .WithQueueSettings(settings.WebAnalyticsQueueSettings.QueueMaximumMessageSize)
             .BuildProducerAsync(stoppingToken);
         
-        // var count = await SendSingleAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
-        var count = await SendBatchAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
+        var count = await SendSingleAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
+        // var count = await SendBatchAsync(settings.WebAnalyticsQueueSettings.Source, stoppingToken);
 
         await _producer1.DisposeAsync();
 

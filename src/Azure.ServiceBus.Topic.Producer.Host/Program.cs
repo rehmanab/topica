@@ -48,7 +48,10 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(producerSettings);
 
         // Add MessagingPlatform Components
-        services.AddAzureServiceBusTopica(c => { c.ConnectionString = hostSettings.ConnectionString; }, Assembly.GetExecutingAssembly());
+        services.AddAzureServiceBusTopica(c =>
+        {
+            c.ConnectionString = hostSettings.ConnectionString;
+        }, Assembly.GetExecutingAssembly());
 
         services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
 

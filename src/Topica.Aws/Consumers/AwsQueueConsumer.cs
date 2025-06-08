@@ -125,7 +125,7 @@ namespace Topica.Aws.Consumers
                         }
 
                         var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(messageBody);
-                        _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                        // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                         
                         if (!success) continue; // Undeleted messages will be retried by AWS SQS, or sent to the error queue if configured
 

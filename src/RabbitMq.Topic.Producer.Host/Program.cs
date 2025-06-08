@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMq.Topic.Producer.Host;
 using RabbitMq.Topic.Producer.Host.Settings;
 using RabbitMq.Topic.Producer.Host.Validators;
-using Topica.Settings;
 
 Console.WriteLine("******* Starting RabbitMq.Topic.Producer.Host *******");
 

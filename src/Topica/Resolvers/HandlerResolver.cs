@@ -16,7 +16,7 @@ namespace Topica.Resolvers
         /// <param name="source">The message body</param>
         /// <returns>handlerImpl, methodToValidate, methodToExecute</returns>
         /// <exception cref="Exception"></exception>
-        public (bool handlerFound, object handlerImpl, object methodToValidate, object methodToExecute) ResolveHandler(string source)
+        public (bool handlerFound, object handlerImpl, object methodToValidate, object? methodToExecute) ResolveHandler(string source)
         {
             var baseMessage = JsonConvert.DeserializeObject<BaseMessage>(source);
             
@@ -68,7 +68,7 @@ namespace Topica.Resolvers
             return (true, executeHandler.handlerImpl, executeHandler.methodToValidate, executeHandler.methodToExecute);
         }
 
-        private static (object handlerImpl, object methodToValidate, object methodToExecute) ExecuteHandler(object handlerImpl, object message)
+        private static (object handlerImpl, object methodToValidate, object? methodToExecute) ExecuteHandler(object handlerImpl, object message)
         {
             var methodToValidate = handlerImpl.GetType().GetMethod("ValidateMessage");
             if (methodToValidate == null)

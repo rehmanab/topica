@@ -17,7 +17,7 @@ public class KafkaTopicProvider(IMessageHandlerExecutor messageHandlerExecutor, 
 
     public async Task CreateTopicAsync(MessagingSettings settings)
     {
-        using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", settings.KafkaBootstrapServers!) }).Build();
+        using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", settings.KafkaBootstrapServers) }).Build();
         
         try
         {
