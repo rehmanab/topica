@@ -20,11 +20,21 @@ namespace Topica.Aws.Services
         {
             queueName = TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, isFifo);
             
-            var queueUrl = (await GetQueueUrlsAsync(queueName, false, cancellationToken))
-                .ToList()
-                .FirstOrDefault(x => x.EndsWith(queueName, StringComparison.InvariantCultureIgnoreCase));
+            try
+            {
+                var response = await client.GetQueueUrlAsync(queueName, cancellationToken);
 
-            return queueUrl;
+                if (response != null && !string.IsNullOrWhiteSpace(response.QueueUrl))
+                {
+                    return response.QueueUrl;
+                }
+
+                return null;
+            }
+            catch (QueueDoesNotExistException)
+            {
+                return null;
+            }
         }
 
         public async Task<IDictionary<string, string>> GetAttributesByQueueUrl(string queueUrl, IEnumerable<string>? attributeNames = null)
@@ -81,34 +91,6 @@ namespace Topica.Aws.Services
             var response = await client.DeleteMessageAsync(queueUrl, receiptHandle);
 
             return response.HttpStatusCode == HttpStatusCode.OK;
-        }
-
-        private async Task<IEnumerable<string>> GetQueueUrlsAsync(string queueNamePrefix, bool nameOnly, CancellationToken cancellationToken = default)
-        {
-            var response = await client.ListQueuesAsync(queueNamePrefix, cancellationToken);
-            var queueUrls = response.QueueUrls;
-
-            if (queueUrls == null || queueUrls.Count == 0) return [];
-
-            var items = new List<string>();
-            foreach (var queueUrl in queueUrls.Where(queueUrl => !string.IsNullOrWhiteSpace(queueUrl) && queueUrl.Contains("/")))
-            {
-                if (nameOnly)
-                {
-                    var lastEntryQueueName = queueUrl.Split("/".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
-
-                    if (!string.IsNullOrEmpty(lastEntryQueueName))
-                    {
-                        items.Add(lastEntryQueueName);
-                    }
-                }
-                else
-                {
-                    items.Add(queueUrl);
-                }
-            }
-
-            return items;
         }
     }
 }

@@ -5,16 +5,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
+using Topica.Infrastructure.Contracts;
 using Topica.Messages;
 
 namespace Topica.Aws.Producer;
 
-public class AwsQueueProducer(string producerName, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo) : IProducer, IAsyncDisposable
+public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo, ILogger logger) : IProducer, IAsyncDisposable
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
@@ -98,7 +100,15 @@ public class AwsQueueProducer(string producerName, IAwsQueueService awsQueueServ
     
     private async Task<string> GetQueueUrl(string queueName, CancellationToken cancellationToken)
     {
-        var queueUrl = await awsQueueService.GetQueueUrlAsync(queueName, isFifo, cancellationToken);
+        var queueUrl = await pollyRetryService.WaitAndRetryAsync<Exception, string?>
+        (
+            5,
+            _ => TimeSpan.FromSeconds(3),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueProducer), index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
+            result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
+            () => awsQueueService.GetQueueUrlAsync(queueName, isFifo, cancellationToken),
+            false
+        );
 
         if (queueUrl == null)
         {

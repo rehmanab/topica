@@ -1,13 +1,19 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Kafka.Contracts;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Kafka.Builders;
 
-public class KafkaTopicCreationBuilder(ITopicProviderFactory topicProviderFactory, ILogger<KafkaTopicCreationBuilder> logger) : IKafkaTopicCreationBuilder, IKafkaTopicBuilderWithTopicName, IKafkaTopicBuilderWithQueues, IKafkaTopicBuilderWithTopicSettings, IKafkaTopicBuilderWithBootstrapServers, IKafkaTopicBuilderWithBuild
+public class KafkaTopicCreationBuilder(
+    IPollyRetryService pollyRetryService,
+    ITopicProviderFactory topicProviderFactory, 
+    ILogger<KafkaTopicCreationBuilder> logger) 
+    : IKafkaTopicCreationBuilder, IKafkaTopicBuilderWithTopicName, IKafkaTopicBuilderWithQueues, IKafkaTopicBuilderWithTopicSettings, IKafkaTopicBuilderWithBootstrapServers, IKafkaTopicBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -53,8 +59,14 @@ public class KafkaTopicCreationBuilder(ITopicProviderFactory topicProviderFactor
         var messagingSettings = GetMessagingSettings(numberOfInstances);
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Kafka, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(KafkaTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
 
         return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
@@ -66,8 +78,14 @@ public class KafkaTopicCreationBuilder(ITopicProviderFactory topicProviderFactor
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Kafka);
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Kafka, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(KafkaTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
         
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }

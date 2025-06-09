@@ -7,11 +7,13 @@ using Topica.Aws.Contracts;
 using Topica.Aws.Producer;
 using Topica.Aws.Queues;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Aws.Providers
 {
     public class AwsTopicProvider(
+        IPollyRetryService pollyRetryService,
         IAmazonSimpleNotificationService snsClient,
         IAmazonSQS sqsClient,
         IMessageHandlerExecutor messageHandlerExecutor,
@@ -44,7 +46,7 @@ namespace Topica.Aws.Providers
         {
             await Task.CompletedTask;
 
-            return new AwsQueueConsumer(sqsClient, messageHandlerExecutor, awsQueueService, messagingSettings, logger);
+            return new AwsQueueConsumer(pollyRetryService, sqsClient, messageHandlerExecutor, awsQueueService, messagingSettings, logger);
         }
 
         public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)

@@ -10,6 +10,7 @@ using Polly.Retry;
 using Topica.Aws.Contracts;
 using Topica.Aws.Messages;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.Messages;
 using Topica.Settings;
 
@@ -17,6 +18,7 @@ namespace Topica.Aws.Consumers
 {
     public class AwsQueueConsumer : IConsumer
     {
+        private readonly IPollyRetryService _pollyRetryService;
         private readonly IAmazonSQS _client;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IAwsQueueService _awsQueueService;
@@ -24,8 +26,9 @@ namespace Topica.Aws.Consumers
         private readonly ResiliencePipeline _retryPipeline;
         private readonly ILogger _logger;
 
-        public AwsQueueConsumer(IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, MessagingSettings messagingSettings, ILogger logger)
+        public AwsQueueConsumer(IPollyRetryService pollyRetryService, IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, MessagingSettings messagingSettings, ILogger logger)
         {
+            _pollyRetryService = pollyRetryService;
             _client = client;
             _messageHandlerExecutor = messageHandlerExecutor;
             _awsQueueService = awsQueueService;
@@ -37,7 +40,7 @@ namespace Topica.Aws.Consumers
                 MaxRetryAttempts = int.MaxValue,
                 OnRetry = args =>
                 {
-                    logger.LogWarning("Retrying until connected and/or Topic/Queue exists: retry attempt: {ArgsAttemptNumber} - Retry in {RetryDelayTotalSeconds} seconds", args.AttemptNumber + 1, args.RetryDelay.TotalSeconds);
+                    logger.LogWarning("**** {Name}:{ConsumerName}: Retrying until connected and/or Topic/Queue exists: retry attempt: {ArgsAttemptNumber} - Retry in {RetryDelayTotalSeconds} seconds", nameof(AwsQueueConsumer), _messagingSettings.WorkerName, args.AttemptNumber + 1, args.RetryDelay.TotalSeconds);
                     return default;
                 }
             }).Build();
@@ -58,11 +61,19 @@ namespace Topica.Aws.Consumers
         {
             try
             {
-                var queueUrl = await _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, cancellationToken);
+                var queueUrl = await _pollyRetryService.WaitAndRetryAsync<Exception, string?>
+                (
+                    5,
+                    _ => TimeSpan.FromSeconds(3),
+                    (delegateResult, ts, index, context) => _logger.LogWarning("**** RETRY: {Name}:{ConsumerName}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueConsumer), consumerName, index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
+                    result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
+                    () => _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, cancellationToken),
+                    false
+                );
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    _logger.LogError("{AwsQueueConsumerName}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), messagingSettings.SubscribeToSource);
+                    _logger.LogError("{Name}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), messagingSettings.SubscribeToSource);
                     throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {messagingSettings.SubscribeToSource} does not exist.");
                 }
 
@@ -82,7 +93,7 @@ namespace Topica.Aws.Consumers
 
                     if (receiveMessageResponse?.Messages == null)
                     {
-                        // _logger.LogWarning("{AwsQueueConsumerName}: {ConsumerName}: No messages received from Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                        // _logger.LogWarning("{Name}: {ConsumerName}: No messages received from Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                         await Task.Delay(50, cancellationToken);
                         continue;
                     }
@@ -124,13 +135,13 @@ namespace Topica.Aws.Consumers
                         }
 
                         var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(messageBody);
-                        // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                        // _logger.LogDebug("**** {Name}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                         
                         if (!success) continue; // Undeleted messages will be retried by AWS SQS, or sent to the error queue if configured
 
                         if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {
-                            _logger.LogError("{AwsQueueConsumerName}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                            _logger.LogError("{Name}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                         }
                     }
                 }
@@ -139,21 +150,21 @@ namespace Topica.Aws.Consumers
             }
             catch (TaskCanceledException)
             {
-                _logger.LogWarning("**** {AwsQueueConsumerName}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                _logger.LogWarning("**** {Name}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
                 _client.Dispose();
             }
             catch (AggregateException ex)
             {
                 foreach (var inner in ex.Flatten().InnerExceptions)
                 {
-                    _logger.LogError(inner, "**** {AwsQueueConsumerName}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
+                    _logger.LogError(inner, "**** {Name}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
                 }
 
                 throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "**** {AwsQueueConsumerName}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
+                _logger.LogError(ex, "**** {Name}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
                 throw;
             }
         }

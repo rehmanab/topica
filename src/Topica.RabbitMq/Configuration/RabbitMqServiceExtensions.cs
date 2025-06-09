@@ -6,6 +6,8 @@ using RabbitMQ.Client;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Infrastructure.Contracts;
+using Topica.Infrastructure.Services;
 using Topica.RabbitMq.Builders;
 using Topica.RabbitMq.Clients;
 using Topica.RabbitMq.Configuration;
@@ -38,6 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new Exception($"{nameof(RabbitMqServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
             
+            services.AddScoped<IPollyRetryService, PollyRetryService>();
             services
                 .AddHttpClient(nameof(RabbitMqManagementApiClient))
                 .AddTypedClient<IRabbitMqManagementApiClient>(x =>
@@ -48,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     return new RabbitMqManagementApiClient(config.VHost, x);
                 });
-
+            
             services.AddScoped<IRabbitMqQueueCreationBuilder, RabbitMqQueueCreationBuilder>();
             services.AddScoped<IRabbitMqTopicCreationBuilder, RabbitMqTopicCreationBuilder>();
             services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();

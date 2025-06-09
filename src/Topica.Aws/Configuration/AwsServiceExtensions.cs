@@ -11,6 +11,8 @@ using Topica.Aws.Providers;
 using Topica.Aws.Services;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Infrastructure.Contracts;
+using Topica.Infrastructure.Services;
 using Topica.Resolvers;
 using Topica.Topics;
 
@@ -39,6 +41,7 @@ public static class AwsServiceExtensions
         }
             
         var awsClientService = new AwsClientService(logger);
+        services.AddScoped<IPollyRetryService, PollyRetryService>();
         services.AddScoped<IAwsClientService>(_ => awsClientService);
         services.AddScoped<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
         services.AddScoped<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));

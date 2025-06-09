@@ -36,7 +36,6 @@ public class MessagingSettings
     public int? AzureServiceBusMaxMessageSizeInKilobytes { get; set; }
     public bool? AzureServiceBusEnabledStatus { get; set; }
     public bool? AzureServiceBusSupportOrdering { get; set; }
-    public string AzureServiceBusConnectionString { get; set; } = null!;
 
 
     // Kafka

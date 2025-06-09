@@ -1,12 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Azure;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
 using Topica.Helpers;
+using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Builders;
 
-public class AzureServiceBusTopicCreationBuilder(ITopicProviderFactory topicProviderFactory, IAzureServiceBusClientProvider provider, ILogger<AzureServiceBusTopicCreationBuilder> logger) : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscriptions, IAzureServiceBusTopicBuilderWithBuild
+public class AzureServiceBusTopicCreationBuilder(
+    IPollyRetryService pollyRetryService,
+    ITopicProviderFactory topicProviderFactory, 
+    IAzureServiceBusClientProvider provider, 
+    ILogger<AzureServiceBusTopicCreationBuilder> logger) 
+    : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscriptions, IAzureServiceBusTopicBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -88,8 +96,14 @@ public class AzureServiceBusTopicCreationBuilder(ITopicProviderFactory topicProv
         if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(".servicebus.windows.net"))
         {
             logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} with connection string endpoint: {ConnectionStringEndpoint}", _workerName, connectionStringEndpoint);
-            await topicProvider.CreateTopicAsync(messagingSettings);
-            await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+            await pollyRetryService.WaitAndRetryAsync<ServiceBusException>
+            (
+                30,
+                _ => TimeSpan.FromSeconds(10),
+                (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
+                () => topicProvider.CreateTopicAsync(messagingSettings),
+                false
+            );
         }
         else
         {
@@ -111,7 +125,14 @@ public class AzureServiceBusTopicCreationBuilder(ITopicProviderFactory topicProv
         if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(".servicebus.windows.net"))
         {
             logger.LogInformation("Azure Service Bus Producer: {ProducerName} with connection string endpoint: {ConnectionStringEndpoint}", _workerName, connectionStringEndpoint);
-            await topicProvider.CreateTopicAsync(messagingSettings);
+            await pollyRetryService.WaitAndRetryAsync<ServiceBusException>
+            (
+                30,
+                _ => TimeSpan.FromSeconds(10),
+                (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
+                () => topicProvider.CreateTopicAsync(messagingSettings),
+                false
+            );
         }
         else
         {

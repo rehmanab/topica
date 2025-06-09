@@ -5,6 +5,8 @@ using Pulsar.Client.Api;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Infrastructure.Contracts;
+using Topica.Infrastructure.Services;
 using Topica.Pulsar.Builders;
 using Topica.Pulsar.Configuration;
 using Topica.Pulsar.Contracts;
@@ -38,6 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new Exception($"{nameof(PulsarServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
             
+            services.AddScoped<IPollyRetryService, PollyRetryService>();
             services.AddHttpClient<IHttpClientService, HttpClientService>();
             services.AddScoped<IPulsarService, PulsarService>(provider =>
             {

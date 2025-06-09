@@ -9,6 +9,8 @@ using System.Reflection;
 using Topica.Azure.ServiceBus.Builders;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Azure.ServiceBus.Providers;
+using Topica.Infrastructure.Contracts;
+using Topica.Infrastructure.Services;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -33,7 +35,8 @@ public static class AzureServiceBusExtensions
         {
             throw new Exception($"{nameof(AzureServiceBusExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
         }
-            
+        
+        services.AddScoped<IPollyRetryService, PollyRetryService>();
         services.AddScoped<IAzureServiceBusAdministrationClientProvider>(_ => new AzureServiceBusAdministrationClientProvider(config.ConnectionString!));
         services.AddScoped<IAzureServiceBusClientProvider>(_ => new AzureServiceBusClientProvider(config.ConnectionString!));
         services.AddScoped<IAzureServiceBusTopicCreationBuilder, AzureServiceBusTopicCreationBuilder>();

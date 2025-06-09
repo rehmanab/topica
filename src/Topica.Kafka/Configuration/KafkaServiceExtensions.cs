@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
+using Topica.Infrastructure.Contracts;
+using Topica.Infrastructure.Services;
 using Topica.Kafka.Builders;
 using Topica.Kafka.Contracts;
 using Topica.Kafka.Providers;
@@ -30,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new Exception($"{nameof(KafkaServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
             }
             
+            services.AddScoped<IPollyRetryService, PollyRetryService>();
             services.AddScoped<IKafkaTopicCreationBuilder, KafkaTopicCreationBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, KafkaTopicProvider>();

@@ -37,8 +37,8 @@ public class Worker(IAwsTopicCreationBuilder builder, AwsProducerSettings settin
             .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
             .BuildProducerAsync(stoppingToken);
         
-        // var count = await SendSingleAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
-        var count = await SendBatchAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
+        var count = await SendSingleAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
+        // var count = await SendBatchAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
 
         await _producer1.DisposeAsync();
 

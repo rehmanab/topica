@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Amazon.SQS.Model;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
-using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Aws.Builders;
@@ -16,7 +18,10 @@ namespace Topica.Aws.Builders;
 /// </summary>
 /// <param name="queueProviderFactory"></param>
 /// <param name="logger"></param>
-public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory, ILogger<AwsQueueCreationBuilder> logger) : IAwsQueueCreationBuilder, IAwsQueueBuilderWithQueueName, IAwsQueueBuilderWithBuild
+public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory, 
+    IPollyRetryService pollyRetryService,
+    ILogger<AwsQueueCreationBuilder> logger) 
+    : IAwsQueueCreationBuilder, IAwsQueueBuilderWithQueueName, IAwsQueueBuilderWithBuild
 {
     private string _workerName = null!;
     private string _queueName = null!;
@@ -77,9 +82,15 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         var messagingSettings = GetMessagingSettings(numberOfInstances, receiveMaximumNumberOfMessages);
 
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Aws, _workerName, messagingSettings.Source);
-        await queueProvider.CreateQueueAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
-
+        await pollyRetryService.WaitAndRetryAsync<QueueDeletedRecentlyException>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AwsQueueCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => queueProvider.CreateQueueAsync(messagingSettings),
+            false
+        );
+        
         return await queueProvider.ProvideConsumerAsync(messagingSettings);
     }
 
@@ -89,8 +100,14 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         var messagingSettings = GetMessagingSettings();
 
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Aws, _workerName, messagingSettings.Source);
-        await queueProvider.CreateQueueAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<QueueDeletedRecentlyException>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AwsQueueCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => queueProvider.CreateQueueAsync(messagingSettings),
+            false
+        );
 
         return await queueProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }

@@ -69,7 +69,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 if (message == null) continue;
                 
                 var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Body));
-                // _logger.LogDebug("**** {AwsQueueConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
+                // _logger.LogDebug("**** {Name}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                 if (!success) continue;
                     

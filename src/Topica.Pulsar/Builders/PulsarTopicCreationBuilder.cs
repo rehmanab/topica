@@ -1,13 +1,19 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.Pulsar.Contracts;
 using Topica.Settings;
 
 namespace Topica.Pulsar.Builders;
 
-public class PulsarTopicCreationBuilder(ITopicProviderFactory topicProviderFactory, ILogger<PulsarTopicCreationBuilder> logger) : IPulsarTopicCreationBuilder, IPulsarConsumerTopicBuilderWithTopicName, IPulsarConsumerTopicBuilderWithQueues, IPulsarConsumerTopicBuilderWithConfiguration, IPulsarConsumerTopicBuilderWithOptions, IPulsarConsumerTopicBuilderWithBuild
+public class PulsarTopicCreationBuilder(
+    IPollyRetryService pollyRetryService,
+    ITopicProviderFactory topicProviderFactory, 
+    ILogger<PulsarTopicCreationBuilder> logger) 
+    : IPulsarTopicCreationBuilder, IPulsarConsumerTopicBuilderWithTopicName, IPulsarConsumerTopicBuilderWithQueues, IPulsarConsumerTopicBuilderWithConfiguration, IPulsarConsumerTopicBuilderWithOptions, IPulsarConsumerTopicBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -74,8 +80,14 @@ public class PulsarTopicCreationBuilder(ITopicProviderFactory topicProviderFacto
         var messagingSettings = GetMessagingSettings(numberOfInstances);
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Pulsar, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(PulsarTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
 
         return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
@@ -94,8 +106,14 @@ public class PulsarTopicCreationBuilder(ITopicProviderFactory topicProviderFacto
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Pulsar, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(PulsarTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
 
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }

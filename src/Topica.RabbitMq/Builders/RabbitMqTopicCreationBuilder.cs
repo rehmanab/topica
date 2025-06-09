@@ -3,12 +3,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
+using Topica.Infrastructure.Contracts;
 using Topica.RabbitMq.Contracts;
 using Topica.Settings;
 
 namespace Topica.RabbitMq.Builders;
 
-public class RabbitMqTopicCreationBuilder(ITopicProviderFactory topicProviderFactory, ILogger<RabbitMqTopicCreationBuilder> logger) : IRabbitMqTopicCreationBuilder, IRabbitMqTopicBuilderWithTopicName, IRabbitMqTopicBuilderWithQueues, IRabbitMqTopicBuilderWithQueueToSubscribeTo, IRabbitMqTopicBuilderWithBuild
+public class RabbitMqTopicCreationBuilder(
+    IPollyRetryService pollyRetryService,
+    ITopicProviderFactory topicProviderFactory, 
+    ILogger<RabbitMqTopicCreationBuilder> logger) 
+    : IRabbitMqTopicCreationBuilder, IRabbitMqTopicBuilderWithTopicName, IRabbitMqTopicBuilderWithQueues, IRabbitMqTopicBuilderWithQueueToSubscribeTo, IRabbitMqTopicBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -45,8 +50,14 @@ public class RabbitMqTopicCreationBuilder(ITopicProviderFactory topicProviderFac
         var messagingSettings = GetMessagingSettings(_subscribeToQueueName, numberOfInstances);
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.RabbitMq, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(RabbitMqTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
 
         return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
@@ -57,8 +68,14 @@ public class RabbitMqTopicCreationBuilder(ITopicProviderFactory topicProviderFac
         var messagingSettings = GetMessagingSettings(_subscribeToQueueName);
 
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.RabbitMq, _workerName, messagingSettings.Source);
-        await topicProvider.CreateTopicAsync(messagingSettings);
-        await Task.Delay(3000, cancellationToken); // Allow time for the topic to be created
+        await pollyRetryService.WaitAndRetryAsync<Exception>
+        (
+            30,
+            _ => TimeSpan.FromSeconds(10),
+            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(RabbitMqTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
+            () => topicProvider.CreateTopicAsync(messagingSettings),
+            false
+        );
         
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }

@@ -11,10 +11,16 @@ using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
+using Topica.Infrastructure.Contracts;
 
 namespace Topica.Aws.Services
 {
-    public class AwsTopicService(IAmazonSimpleNotificationService snsClient, IAwsQueueService awsQueueService, ILogger<AwsTopicService> logger) : IAwsTopicService
+    public class AwsTopicService(
+        IPollyRetryService pollyRetryService,
+        IAmazonSimpleNotificationService snsClient, 
+        IAwsQueueService awsQueueService, 
+        ILogger<AwsTopicService> logger) 
+        : IAwsTopicService
     {
         public async IAsyncEnumerable<IEnumerable<Topic>> GetAllTopics(string? topicNamePrefix = null, bool? isFifo = false)
         {
@@ -113,13 +119,26 @@ namespace Topica.Aws.Services
             return topicSubscriptionArns.Any(x => string.Equals(endpointArn, x));
         }
 
-        public async Task<string?> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration sqsConfiguration, CancellationToken cancellationToken = default)
+        public async Task<string> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration sqsConfiguration, CancellationToken cancellationToken = default)
         {
             var topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
 
             foreach (var queueName in queueNames)
             {
-                var queueUrl = await awsQueueService.CreateQueueAsync(queueName, sqsConfiguration, cancellationToken);
+                var queueUrl = await pollyRetryService.WaitAndRetryAsync<Exception, string>
+                (
+                    5,
+                    _ => TimeSpan.FromSeconds(3),
+                    (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsTopicService), index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
+                    result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
+                    () => awsQueueService.CreateQueueAsync(queueName, sqsConfiguration, cancellationToken),
+                    false
+                );
+                
+                if (string.IsNullOrWhiteSpace(queueUrl))
+                {
+                    throw new ApplicationException($"Could not create queue: {queueName} for topic: {topicName}");
+                }
 
                 var properties = await awsQueueService.GetAttributesByQueueUrl(queueUrl, new List<string> { AwsQueueAttributes.QueueArnName });
 
