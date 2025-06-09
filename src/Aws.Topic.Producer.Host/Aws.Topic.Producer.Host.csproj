@@ -11,7 +11,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Topica.Aws\Topica.Aws.csproj" />
-        <ProjectReference Include="..\Topica.Host.Shared\Topica.Host.Shared.csproj" />
+        <ProjectReference Include="..\Topica.SharedMessageHandlers\Topica.SharedMessageHandlers.csproj" />
         <ProjectReference Include="..\Topica\Topica.csproj" />
     </ItemGroup>
 

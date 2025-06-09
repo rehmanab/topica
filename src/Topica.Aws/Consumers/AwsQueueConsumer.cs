@@ -19,17 +19,17 @@ namespace Topica.Aws.Consumers
     public class AwsQueueConsumer : IConsumer
     {
         private readonly IPollyRetryService _pollyRetryService;
-        private readonly IAmazonSQS _client;
+        private readonly IAmazonSQS? _sqsClient;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
         private readonly IAwsQueueService _awsQueueService;
         private readonly MessagingSettings _messagingSettings;
         private readonly ResiliencePipeline _retryPipeline;
         private readonly ILogger _logger;
 
-        public AwsQueueConsumer(IPollyRetryService pollyRetryService, IAmazonSQS client, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, MessagingSettings messagingSettings, ILogger logger)
+        public AwsQueueConsumer(IPollyRetryService pollyRetryService, IAmazonSQS sqsClient, IMessageHandlerExecutor messageHandlerExecutor, IAwsQueueService awsQueueService, MessagingSettings messagingSettings, ILogger logger)
         {
             _pollyRetryService = pollyRetryService;
-            _client = client;
+            _sqsClient = sqsClient;
             _messageHandlerExecutor = messageHandlerExecutor;
             _awsQueueService = awsQueueService;
             _messagingSettings = messagingSettings;
@@ -55,6 +55,12 @@ namespace Topica.Aws.Consumers
             });
 
             await Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            _sqsClient?.Dispose();
+            return ValueTask.CompletedTask;
         }
 
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
@@ -89,7 +95,13 @@ namespace Topica.Aws.Consumers
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var receiveMessageResponse = await _client.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
+                    if(_sqsClient == null)
+                    {
+                        _logger.LogError("{Name}: {ConsumerName}: SQS client is not initialized", nameof(AwsQueueConsumer), consumerName);
+                        throw new InvalidOperationException("SQS client is not initialized.");
+                    }
+                    
+                    var receiveMessageResponse = await _sqsClient.ReceiveMessageAsync(receiveMessageRequest, cancellationToken);
 
                     if (receiveMessageResponse?.Messages == null)
                     {
@@ -151,7 +163,6 @@ namespace Topica.Aws.Consumers
             catch (TaskCanceledException)
             {
                 _logger.LogWarning("**** {Name}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
-                _client.Dispose();
             }
             catch (AggregateException ex)
             {
@@ -159,12 +170,13 @@ namespace Topica.Aws.Consumers
                 {
                     _logger.LogError(inner, "**** {Name}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
                 }
-
+                _sqsClient?.Dispose();
                 throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "**** {Name}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
+                _sqsClient?.Dispose();
                 throw;
             }
         }

@@ -20,7 +20,7 @@ namespace Topica.Aws.Strategy
             //Create normal queue passing in redrive policy
             queueName = RemoveTopicQueueNameFifoSuffix(queueName);
             
-            var errorQueueUrl = await InternalCreateErrorQueue(AddTopicQueueNameFifoSuffix($"{queueName}{Constants.ErrorQueueSuffix}", configuration.QueueAttributes.IsFifoQueue), configuration);
+            var errorQueueUrl = await InternalCreateErrorQueue(AddTopicQueueNameErrorAndFifoSuffix(queueName, configuration.QueueAttributes.IsFifoQueue), configuration);
             var errorQueueArn = await GetQueueArn(errorQueueUrl);
 
             var redrivePolicy = $"{{\"maxReceiveCount\":\"{configuration.ErrorQueueMaxReceiveCount}\", \"deadLetterTargetArn\":\"{errorQueueArn}\"}}";

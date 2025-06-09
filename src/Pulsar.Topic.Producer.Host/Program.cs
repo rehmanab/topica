@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Producer.Host;
 using Pulsar.Topic.Producer.Host.Settings;
 using Pulsar.Topic.Producer.Host.Validators;
+using Topica.Pulsar.Contracts;
 
 Console.WriteLine("******* Starting Pulsar.Topic.Producer.Host *******");
 
@@ -28,20 +29,20 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
-        var producerSettings = configuration.GetSection(PulsarProducerSettings.SectionName).Get<PulsarProducerSettings>();
+        var settings = configuration.GetSection(PulsarProducerSettings.SectionName).Get<PulsarProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(PulsarHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (producerSettings == null) throw new InvalidOperationException($"{nameof(PulsarProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(PulsarProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new PulsarHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new PulsarProducerSettingsValidator().ValidateAndThrow(producerSettings);
-        
+        new PulsarProducerSettingsValidator().ValidateAndThrow(settings);
+
         services.AddSingleton(hostSettings);
-        services.AddSingleton(producerSettings);
+        services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
@@ -50,13 +51,31 @@ var host = Host.CreateDefaultBuilder()
             c.PulsarManagerBaseUrl = hostSettings.PulsarManagerBaseUrl;
             c.PulsarAdminBaseUrl = hostSettings.PulsarAdminBaseUrl;
         }, Assembly.GetExecutingAssembly());
-        
-        services.Configure<HostOptions>(options =>
-        {
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-        });
-        
+
+        services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
+            .WithConfiguration(
+                settings.WebAnalyticsTopicSettings.Tenant,
+                settings.WebAnalyticsTopicSettings.Namespace,
+                settings.WebAnalyticsTopicSettings.NumberOfPartitions
+            )
+            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+            .WithProducerOptions(
+                settings.WebAnalyticsTopicSettings.BlockIfQueueFull,
+                settings.WebAnalyticsTopicSettings.MaxPendingMessages,
+                settings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
+                settings.WebAnalyticsTopicSettings.EnableBatching,
+                settings.WebAnalyticsTopicSettings.EnableChunking,
+                settings.WebAnalyticsTopicSettings.BatchingMaxMessages,
+                settings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
+            ));
     })
     .Build();
 

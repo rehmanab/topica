@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.IO;
+using System.Reflection;
 using Aws.Topic.Producer.Host;
 using Aws.Topic.Producer.Host.Settings;
 using Aws.Topic.Producer.Host.Validators;
@@ -7,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Aws.Contracts;
 
 Console.WriteLine("******* Starting Aws.Topic.Producer.Host *******");
 
@@ -28,21 +31,21 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
-        var producerSettings = configuration.GetSection(AwsProducerSettings.SectionName).Get<AwsProducerSettings>();
+        var settings = configuration.GetSection(AwsProducerSettings.SectionName).Get<AwsProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(AwsHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (producerSettings == null) throw new InvalidOperationException($"{nameof(AwsProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        
+        if (settings == null) throw new InvalidOperationException($"{nameof(AwsProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+
         new AwsHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new AwsProducerSettingsValidator().ValidateAndThrow(producerSettings);
+        new AwsProducerSettingsValidator().ValidateAndThrow(settings);
 
         services.AddSingleton(hostSettings);
-        services.AddSingleton(producerSettings);
-        
+        services.AddSingleton(settings);
+
         // Add MessagingPlatform Components
         services.AddAwsTopica(c =>
         {
@@ -52,13 +55,32 @@ var host = Host.CreateDefaultBuilder()
             c.ServiceUrl = hostSettings.ServiceUrl;
             c.RegionEndpoint = hostSettings.RegionEndpoint;
         }, Assembly.GetExecutingAssembly());
-        
-        services.Configure<HostOptions>(options =>
-        {
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-        });
-        
+
+        services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IAwsTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
+            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
+            .WithErrorQueueSettings(
+                settings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
+                settings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
+            )
+            .WithFifoSettings(
+                settings.WebAnalyticsTopicSettings.IsFifoQueue,
+                settings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
+            )
+            .WithTemporalSettings(
+                settings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
+                settings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
+            )
+            .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize));
     })
     .Build();
 

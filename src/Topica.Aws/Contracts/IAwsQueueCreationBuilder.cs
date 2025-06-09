@@ -11,24 +11,23 @@ namespace Topica.Aws.Contracts
 
     public interface IAwsQueueBuilderWithQueueName
     {
-        IAwsQueueBuilderWithBuild WithQueueName(string queueName);
+        IAwsQueueBuilder WithQueueName(string queueName);
     }
     
-    public interface IAwsQueueBuilderWithBuild
+    public interface IAwsQueueBuilder
     {
-        IAwsQueueBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
-        IAwsQueueBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
-        IAwsQueueBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
-        IAwsQueueBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsQueueBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
+        IAwsQueueBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
+        IAwsQueueBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
+        IAwsQueueBuilder WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsQueueBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
         
         /// <summary>
         /// Builds the consumer with the specified number of instances and maximum number of messages to receive.
         /// </summary>
-        /// <param name="numberOfInstances">Number of parallel instance</param>
-        /// <param name="receiveMaximumNumberOfMessages">How many AWS messages to get per receive</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns an <see cref="IConsumer"/> instance, ready to consume the SubscribeToQueueName app setting</returns>
-        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, int? receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default);
+        Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         
         /// <summary>
         /// Builds the producer, ready to send messages to the Queue.

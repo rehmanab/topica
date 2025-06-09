@@ -7,7 +7,8 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Consumer.Host;
 using Pulsar.Topic.Consumer.Host.Settings;
 using Pulsar.Topic.Consumer.Host.Validators;
-using Topica.Host.Shared;
+using Topica.SharedMessageHandlers;
+using Topica.Pulsar.Contracts;
 
 Console.WriteLine("******* Starting Pulsar.Topic.Consumer.Host *******");
 
@@ -33,16 +34,16 @@ var host = Host.CreateDefaultBuilder()
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
-        var consumerSettings = configuration.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>();
+        var settings = configuration.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(PulsarHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(PulsarConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(PulsarConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new PulsarHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new PulsarConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
+        new PulsarConsumerSettingsValidator().ValidateAndThrow(settings);
 
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
+        services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
@@ -54,6 +55,19 @@ var host = Host.CreateDefaultBuilder()
         // Assembly.GetExecutingAssembly()
 
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
+            .WithConfiguration(
+                settings.WebAnalyticsTopicSettings.Tenant,
+                settings.WebAnalyticsTopicSettings.Namespace,
+                settings.WebAnalyticsTopicSettings.NumberOfPartitions
+            )
+            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+            .WithConsumeSettings(settings.WebAnalyticsTopicSettings.NumberOfInstances));
     })
     .Build();
 

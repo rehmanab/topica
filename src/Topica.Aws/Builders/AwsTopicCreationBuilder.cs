@@ -14,7 +14,7 @@ namespace Topica.Aws.Builders;
 public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
     IPollyRetryService pollyRetryService,
     ILogger<AwsTopicCreationBuilder> logger) 
-    : IAwsTopicCreationBuilder, IAwsTopicBuilderWithTopicName, IAwsTopicBuilderWithQueues, IAwsTopicBuilderWithQueueToSubscribeTo, IAwsTopicBuilderWithBuildAsync
+    : IAwsTopicCreationBuilder, IAwsTopicBuilderWithTopicName, IAwsTopicBuilderWithQueues, IAwsTopicBuilderWithQueueToSubscribeTo, IAwsTopicBuilder
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -29,6 +29,8 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
     private int? _queueMessageRetentionPeriodSeconds;
     private int? _queueReceiveMessageWaitTimeSeconds;
     private int? _queueMaximumMessageSizeKb;
+    private int? _numberOfInstances;
+    private int? _receiveMaximumNumberOfMessages;
 
     public IAwsTopicBuilderWithTopicName WithWorkerName(string workerName)
     {
@@ -48,20 +50,20 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         return this;
     }
     
-    public IAwsTopicBuilderWithBuildAsync WithQueueToSubscribeTo(string subscribeToQueueName)
+    public IAwsTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName)
     {
         _subscribeToQueueName = subscribeToQueueName;
         return this;
     }
 
-    public IAwsTopicBuilderWithBuildAsync WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
+    public IAwsTopicBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
     {
         _buildErrorQueues = buildErrorQueues;
         _errorQueueMaxReceiveCount = errorQueueMaxReceiveCount;
         return this;
     }
 
-    public IAwsTopicBuilderWithBuildAsync WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
+    public IAwsTopicBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
     {
         _messageVisibilityTimeoutSeconds = messageVisibilityTimeoutSeconds;
         _queueMessageDelaySeconds = queueMessageDelaySeconds;
@@ -70,23 +72,30 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         return this;
     }
 
-    public IAwsTopicBuilderWithBuildAsync WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
+    public IAwsTopicBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
     {
         _isFifoQueue = isFifoQueue;
         _isFifoContentBasedDeduplication = isFifoContentBasedDeduplication;
         return this;
     }
 
-    public IAwsTopicBuilderWithBuildAsync WithQueueSettings(int? queueMaximumMessageSizeKb)
+    public IAwsTopicBuilder WithQueueSettings(int? queueMaximumMessageSizeKb)
     {
         _queueMaximumMessageSizeKb = queueMaximumMessageSizeKb;
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, int? receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default)
+    public IAwsTopicBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
+    {
+        _numberOfInstances = numberOfInstances;
+        _receiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Aws);
-        var messagingSettings = GetMessagingSettings(_subscribeToQueueName, numberOfInstances, receiveMaximumNumberOfMessages);
+        var messagingSettings = GetMessagingSettings(_subscribeToQueueName);
 
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Aws, _workerName, messagingSettings.Source);
         await pollyRetryService.WaitAndRetryAsync<QueueDeletedRecentlyException>
@@ -120,7 +129,7 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
-    private MessagingSettings GetMessagingSettings(string subscribeToQueueName, int? numberOfInstances = null, int? receiveMaximumNumberOfMessages = null)
+    private MessagingSettings GetMessagingSettings(string subscribeToQueueName)
     {
         var isFifoQueue = _isFifoQueue ?? false;
         var queueMaximumMessageSizeMaxKb = _queueMaximumMessageSizeKb ?? AwsQueueAttributes.QueueMaximumMessageSizeMaxKb;
@@ -128,8 +137,8 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         var awsQueueMessageRetentionPeriodSeconds = _queueMessageRetentionPeriodSeconds ?? AwsQueueAttributes.DefaultQueueMessageRetentionPeriodSeconds;
         var awsQueueMessageDelaySeconds = _queueMessageDelaySeconds ?? AwsQueueAttributes.DefaultQueueMessageDelaySeconds;
         var awsMessageVisibilityTimeoutSeconds = _messageVisibilityTimeoutSeconds ?? AwsQueueAttributes.DefaultMessageVisibilityTimeoutSeconds;
-        var awsQueueReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages ?? AwsQueueAttributes.DefaultQueueReceiveMaximumNumberOfMessages;
-        var awsNumberOfInstances = numberOfInstances ?? 1;
+        var awsNumberOfInstances = _numberOfInstances ?? 1;
+        var awsQueueReceiveMaximumNumberOfMessages = _receiveMaximumNumberOfMessages ?? AwsQueueAttributes.DefaultQueueReceiveMaximumNumberOfMessages;
 
         return new MessagingSettings
         {

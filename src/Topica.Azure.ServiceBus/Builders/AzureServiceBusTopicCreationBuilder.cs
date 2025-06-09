@@ -1,5 +1,4 @@
-﻿using Azure;
-using Azure.Messaging.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
@@ -14,7 +13,7 @@ public class AzureServiceBusTopicCreationBuilder(
     ITopicProviderFactory topicProviderFactory, 
     IAzureServiceBusClientProvider provider, 
     ILogger<AzureServiceBusTopicCreationBuilder> logger) 
-    : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscriptions, IAzureServiceBusTopicBuilderWithBuild
+    : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscriptions, IAzureServiceBusTopicBuilderWithSubscribeToSubscription, IAzureServiceBusTopicBuilder
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -30,6 +29,8 @@ public class AzureServiceBusTopicCreationBuilder(
     private bool? _enabledStatus = true;
     private bool? _supportOrdering = false;
     private string? _metadata;
+    private int? _numberOfInstances;
+    private string _subscribeToSubscription = null!;
 
     public IAzureServiceBusTopicBuilderWithTopicName WithWorkerName(string workerName)
     {
@@ -43,13 +44,19 @@ public class AzureServiceBusTopicCreationBuilder(
         return this;
     }
 
-    public IAzureServiceBusTopicBuilderWithBuild WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions)
+    public IAzureServiceBusTopicBuilderWithSubscribeToSubscription WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions)
     {
         _subscriptions = subscriptions;
         return this;
     }
+    
+    public IAzureServiceBusTopicBuilder WithSubscribeToSubscription(string subscribeToSubscription)
+    {
+        _subscribeToSubscription = subscribeToSubscription;
+        return this;
+    }
 
-    public IAzureServiceBusTopicBuilderWithBuild WithTimings(
+    public IAzureServiceBusTopicBuilder WithTimings(
         string? autoDeleteOnIdle,
         string? defaultMessageTimeToLive, 
         string? duplicateDetectionHistoryTimeWindow)
@@ -60,7 +67,7 @@ public class AzureServiceBusTopicCreationBuilder(
         return this;
     }
 
-    public IAzureServiceBusTopicBuilderWithBuild WithOptions(
+    public IAzureServiceBusTopicBuilder WithOptions(
         bool? enableBatchedOperations, 
         bool? enablePartitioning,
         int? maxSizeInMegabytes, 
@@ -79,16 +86,22 @@ public class AzureServiceBusTopicCreationBuilder(
         return this;
     }
 
-    public IAzureServiceBusTopicBuilderWithBuild WithMetadata(string? metadata)
+    public IAzureServiceBusTopicBuilder WithMetadata(string? metadata)
     {
         _metadata = metadata;
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(string subscribeToSubscription, int? numberOfInstances, CancellationToken cancellationToken = default)
+    public IAzureServiceBusTopicBuilder WithNumberOfInstances(int? numberOfInstances)
+    {
+        _numberOfInstances = numberOfInstances;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.AzureServiceBus);
-        var messagingSettings = GetMessagingSettings(subscribeToSubscription, numberOfInstances);
+        var messagingSettings = GetMessagingSettings();
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.AzureServiceBus, _workerName, messagingSettings.Source);
         
@@ -142,7 +155,7 @@ public class AzureServiceBusTopicCreationBuilder(
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
-    private MessagingSettings GetMessagingSettings(string? subscribeToSubscription = null, int? numberOfInstances = null)
+    private MessagingSettings GetMessagingSettings()
     {
         return new MessagingSettings
         {
@@ -164,7 +177,7 @@ public class AzureServiceBusTopicCreationBuilder(
                 UserMetadata = x.UserMetadata,
                 Source = x.Source
             }).ToArray(),
-            SubscribeToSource = subscribeToSubscription ?? string.Empty,
+            SubscribeToSource = _subscribeToSubscription,
             AzureServiceBusAutoDeleteOnIdle = _autoDeleteOnIdle,
             AzureServiceBusDefaultMessageTimeToLive = _defaultMessageTimeToLive,
             AzureServiceBusDuplicateDetectionHistoryTimeWindow = _duplicateDetectionHistoryTimeWindow,
@@ -176,7 +189,7 @@ public class AzureServiceBusTopicCreationBuilder(
             AzureServiceBusEnabledStatus = _enabledStatus,
             AzureServiceBusSupportOrdering = _supportOrdering,
             AzureServiceBusUserMetadata = _metadata,
-            NumberOfInstances = numberOfInstances ?? 1
+            NumberOfInstances = _numberOfInstances ?? 1
         };
     }
 }

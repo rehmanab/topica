@@ -1,4 +1,4 @@
-﻿namespace Topica.Host.Shared;
+﻿namespace Topica.SharedMessageHandlers;
 
 public class ClassToReferenceAssembly
 {

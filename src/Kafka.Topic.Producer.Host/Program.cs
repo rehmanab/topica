@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Kafka.Contracts;
 
 Console.WriteLine("******* Starting Kafka.Topic.Producer.Host *******");
 
@@ -32,16 +33,16 @@ var host = Host.CreateDefaultBuilder()
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(KafkaHostSettings.SectionName).Get<KafkaHostSettings>();
-        var consumerSettings = configuration.GetSection(KafkaProducerSettings.SectionName).Get<KafkaProducerSettings>();
+        var settings = configuration.GetSection(KafkaProducerSettings.SectionName).Get<KafkaProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(KafkaHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(KafkaProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(KafkaProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new KafkaHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new KafkaProducerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+        new KafkaProducerSettingsValidator().ValidateAndThrow(settings);
+
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
+        services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
         services.AddKafkaTopica(Assembly.GetExecutingAssembly());
@@ -49,6 +50,14 @@ var host = Host.CreateDefaultBuilder()
         services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
 
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IKafkaTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
+            .WithTopicSettings(settings.WebAnalyticsTopicSettings.StartFromEarliestMessages, settings.WebAnalyticsTopicSettings.NumberOfTopicPartitions)
+            .WithBootstrapServers(hostSettings.BootstrapServers));
     })
     .Build();
 

@@ -3,39 +3,18 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
-using Topica.Host.Shared.Messages.V1;
+using Topica.SharedMessageHandlers.Messages.V1;
 using Topica.Messages;
 
 namespace Azure.ServiceBus.Topic.Producer.Host;
 
-public class Worker(IAzureServiceBusTopicCreationBuilder builder, AzureServiceBusProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IAzureServiceBusTopicBuilder builder, AzureServiceBusProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     private IProducer _producer1 = null!;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithSubscriptions(settings.WebAnalyticsTopicSettings.Subscriptions)
-            .WithTimings
-            (
-                settings.WebAnalyticsTopicSettings.AutoDeleteOnIdle, 
-                settings.WebAnalyticsTopicSettings.DefaultMessageTimeToLive, 
-                settings.WebAnalyticsTopicSettings.DuplicateDetectionHistoryTimeWindow
-            )
-            .WithOptions
-            (
-                settings.WebAnalyticsTopicSettings.EnableBatchedOperations,
-                settings.WebAnalyticsTopicSettings.EnablePartitioning,
-                settings.WebAnalyticsTopicSettings.MaxSizeInMegabytes,
-                settings.WebAnalyticsTopicSettings.RequiresDuplicateDetection,
-                settings.WebAnalyticsTopicSettings.MaxMessageSizeInKilobytes,
-                settings.WebAnalyticsTopicSettings.EnabledStatus,
-                settings.WebAnalyticsTopicSettings.SupportOrdering
-            )
-            .WithMetadata(settings.WebAnalyticsTopicSettings.UserMetadata)
-            .BuildProducerAsync(stoppingToken);
+        _producer1 = await builder.BuildProducerAsync(stoppingToken);
         
 
         var count = await SendSingleAsync(stoppingToken);

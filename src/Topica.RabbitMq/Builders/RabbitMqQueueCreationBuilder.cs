@@ -13,10 +13,11 @@ public class RabbitMqQueueCreationBuilder(
     IPollyRetryService pollyRetryService,
     IQueueProviderFactory queueProviderFactory, 
     ILogger<RabbitMqTopicCreationBuilder> logger) 
-    : IRabbitMqQueueCreationBuilder, IRabbitMqQueueBuilderWithQueueName, IRabbitMqQueueBuilderWithBuild
+    : IRabbitMqQueueCreationBuilder, IRabbitMqQueueBuilderWithQueueName, IRabbitMqQueueBuilder
 {
     private string _workerName = null!;
     private string _queueName = null!;
+    private int? _numberOfInstances;
 
     public IRabbitMqQueueBuilderWithQueueName WithWorkerName(string workerName)
     {
@@ -24,16 +25,22 @@ public class RabbitMqQueueCreationBuilder(
         return this;
     }
 
-    public IRabbitMqQueueBuilderWithBuild WithQueueName(string queueName)
+    public IRabbitMqQueueBuilder WithQueueName(string queueName)
     {
         _queueName = queueName;
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default)
+    public IRabbitMqQueueBuilder WithConsumeSettings(int? numberOfInstances)
+    {
+        _numberOfInstances = numberOfInstances;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var queueProvider = queueProviderFactory.Create(MessagingPlatform.RabbitMq);
-        var messagingSettings = GetMessagingSettings(numberOfInstances);
+        var messagingSettings = GetMessagingSettings();
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.RabbitMq, _workerName, messagingSettings.Source);
         await pollyRetryService.WaitAndRetryAsync<Exception>
@@ -66,14 +73,14 @@ public class RabbitMqQueueCreationBuilder(
         return await queueProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
-    private MessagingSettings GetMessagingSettings(int? numberOfInstances = null)
+    private MessagingSettings GetMessagingSettings()
     {
         return new MessagingSettings
         {
             WorkerName = _workerName,
             Source = _queueName,
             SubscribeToSource = _queueName,
-            NumberOfInstances = numberOfInstances ?? 1,
+            NumberOfInstances = _numberOfInstances ?? 1,
         };
     }
 }

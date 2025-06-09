@@ -21,24 +21,23 @@ namespace Topica.Aws.Contracts
     
     public interface IAwsTopicBuilderWithQueueToSubscribeTo
     {
-        IAwsTopicBuilderWithBuildAsync WithQueueToSubscribeTo(string subscribeToQueueName);
+        IAwsTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName);
     }
     
-    public interface IAwsTopicBuilderWithBuildAsync
+    public interface IAwsTopicBuilder
     {
-        IAwsTopicBuilderWithBuildAsync WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
-        IAwsTopicBuilderWithBuildAsync WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
-        IAwsTopicBuilderWithBuildAsync WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
-        IAwsTopicBuilderWithBuildAsync WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsTopicBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
+        IAwsTopicBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
+        IAwsTopicBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
+        IAwsTopicBuilder WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsTopicBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
         
         /// <summary>
         /// Builds the consumer with the specified number of instances and maximum number of messages to receive.
         /// </summary>
-        /// <param name="numberOfInstances">Number of parallel instance</param>
-        /// <param name="receiveMaximumNumberOfMessages">How many AWS messages to get per receive</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns an <see cref="IConsumer"/> instance, ready to consume the SubscribeToQueueName app setting</returns>
-        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, int? receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default);
+        Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         
         /// <summary>
         /// Builds the producer, ready to send messages to the topic.

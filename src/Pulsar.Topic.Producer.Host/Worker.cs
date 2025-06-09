@@ -2,38 +2,19 @@
 using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Producer.Host.Settings;
 using Topica.Contracts;
-using Topica.Host.Shared.Messages.V1;
+using Topica.SharedMessageHandlers.Messages.V1;
 using Topica.Messages;
 using Topica.Pulsar.Contracts;
 
 namespace Pulsar.Topic.Producer.Host;
 
-public class Worker(IPulsarTopicCreationBuilder builder, PulsarProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     private IProducer _producer1 = null!;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
-            .WithConfiguration(
-                settings.WebAnalyticsTopicSettings.Tenant,
-                settings.WebAnalyticsTopicSettings.Namespace,
-                settings.WebAnalyticsTopicSettings.NumberOfPartitions
-            )
-            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
-            .WithProducerOptions(
-                settings.WebAnalyticsTopicSettings.BlockIfQueueFull,
-                settings.WebAnalyticsTopicSettings.MaxPendingMessages,
-                settings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
-                settings.WebAnalyticsTopicSettings.EnableBatching,
-                settings.WebAnalyticsTopicSettings.EnableChunking,
-                settings.WebAnalyticsTopicSettings.BatchingMaxMessages,
-                settings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
-            )
-            .BuildProducerAsync(stoppingToken);
+        _producer1 = await builder.BuildProducerAsync(stoppingToken);
 
         var count = await SendSingleAsync(stoppingToken);
         // var count = await SendBatchAsync(stoppingToken);

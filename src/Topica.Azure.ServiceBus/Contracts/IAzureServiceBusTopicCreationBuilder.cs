@@ -15,14 +15,21 @@ public interface IAzureServiceBusTopicBuilderWithTopicName
     
 public interface IAzureServiceBusTopicBuilderWithSubscriptions
 {
-    IAzureServiceBusTopicBuilderWithBuild WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions);
+    IAzureServiceBusTopicBuilderWithSubscribeToSubscription WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions);
 }
 
-public interface IAzureServiceBusTopicBuilderWithBuild
+public interface IAzureServiceBusTopicBuilderWithSubscribeToSubscription
 {
-    IAzureServiceBusTopicBuilderWithBuild WithTimings(string? autoDeleteOnIdle, string? defaultMessageTimeToLive, string? duplicateDetectionHistoryTimeWindow);
-    IAzureServiceBusTopicBuilderWithBuild WithOptions(bool? enableBatchedOperations, bool? enablePartitioning, int? maxSizeInMegabytes, bool? requiresDuplicateDetection, int? maxMessageSizeInKilobytes, bool? enabledStatus, bool? supportOrdering);
-    IAzureServiceBusTopicBuilderWithBuild WithMetadata(string? metadata);
-    Task<IConsumer> BuildConsumerAsync(string subscribeToSubscription, int? numberOfInstances, CancellationToken cancellationToken = default);
+    IAzureServiceBusTopicBuilder WithSubscribeToSubscription(string subscribeToSubscription);
+}
+
+public interface IAzureServiceBusTopicBuilder
+{
+    IAzureServiceBusTopicBuilder WithTimings(string? autoDeleteOnIdle, string? defaultMessageTimeToLive, string? duplicateDetectionHistoryTimeWindow);
+    IAzureServiceBusTopicBuilder WithOptions(bool? enableBatchedOperations, bool? enablePartitioning, int? maxSizeInMegabytes, bool? requiresDuplicateDetection, int? maxMessageSizeInKilobytes, bool? enabledStatus, bool? supportOrdering);
+    IAzureServiceBusTopicBuilder WithMetadata(string? metadata);
+    IAzureServiceBusTopicBuilder WithNumberOfInstances(int? numberOfInstances);
+    
+    Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
     Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);
 }

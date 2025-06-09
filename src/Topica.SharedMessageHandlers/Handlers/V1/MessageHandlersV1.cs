@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Topica.Contracts;
-using Topica.Host.Shared.Messages.V1;
+using Topica.SharedMessageHandlers.Messages.V1;
 
-namespace Topica.Host.Shared.Handlers.V1;
+namespace Topica.SharedMessageHandlers.Handlers.V1;
 
 public class ButtonClickedMessageHandlerV1(ILogger<ButtonClickedMessageHandlerV1> logger) : IHandler<ButtonClickedMessageV1>
 {

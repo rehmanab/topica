@@ -77,7 +77,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Azure.ServiceBus", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.ServiceBus.Topic.Producer.Host", "Azure.ServiceBus.Topic.Producer.Host\Azure.ServiceBus.Topic.Producer.Host.csproj", "{E27CC489-752E-46A6-944F-F0F463F4B5E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Host.Shared", "Topica.Host.Shared\Topica.Host.Shared.csproj", "{4D63C584-164D-4DB5-A955-CBCB5419D632}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.SharedMessageHandlers", "Topica.SharedMessageHandlers\Topica.SharedMessageHandlers.csproj", "{4D63C584-164D-4DB5-A955-CBCB5419D632}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aws.Queue.Consumer.Host", "Aws.Queue.Consumer.Host\Aws.Queue.Consumer.Host.csproj", "{F5F078FA-E0AA-4554-BB11-2BD583C719BB}"
 EndProject
@@ -88,6 +88,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Queue.Producer.Host", "RabbitMq.Queue.Producer.Host\RabbitMq.Queue.Producer.Host.csproj", "{39E92426-E2D2-456F-B19C-5B62A9260AB1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Infrastructure", "Topica.Infrastructure\Topica.Infrastructure.csproj", "{5B6E2CC6-3669-4E4C-8EB8-24C210A8A993}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D95600C8-CEF4-4B32-98C1-E4AE5E36BC97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Integration.Tests", "Topica.Integration.Tests\Topica.Integration.Tests.csproj", "{4878AFDF-CC5F-4724-86C4-13CF2CCE0171}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Unit.Tests", "Topica.Unit.Tests\Topica.Unit.Tests.csproj", "{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,6 +189,14 @@ Global
 		{5B6E2CC6-3669-4E4C-8EB8-24C210A8A993}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B6E2CC6-3669-4E4C-8EB8-24C210A8A993}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B6E2CC6-3669-4E4C-8EB8-24C210A8A993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{793565E9-1348-4279-864C-1FCA64AE6B84} = {30870729-1B15-4980-80A6-911976DA7532}
@@ -213,5 +227,7 @@ Global
 		{C779DD8A-5ECF-4ED4-B697-00985B10D043} = {2498F3D0-A2AE-4E82-9166-3F99CFD2AD01}
 		{39E92426-E2D2-456F-B19C-5B62A9260AB1} = {D4049594-00C3-4442-A58C-02349759CE21}
 		{5B6E2CC6-3669-4E4C-8EB8-24C210A8A993} = {30870729-1B15-4980-80A6-911976DA7532}
+		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171} = {D95600C8-CEF4-4B32-98C1-E4AE5E36BC97}
+		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF} = {D95600C8-CEF4-4B32-98C1-E4AE5E36BC97}
 	EndGlobalSection
 EndGlobal

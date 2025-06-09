@@ -13,7 +13,7 @@ public class KafkaTopicCreationBuilder(
     IPollyRetryService pollyRetryService,
     ITopicProviderFactory topicProviderFactory, 
     ILogger<KafkaTopicCreationBuilder> logger) 
-    : IKafkaTopicCreationBuilder, IKafkaTopicBuilderWithTopicName, IKafkaTopicBuilderWithQueues, IKafkaTopicBuilderWithTopicSettings, IKafkaTopicBuilderWithBootstrapServers, IKafkaTopicBuilderWithBuild
+    : IKafkaTopicCreationBuilder, IKafkaTopicBuilderWithTopicName, IKafkaTopicBuilderWithQueues, IKafkaTopicBuilderWithTopicSettings, IKafkaTopicBuilderWithBootstrapServers, IKafkaTopicBuilder
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -21,6 +21,7 @@ public class KafkaTopicCreationBuilder(
     private bool? _startFromEarliestMessages;
     private int? _numberOfTopicPartitions;
     private string[] _bootstrapServers = null!;
+    private int? _numberOfInstances;
 
     public IKafkaTopicBuilderWithTopicName WithWorkerName(string workerName)
     {
@@ -47,16 +48,22 @@ public class KafkaTopicCreationBuilder(
         return this;
     }
 
-    public IKafkaTopicBuilderWithBuild WithBootstrapServers(params string[] bootstrapServers)
+    public IKafkaTopicBuilder WithBootstrapServers(params string[] bootstrapServers)
     {
         _bootstrapServers = bootstrapServers;
         return this; 
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default)
+    public IKafkaTopicBuilder WithConsumeSettings(int? numberOfInstances)
+    {
+        _numberOfInstances = numberOfInstances;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Kafka);
-        var messagingSettings = GetMessagingSettings(numberOfInstances);
+        var messagingSettings = GetMessagingSettings();
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Kafka, _workerName, messagingSettings.Source);
         await pollyRetryService.WaitAndRetryAsync<Exception>
@@ -90,7 +97,7 @@ public class KafkaTopicCreationBuilder(
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
-    private MessagingSettings GetMessagingSettings(int? numberOfInstances = null)
+    private MessagingSettings GetMessagingSettings()
     {
         return new MessagingSettings
         {
@@ -100,7 +107,7 @@ public class KafkaTopicCreationBuilder(
             KafkaStartFromEarliestMessages = _startFromEarliestMessages ?? false,
             KafkaNumberOfTopicPartitions = _numberOfTopicPartitions ?? 6,
             KafkaBootstrapServers = _bootstrapServers,
-            NumberOfInstances = numberOfInstances ?? 1
+            NumberOfInstances = _numberOfInstances ?? 1
         };
     }
 }

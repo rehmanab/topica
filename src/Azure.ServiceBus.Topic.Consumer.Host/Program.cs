@@ -9,7 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Host.Shared;
+using Topica.Azure.ServiceBus.Contracts;
+using Topica.SharedMessageHandlers;
 
 Console.WriteLine("******* Starting AzureServiceBus.Consumer.Host *******");
 
@@ -34,29 +35,50 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
-        var consumerSettings = configuration.GetSection(AzureServiceBusConsumerSettings.SectionName).Get<AzureServiceBusConsumerSettings>();
-        
+        var settings = configuration.GetSection(AzureServiceBusConsumerSettings.SectionName).Get<AzureServiceBusConsumerSettings>();
+
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new AzureServiceBusHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new AzureServiceBusConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+        new AzureServiceBusConsumerSettingsValidator().ValidateAndThrow(settings);
+
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
-        
+        services.AddSingleton(settings);
+
         // Add MessagingPlatform Components
-        services.AddAzureServiceBusTopica(c =>
-        {
-            c.ConnectionString = hostSettings.ConnectionString;
-        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        services.AddAzureServiceBusTopica(c => { c.ConnectionString = hostSettings.ConnectionString; }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
         // Assembly.GetExecutingAssembly()
-        
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IAzureServiceBusTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscriptions(settings.WebAnalyticsTopicSettings.Subscriptions)
+            .WithSubscribeToSubscription(settings.WebAnalyticsTopicSettings.SubscribeToSource)
+            .WithTimings
+            (
+                settings.WebAnalyticsTopicSettings.AutoDeleteOnIdle,
+                settings.WebAnalyticsTopicSettings.DefaultMessageTimeToLive,
+                settings.WebAnalyticsTopicSettings.DuplicateDetectionHistoryTimeWindow
+            )
+            .WithOptions
+            (
+                settings.WebAnalyticsTopicSettings.EnableBatchedOperations,
+                settings.WebAnalyticsTopicSettings.EnablePartitioning,
+                settings.WebAnalyticsTopicSettings.MaxSizeInMegabytes,
+                settings.WebAnalyticsTopicSettings.RequiresDuplicateDetection,
+                settings.WebAnalyticsTopicSettings.MaxMessageSizeInKilobytes,
+                settings.WebAnalyticsTopicSettings.EnabledStatus,
+                settings.WebAnalyticsTopicSettings.SupportOrdering
+            )
+            .WithMetadata(settings.WebAnalyticsTopicSettings.UserMetadata));
     })
     .Build();
 

@@ -1,4 +1,4 @@
-﻿using Topica.Host.Shared.Messages.V1;
+﻿using Topica.SharedMessageHandlers.Messages.V1;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMq.Topic.Producer.Host.Settings;
@@ -8,18 +8,13 @@ using Topica.RabbitMq.Contracts;
 
 namespace RabbitMq.Topic.Producer.Host;
 
-public class Worker(IRabbitMqTopicCreationBuilder builder, RabbitMqProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IRabbitMqTopicBuilder builder, RabbitMqProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     private IProducer _producer1 = null!;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
-            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
-            .BuildProducerAsync(stoppingToken);
+        _producer1 = await builder.BuildProducerAsync(stoppingToken);
 
         var count = await SendSingleAsync(stoppingToken);
         // var count = await SendBatchAsync(stoppingToken);

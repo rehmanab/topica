@@ -7,7 +7,8 @@ using Microsoft.Extensions.Logging;
 using RabbitMq.Queue.Consumer.Host;
 using RabbitMq.Queue.Consumer.Host.Settings;
 using RabbitMq.Queue.Consumer.Host.Validators;
-using Topica.Host.Shared;
+using Topica.SharedMessageHandlers;
+using Topica.RabbitMq.Contracts;
 
 Console.WriteLine("******* Starting RabbitMq.Queue.Consumer.Host *******");
 
@@ -33,16 +34,16 @@ var host = Host.CreateDefaultBuilder()
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
-        var consumerSettings = configuration.GetSection(RabbitMqConsumerSettings.SectionName).Get<RabbitMqConsumerSettings>();
+        var settings = configuration.GetSection(RabbitMqConsumerSettings.SectionName).Get<RabbitMqConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(RabbitMqHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(RabbitMqConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(RabbitMqConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new RabbitMqHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new RabbitMqConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
+        new RabbitMqConsumerSettingsValidator().ValidateAndThrow(settings);
 
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
+        services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>
@@ -57,7 +58,14 @@ var host = Host.CreateDefaultBuilder()
             c.VHost = hostSettings.VHost;
         }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
         // Assembly.GetExecutingAssembly()
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithQueueName(settings.WebAnalyticsTopicSettings.Source)
+            .WithConsumeSettings(settings.WebAnalyticsTopicSettings.NumberOfInstances));
     })
     .Build();
 

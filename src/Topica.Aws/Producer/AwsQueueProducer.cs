@@ -16,7 +16,7 @@ using Topica.Messages;
 
 namespace Topica.Aws.Producer;
 
-public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo, ILogger logger) : IProducer, IAsyncDisposable
+public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo, ILogger logger) : IProducer
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
     {
@@ -83,13 +83,6 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
     {
         // does not require explicit flushing, messages are sent immediately
         await Task.CompletedTask;
-    }
-
-    ValueTask IProducer.DisposeAsync()
-    {
-        // No resources to dispose of in this implementation
-        sqsClient?.Dispose();
-        return new ValueTask(Task.CompletedTask);
     }
 
     public async ValueTask DisposeAsync()

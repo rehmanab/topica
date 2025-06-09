@@ -47,7 +47,12 @@ namespace Topica.Pulsar.Consumers
                 _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
             });
         }
-        
+
+        public async ValueTask DisposeAsync()
+        {
+            await Task.CompletedTask;
+        }
+
         private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             try

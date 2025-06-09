@@ -43,7 +43,12 @@ namespace Topica.Kafka.Consumers
                 _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
             });
         }
-        
+
+        public async ValueTask DisposeAsync()
+        {
+            await Task.CompletedTask;
+        }
+
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig

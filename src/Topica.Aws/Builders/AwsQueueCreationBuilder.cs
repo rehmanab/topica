@@ -21,7 +21,7 @@ namespace Topica.Aws.Builders;
 public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory, 
     IPollyRetryService pollyRetryService,
     ILogger<AwsQueueCreationBuilder> logger) 
-    : IAwsQueueCreationBuilder, IAwsQueueBuilderWithQueueName, IAwsQueueBuilderWithBuild
+    : IAwsQueueCreationBuilder, IAwsQueueBuilderWithQueueName, IAwsQueueBuilder
 {
     private string _workerName = null!;
     private string _queueName = null!;
@@ -34,27 +34,29 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
     private int? _queueMessageRetentionPeriodSeconds;
     private int? _queueReceiveMessageWaitTimeSeconds;
     private int? _queueMaximumMessageSizeKb;
-    
+    private int? _numberOfInstances;
+    private int? _receiveMaximumNumberOfMessages;
+
     public IAwsQueueBuilderWithQueueName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IAwsQueueBuilderWithBuild WithQueueName(string queueName)
+    public IAwsQueueBuilder WithQueueName(string queueName)
     {
         _queueName = queueName;
         return this;
     }
 
-    public IAwsQueueBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
+    public IAwsQueueBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
     {
         _buildErrorQueues = buildErrorQueues;
         _errorQueueMaxReceiveCount = errorQueueMaxReceiveCount;
         return this;
     }
 
-    public IAwsQueueBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
+    public IAwsQueueBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
     {
         _messageVisibilityTimeoutSeconds = messageVisibilityTimeoutSeconds;
         _queueMessageDelaySeconds = queueMessageDelaySeconds;
@@ -63,23 +65,30 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         return this;
     }
 
-    public IAwsQueueBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
+    public IAwsQueueBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
     {
         _isFifoQueue = isFifoQueue;
         _isFifoContentBasedDeduplication = isFifoContentBasedDeduplication;
         return this;
     }
 
-    public IAwsQueueBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb)
+    public IAwsQueueBuilder WithQueueSettings(int? queueMaximumMessageSizeKb)
     {
         _queueMaximumMessageSizeKb = queueMaximumMessageSizeKb;
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, int? receiveMaximumNumberOfMessages, CancellationToken cancellationToken = default)
+    public IAwsQueueBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
+    {
+        _numberOfInstances = numberOfInstances;
+        _receiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var queueProvider = queueProviderFactory.Create(MessagingPlatform.Aws);
-        var messagingSettings = GetMessagingSettings(numberOfInstances, receiveMaximumNumberOfMessages);
+        var messagingSettings = GetMessagingSettings();
 
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Aws, _workerName, messagingSettings.Source);
         await pollyRetryService.WaitAndRetryAsync<QueueDeletedRecentlyException>
@@ -112,7 +121,7 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         return await queueProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
     
-    private MessagingSettings GetMessagingSettings(int? numberOfInstances = null, int? receiveMaximumNumberOfMessages = null)
+    private MessagingSettings GetMessagingSettings()
     {
         var isFifoQueue = _isFifoQueue ?? false;
         var queueMaximumMessageSizeMaxKb = _queueMaximumMessageSizeKb ?? AwsQueueAttributes.QueueMaximumMessageSizeMaxKb;
@@ -120,8 +129,8 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         var awsQueueMessageRetentionPeriodSeconds = _queueMessageRetentionPeriodSeconds ?? AwsQueueAttributes.DefaultQueueMessageRetentionPeriodSeconds;
         var awsQueueMessageDelaySeconds = _queueMessageDelaySeconds ?? AwsQueueAttributes.DefaultQueueMessageDelaySeconds;
         var awsMessageVisibilityTimeoutSeconds = _messageVisibilityTimeoutSeconds ?? AwsQueueAttributes.DefaultMessageVisibilityTimeoutSeconds;
-        var awsQueueReceiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages ?? AwsQueueAttributes.DefaultQueueReceiveMaximumNumberOfMessages;
-        var awsNumberOfInstances = numberOfInstances ?? 1;
+        var awsNumberOfInstances = _numberOfInstances ?? 1;
+        var awsQueueReceiveMaximumNumberOfMessages = _receiveMaximumNumberOfMessages ?? AwsQueueAttributes.DefaultQueueReceiveMaximumNumberOfMessages;
 
         return new MessagingSettings
         {

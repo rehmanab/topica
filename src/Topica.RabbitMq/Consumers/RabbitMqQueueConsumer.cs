@@ -13,7 +13,7 @@ using Topica.Settings;
 
 namespace Topica.RabbitMq.Consumers
 {
-    public class RabbitMqQueueConsumer : IConsumer, IDisposable
+    public class RabbitMqQueueConsumer : IConsumer
     {
         private readonly ConnectionFactory _rabbitMqConnectionFactory;
         private readonly IMessageHandlerExecutor _messageHandlerExecutor;
@@ -47,6 +47,11 @@ namespace Topica.RabbitMq.Consumers
             {
                 _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
             });
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_channel != null) await _channel.DisposeAsync();
         }
 
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
@@ -85,12 +90,6 @@ namespace Topica.RabbitMq.Consumers
                 _logger.LogError(ex, "**** ERROR: {ClassName}: {ConsumerName}: Error", nameof(RabbitMqQueueConsumer), consumerName);
                 throw;
             }
-        }
-
-        public void Dispose()
-        {
-            _channel?.Dispose();
-            _logger.LogDebug("**** DISPOSED: {RabbitMqQueueConsumerName}: Disposed", nameof(RabbitMqQueueConsumer));
         }
     }
 }

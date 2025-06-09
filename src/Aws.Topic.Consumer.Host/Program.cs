@@ -7,7 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Host.Shared;
+using Topica.Aws.Contracts;
+using Topica.SharedMessageHandlers;
 
 Console.WriteLine("******* Starting Aws.Topic.Consumer.Host *******");
 
@@ -29,21 +30,21 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
-        var consumerSettings = configuration.GetSection(AwsConsumerSettings.SectionName).Get<AwsConsumerSettings>();
+        var settings = configuration.GetSection(AwsConsumerSettings.SectionName).Get<AwsConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(AwsHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(AwsConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(AwsConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new AwsHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new AwsConsumerSettingsValidator().ValidateAndThrow(consumerSettings);
+        new AwsConsumerSettingsValidator().ValidateAndThrow(settings);
 
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
-        
+        services.AddSingleton(settings);
+
         // Add MessagingPlatform Components
         services.AddAwsTopica(c =>
         {
@@ -54,8 +55,34 @@ var host = Host.CreateDefaultBuilder()
             c.RegionEndpoint = hostSettings.RegionEndpoint;
         }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
         // Assembly.GetExecutingAssembly()
-        
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IAwsTopicCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
+            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
+            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
+            .WithErrorQueueSettings(
+                settings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
+                settings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
+            )
+            .WithFifoSettings(
+                settings.WebAnalyticsTopicSettings.IsFifoQueue,
+                settings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
+            )
+            .WithTemporalSettings(
+                settings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
+                settings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
+                settings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
+            )
+            .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
+            .WithConsumeSettings(
+                settings.WebAnalyticsTopicSettings.NumberOfInstances,
+                settings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages
+            ));
     })
     .Build();
 

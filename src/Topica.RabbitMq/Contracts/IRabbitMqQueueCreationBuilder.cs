@@ -11,12 +11,14 @@ namespace Topica.RabbitMq.Contracts
 
     public interface IRabbitMqQueueBuilderWithQueueName
     {
-        IRabbitMqQueueBuilderWithBuild WithQueueName(string queueName);
+        IRabbitMqQueueBuilder WithQueueName(string queueName);
     }
     
-    public interface IRabbitMqQueueBuilderWithBuild
+    public interface IRabbitMqQueueBuilder
     {
-        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default);
+        IRabbitMqQueueBuilder WithConsumeSettings(int? numberOfInstances);
+        
+        Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);
     }
 }

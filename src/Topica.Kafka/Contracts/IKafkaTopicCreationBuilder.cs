@@ -26,12 +26,14 @@ namespace Topica.Kafka.Contracts
     
     public interface IKafkaTopicBuilderWithBootstrapServers
     {
-        IKafkaTopicBuilderWithBuild WithBootstrapServers(params string[] bootstrapServers);
+        IKafkaTopicBuilder WithBootstrapServers(params string[] bootstrapServers);
     }
     
-    public interface IKafkaTopicBuilderWithBuild
+    public interface IKafkaTopicBuilder
     {
-        Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default);
+        IKafkaTopicBuilder WithConsumeSettings(int? numberOfInstances);
+        
+        Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);
     }
 }

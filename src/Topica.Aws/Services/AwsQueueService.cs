@@ -16,6 +16,11 @@ namespace Topica.Aws.Services
 {
     public class AwsQueueService(IAmazonSQS client, ILogger<AwsQueueService> logger) : IAwsQueueService
     {
+        public async Task<string?> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken = default)
+        {
+            return await GetQueueUrlAsync(queueName, false, cancellationToken);
+        }
+
         public async Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken = default)
         {
             queueName = TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, isFifo);
@@ -84,6 +89,22 @@ namespace Topica.Aws.Services
             var response = await client.SetQueueAttributesAsync(queueUrl, configuration.QueueAttributes.GetAttributeDictionary());
 
             return response.HttpStatusCode == HttpStatusCode.OK;
+        }
+
+        public async Task<bool> DeleteQueueAsync(string? queueUrl, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(queueUrl)) return true;
+            
+            try       
+            {
+                var response = await client.DeleteQueueAsync(queueUrl, cancellationToken);
+                return response.HttpStatusCode == HttpStatusCode.OK;
+            }
+            catch (QueueDoesNotExistException)
+            {
+                logger.LogWarning("Queue does not exist: {QueueUrl}", queueUrl);
+                return false;
+            }
         }
 
         public async Task<bool> DeleteMessageAsync(string queueUrl, string receiptHandle)

@@ -26,4 +26,4 @@ jobs:
         run: dotnet build ./src --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ./src --configuration Release --no-build --verbosity normal
+        run: dotnet test --filter Category!=Integration ./src --configuration Release --no-build --verbosity normal

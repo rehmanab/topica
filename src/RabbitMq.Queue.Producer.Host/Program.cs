@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMq.Queue.Producer.Host;
 using RabbitMq.Queue.Producer.Host.Settings;
 using RabbitMq.Queue.Producer.Host.Validators;
+using Topica.RabbitMq.Contracts;
 
 Console.WriteLine("******* Starting RabbitMq.Queue.Producer.Host *******");
 
@@ -28,20 +29,20 @@ var host = Host.CreateDefaultBuilder()
             x.TimestampFormat = "[HH:mm:ss] ";
             x.SingleLine = true;
         }));
-        
+
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
-        var consumerSettings = configuration.GetSection(RabbitMqProducerSettings.SectionName).Get<RabbitMqProducerSettings>();
+        var settings = configuration.GetSection(RabbitMqProducerSettings.SectionName).Get<RabbitMqProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(RabbitMqHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
-        if (consumerSettings == null) throw new InvalidOperationException($"{nameof(RabbitMqProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
+        if (settings == null) throw new InvalidOperationException($"{nameof(RabbitMqProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
 
         new RabbitMqHostSettingsValidator().ValidateAndThrow(hostSettings);
-        new RabbitMqProducerSettingsValidator().ValidateAndThrow(consumerSettings);
-        
+        new RabbitMqProducerSettingsValidator().ValidateAndThrow(settings);
+
         services.AddSingleton(hostSettings);
-        services.AddSingleton(consumerSettings);
+        services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>
@@ -55,13 +56,15 @@ var host = Host.CreateDefaultBuilder()
             c.ManagementScheme = hostSettings.ManagementScheme;
             c.VHost = hostSettings.VHost;
         }, Assembly.GetExecutingAssembly());
-        
-        services.Configure<HostOptions>(options =>
-        {
-            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
-        });
-        
+
+        services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
+
         services.AddHostedService<Worker>();
+
+        // Creation Builder
+        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>()
+            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
+            .WithQueueName(settings.WebAnalyticsTopicSettings.Source));
     })
     .Build();
 

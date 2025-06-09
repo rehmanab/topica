@@ -1,6 +1,6 @@
 using Topica.Messages;
 
-namespace Topica.Host.Shared.Messages.V1;
+namespace Topica.SharedMessageHandlers.Messages.V1;
 
 public class ButtonClickedMessageV1 : BaseMessage
 {

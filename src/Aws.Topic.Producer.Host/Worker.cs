@@ -1,41 +1,26 @@
-﻿using Aws.Topic.Producer.Host.Settings;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Aws.Topic.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
-using Topica.Host.Shared.Messages.V1;
+using Topica.SharedMessageHandlers.Messages.V1;
 using Topica.Messages;
 
 namespace Aws.Topic.Producer.Host;
 
-public class Worker(IAwsTopicCreationBuilder builder, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
     private IProducer _producer1 = null!;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
-            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
-            .WithErrorQueueSettings(
-                settings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
-                settings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
-            )
-            .WithFifoSettings(
-                settings.WebAnalyticsTopicSettings.IsFifoQueue,
-                settings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
-            )
-            .WithTemporalSettings(
-                settings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
-                settings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
-                settings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
-                settings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
-            )
-            .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
-            .BuildProducerAsync(stoppingToken);
+        _producer1 = await builder.BuildProducerAsync(stoppingToken);
         
         var count = await SendSingleAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
         // var count = await SendBatchAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);

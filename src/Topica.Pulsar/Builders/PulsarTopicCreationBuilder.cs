@@ -13,7 +13,7 @@ public class PulsarTopicCreationBuilder(
     IPollyRetryService pollyRetryService,
     ITopicProviderFactory topicProviderFactory, 
     ILogger<PulsarTopicCreationBuilder> logger) 
-    : IPulsarTopicCreationBuilder, IPulsarConsumerTopicBuilderWithTopicName, IPulsarConsumerTopicBuilderWithQueues, IPulsarConsumerTopicBuilderWithConfiguration, IPulsarConsumerTopicBuilderWithOptions, IPulsarConsumerTopicBuilderWithBuild
+    : IPulsarTopicCreationBuilder, IPulsarTopicBuilderWithTopicName, IPulsarTopicBuilderWithQueues, IPulsarTopicBuilderWithConfiguration, IPulsarTopicBuilderWithOptions, IPulsarTopicBuilder
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -29,26 +29,27 @@ public class PulsarTopicCreationBuilder(
     private bool? _enableChunking;
     private int? _batchingMaxMessages;
     private long? _batchingMaxPublishDelayMilliseconds;
+    private int? _numberOfInstances;
 
-    public IPulsarConsumerTopicBuilderWithTopicName WithWorkerName(string workerName)
+    public IPulsarTopicBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IPulsarConsumerTopicBuilderWithQueues WithTopicName(string topicName)
+    public IPulsarTopicBuilderWithQueues WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IPulsarConsumerTopicBuilderWithConfiguration WithConsumerGroup(string consumerGroup)
+    public IPulsarTopicBuilderWithConfiguration WithConsumerGroup(string consumerGroup)
     {
         _consumerGroup = consumerGroup;
         return this;
     }
 
-    public IPulsarConsumerTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions)
+    public IPulsarTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions)
     {
         _tenant = tenant;
         _namespace = @namespace;
@@ -56,13 +57,13 @@ public class PulsarTopicCreationBuilder(
         return this;
     }
         
-    public IPulsarConsumerTopicBuilderWithBuild WithTopicOptions(bool? startNewConsumerEarliest)
+    public IPulsarTopicBuilder WithTopicOptions(bool? startNewConsumerEarliest)
     {
         _startNewConsumerEarliest = startNewConsumerEarliest;
         return this;
     }
 
-    public IPulsarConsumerTopicBuilderWithBuild WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds)
+    public IPulsarTopicBuilder WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds)
     {
         _blockIfQueueFull = blockIfQueueFull;
         _maxPendingMessages = maxPendingMessages;
@@ -74,10 +75,16 @@ public class PulsarTopicCreationBuilder(
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(int? numberOfInstances, CancellationToken cancellationToken = default)
+    public IPulsarTopicBuilder WithConsumeSettings(int? numberOfInstances)
+    {
+        _numberOfInstances = numberOfInstances;
+        return this;
+    }
+
+    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
-        var messagingSettings = GetMessagingSettings(numberOfInstances);
+        var messagingSettings = GetMessagingSettings();
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Pulsar, _workerName, messagingSettings.Source);
         await pollyRetryService.WaitAndRetryAsync<Exception>
@@ -118,7 +125,7 @@ public class PulsarTopicCreationBuilder(
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
-    private MessagingSettings GetMessagingSettings(int? numberOfInstances = null)
+    private MessagingSettings GetMessagingSettings()
     {
         return new MessagingSettings
         {
@@ -129,7 +136,7 @@ public class PulsarTopicCreationBuilder(
             PulsarConsumerGroup = _consumerGroup,
             PulsarStartNewConsumerEarliest = _startNewConsumerEarliest ?? false,
             PulsarTopicNumberOfPartitions = _numberOfPartitions ?? 6,
-            NumberOfInstances = numberOfInstances ?? 1
+            NumberOfInstances = _numberOfInstances ?? 1
         };
     }
 }
