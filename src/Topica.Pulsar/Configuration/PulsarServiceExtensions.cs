@@ -5,8 +5,6 @@ using Pulsar.Client.Api;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
-using Topica.Infrastructure.Contracts;
-using Topica.Infrastructure.Services;
 using Topica.Pulsar.Builders;
 using Topica.Pulsar.Configuration;
 using Topica.Pulsar.Contracts;

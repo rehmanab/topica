@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Aws.Queues;
-using Topica.Infrastructure.Contracts;
+using Topica.Contracts;
 
 namespace Topica.Aws.Services
 {

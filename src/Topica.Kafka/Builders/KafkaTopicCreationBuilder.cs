@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Topica.Kafka.Contracts;
 using Topica.Contracts;
-using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Kafka.Builders;

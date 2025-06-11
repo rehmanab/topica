@@ -11,7 +11,6 @@ using Topica.Aws.Contracts;
 using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
-using Topica.Infrastructure.Contracts;
 using Topica.Messages;
 
 namespace Topica.Aws.Producer;

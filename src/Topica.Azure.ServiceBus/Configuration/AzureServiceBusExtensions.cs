@@ -9,8 +9,7 @@ using System.Reflection;
 using Topica.Azure.ServiceBus.Builders;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Azure.ServiceBus.Providers;
-using Topica.Infrastructure.Contracts;
-using Topica.Infrastructure.Services;
+using Topica.Services;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;

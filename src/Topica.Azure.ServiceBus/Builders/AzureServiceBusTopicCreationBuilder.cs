@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
 using Topica.Helpers;
-using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Builders;

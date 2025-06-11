@@ -1,6 +1,8 @@
-﻿using Polly;
+﻿using System;
+using System.Threading.Tasks;
+using Polly;
 
-namespace Topica.Infrastructure.Contracts;
+namespace Topica.Contracts;
 
 public interface IPollyRetryService
 {

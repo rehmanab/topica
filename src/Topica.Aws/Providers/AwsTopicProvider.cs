@@ -7,7 +7,6 @@ using Topica.Aws.Contracts;
 using Topica.Aws.Producer;
 using Topica.Aws.Queues;
 using Topica.Contracts;
-using Topica.Infrastructure.Contracts;
 using Topica.Settings;
 
 namespace Topica.Aws.Providers

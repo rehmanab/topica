@@ -1,8 +1,10 @@
-﻿using Polly;
+﻿using System;
+using System.Threading.Tasks;
+using Polly;
 using Polly.Timeout;
-using Topica.Infrastructure.Contracts;
+using Topica.Contracts;
 
-namespace Topica.Infrastructure.Services;
+namespace Topica.Services;
 
 public class PollyRetryService : IPollyRetryService
 {

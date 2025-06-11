@@ -10,7 +10,6 @@ using Polly.Retry;
 using Topica.Aws.Contracts;
 using Topica.Aws.Messages;
 using Topica.Contracts;
-using Topica.Infrastructure.Contracts;
 using Topica.Messages;
 using Topica.Settings;
 

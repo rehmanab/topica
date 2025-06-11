@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Topica.Infrastructure\Topica.Infrastructure.csproj" />
         <ProjectReference Include="..\Topica\Topica.csproj" />
     </ItemGroup>
 

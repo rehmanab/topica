@@ -6,14 +6,13 @@ using RabbitMQ.Client;
 using Topica;
 using Topica.Contracts;
 using Topica.Executors;
-using Topica.Infrastructure.Contracts;
-using Topica.Infrastructure.Services;
 using Topica.RabbitMq.Builders;
 using Topica.RabbitMq.Clients;
 using Topica.RabbitMq.Configuration;
 using Topica.RabbitMq.Contracts;
 using Topica.RabbitMq.Providers;
 using Topica.Resolvers;
+using Topica.Services;
 using Topica.Topics;
 
 // ReSharper disable once CheckNamespace

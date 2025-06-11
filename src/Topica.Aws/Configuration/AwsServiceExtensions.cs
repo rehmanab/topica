@@ -11,9 +11,8 @@ using Topica.Aws.Providers;
 using Topica.Aws.Services;
 using Topica.Contracts;
 using Topica.Executors;
-using Topica.Infrastructure.Contracts;
-using Topica.Infrastructure.Services;
 using Topica.Resolvers;
+using Topica.Services;
 using Topica.Topics;
 
 // ReSharper disable once CheckNamespace
