@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Topica.Contracts;
 using Topica.Pulsar.Contracts;
 using Topica.Pulsar.Models;
@@ -11,6 +12,7 @@ namespace Topica.Pulsar.Services
 {
     public class PulsarService(string pulsarManagerBaseUrl, string pulsarAdminUrl, IHttpClientService httpClientService, ILogger<PulsarService> logger) : IPulsarService
     {
+        // This is for Pulsar Manager - the Web Frontend (http://localhost:9527/#/environments) - Tasks a minute to start when docker fresh container created
         public async Task<bool> CreateDefaultUserAsync()
         {
             var token = await httpClientService.GetAsync($"{pulsarManagerBaseUrl}/pulsar-manager/csrf-token");
@@ -26,6 +28,90 @@ namespace Topica.Pulsar.Services
             }
 
             return true;
+        }
+
+        // Clusters
+        public async Task<IEnumerable<string>> GetClustersAsync()
+        {
+            httpClientService.ClearHeaders();
+
+            var response = await httpClientService.GetAsync<IEnumerable<string>>($"{pulsarAdminUrl}/admin/v2/clusters");
+
+            return response;
+        }
+
+        public async Task<ClusterConfiguration?> GetClusterAsync(string clusterName)
+        {
+            httpClientService.ClearHeaders();
+
+            var response = await httpClientService.GetHttpResponseMessageAsync($"{pulsarAdminUrl}/admin/v2/clusters/{clusterName}");
+
+            var message = await response.Content.ReadAsStringAsync();
+
+            // Tenant does not exist
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<ClusterConfiguration>(message);
+            }
+
+            var error = JsonConvert.DeserializeObject<ClusterErrorResponse>(message);
+            return error != null && error.Reason.ToLower() == "cluster does not exist"
+                ? null
+                : throw new ApplicationException($"{response.StatusCode} : {response.ReasonPhrase}");
+        }
+
+        // Tenants
+        public async Task<IEnumerable<string>> GetTenantsAsync()
+        {
+            httpClientService.ClearHeaders();
+
+            var response = await httpClientService.GetAsync<IEnumerable<string>>($"{pulsarAdminUrl}/admin/v2/tenants");
+
+            return response;
+        }
+
+        public async Task<TenantConfiguration?> GetTenantAsync(string tenantName)
+        {
+            httpClientService.ClearHeaders();
+
+            var response = await httpClientService.GetHttpResponseMessageAsync($"{pulsarAdminUrl}/admin/v2/tenants/{tenantName}");
+
+            var message = await response.Content.ReadAsStringAsync();
+
+            // Tenant does not exist
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<TenantConfiguration>(message);
+            }
+
+            var error = JsonConvert.DeserializeObject<TenantErrorResponse>(message);
+            return error != null && error.Reason.ToLower() == "tenant does not exist"
+                ? null
+                : throw new ApplicationException($"{response.StatusCode} : {response.ReasonPhrase}");
+        }
+
+        public async Task CreateTenantAsync(string tenantName)
+        {
+            var tenant = await GetTenantAsync(tenantName);
+
+            if (tenant != null) return;
+
+            var tenantConfigurationRequest = new TenantConfiguration { AdminRoles = ["Admin"], AllowedClusters = (await GetClustersAsync()).ToList() };
+            var createResponse = await httpClientService.PutAsync($"{pulsarAdminUrl}/admin/v2/tenants/{tenantName}", tenantConfigurationRequest);
+
+            createResponse.EnsureSuccessStatusCode();
+        }
+
+        public async Task DeleteTenantAsync(string tenantName)
+        {
+            var tenant = await GetTenantAsync(tenantName);
+
+            if (tenant == null) return;
+
+            httpClientService.ClearHeaders();
+            var response = await httpClientService.DeleteAsync($"{pulsarAdminUrl}/admin/v2/tenants/{tenantName}");
+
+            response.EnsureSuccessStatusCode();
         }
 
         // Namespaces
@@ -117,7 +203,7 @@ namespace Topica.Pulsar.Services
 
             return response;
         }
-        
+
         public async Task<PartitionedTopicMetaData?> GetPartitionTopicMetaDataAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
         {
             var namespaces = await GetNamespacesAsync(tenant);
@@ -147,7 +233,7 @@ namespace Topica.Pulsar.Services
 
             createResponse.EnsureSuccessStatusCode();
         }
-        
+
         public async Task CreatePartitionedTopicAsync(string tenant, string @namespace, string topicName, int numberOfPartitions, bool isPersistent = true)
         {
             var topics = await GetTopicsAsync(tenant, @namespace, isPersistent, isPartitioned: true);
@@ -161,7 +247,7 @@ namespace Topica.Pulsar.Services
 
             createResponse.EnsureSuccessStatusCode();
         }
-        
+
         // When topic auto-creation is disabled, and you have a partitioned topic without any partitions, you can use the create-missed-partitions command to create partitions for the topic.
         public async Task CreateMissedPartitionsTopicAsync(string tenant, string @namespace, string topicName, bool isPersistent = true)
         {
@@ -172,11 +258,11 @@ namespace Topica.Pulsar.Services
                 return;
             }
 
-            var createResponse = await httpClientService.PostAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/createMissedPartitions", (string)null);
+            var createResponse = await httpClientService.PostAsync($"{pulsarAdminUrl}/admin/v2/{(isPersistent ? "persistent" : "non-persistent")}/{tenant}/{@namespace}/{topicName}/createMissedPartitions", null);
 
             createResponse.EnsureSuccessStatusCode();
         }
-        
+
         // You can only increase the number of partitions
         public async Task UpdatePartitionedTopicAsync(string tenant, string @namespace, string topicName, int numberOfPartitions, bool isPersistent = true)
         {

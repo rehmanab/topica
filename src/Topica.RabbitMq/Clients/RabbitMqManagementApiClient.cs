@@ -94,7 +94,7 @@ namespace Topica.RabbitMq.Clients
         }
 
         // Delete Exchange with queues and bindings
-        public async Task DeleteExchangeAndBindingsAsync(params string[] exchangeNames)
+        public async Task DeleteExchangeAndBindingsAsync(string[] exchangeNames)
         {
             foreach (var exchangeName in exchangeNames)
             {

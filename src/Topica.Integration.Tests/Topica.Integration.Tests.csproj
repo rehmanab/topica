@@ -11,7 +11,11 @@
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.2"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0"/>
-        <PackageReference Include="Testcontainers.LocalStack" Version="4.5.0" />
+        <PackageReference Include="Testcontainers" Version="4.6.0" />
+        <PackageReference Include="Testcontainers.Kafka" Version="4.6.0" />
+        <PackageReference Include="Testcontainers.LocalStack" Version="4.6.0" />
+        <PackageReference Include="Testcontainers.Pulsar" Version="4.6.0" />
+        <PackageReference Include="Testcontainers.RabbitMq" Version="4.6.0" />
         <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
@@ -32,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="AwsQueue\appsettings.json">
+      <None Update="Azure\ServiceBus\AzureServiceBusConfig.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

@@ -46,7 +46,10 @@ var host = Host.CreateDefaultBuilder()
         services.AddSingleton(settings);
 
         // Add MessagingPlatform Components
-        services.AddKafkaTopica(Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+        services.AddKafkaTopica(c =>
+        {
+            c.BootstrapServers = hostSettings.BootstrapServers;
+        }, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
         // Assembly.GetExecutingAssembly()
 
         services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });

@@ -16,20 +16,20 @@ namespace Topica.Resolvers
         /// <param name="source">The message body</param>
         /// <returns>handlerImpl, methodToValidate, methodToExecute</returns>
         /// <exception cref="Exception"></exception>
-        public (bool handlerFound, object handlerImpl, object methodToValidate, object? methodToExecute) ResolveHandler(string source)
+        public (bool handlerFound, object handlerImpl, bool methodToValidate, object? methodToExecute) ResolveHandler(string source)
         {
             var baseMessage = JsonConvert.DeserializeObject<BaseMessage>(source);
             
             if(baseMessage == null)
             {
                 logger.LogError("Message is null for: {Name}", source);
-                return (false, new object(), new object(), new object());
+                return (false, new object(), false, new object());
             }
             
             if(string.IsNullOrEmpty(baseMessage.Type))
             {
                 logger.LogError("Message type property is null or empty for for incoming message body: {Source}", source);
-                return (false, new object(), new object(), new object());
+                return (false, new object(), false, new object());
             }
             
             var interfaceType = typeof(IHandler<>);
@@ -42,7 +42,7 @@ namespace Topica.Resolvers
             if (!handlers.Any())
             {
                 logger.LogWarning("No IHandler found for incoming message type: {Name} .. Skipping message", baseMessage.Type);
-                return (false, new object(), new object(), new object());
+                return (false, new object(), false, new object());
             }
 
             if (handlers.Count > 1)
@@ -58,7 +58,7 @@ namespace Topica.Resolvers
             if (message == null)
             {
                 logger.LogError("Message for {HandlerTypeParam} could not be parsed", handlerTypeParam.Name);
-                return (false, new object(), new object(), new object());
+                return (false, new object(), false, new object());
             }
             
             var handlerImpl = serviceProvider.GetService(handlersInterface);
@@ -68,19 +68,15 @@ namespace Topica.Resolvers
             return (true, executeHandler.handlerImpl, executeHandler.methodToValidate, executeHandler.methodToExecute);
         }
 
-        private static (object handlerImpl, object methodToValidate, object? methodToExecute) ExecuteHandler(object handlerImpl, object message)
+        private static (object handlerImpl, bool methodToValidate, object? methodToExecute) ExecuteHandler(object handlerImpl, object message)
         {
             var methodToValidate = handlerImpl.GetType().GetMethod("ValidateMessage");
             if (methodToValidate == null)
             {
                 throw new Exception($"ValidateMessage method not found on : {handlerImpl.GetType().Name}");
             }
-            var toValidate = methodToValidate.Invoke(handlerImpl, [message]);
-            if (toValidate == null)
-            {
-                throw new Exception("invoked method returned null");   
-            }
-            if(!(bool)toValidate)
+            var toValidate = Convert.ToBoolean(methodToValidate.Invoke(handlerImpl, [message]));
+            if(!toValidate)
             {
                 return (handlerImpl, toValidate, null);
             }

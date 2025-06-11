@@ -68,7 +68,7 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
             var request = new SendMessageBatchRequest
             {
                 QueueUrl = queueUrl,
-                Entries = baseMessages.Select(x => new SendMessageBatchRequestEntry(x.Id(), JsonConvert.SerializeObject(x)) { MessageGroupId = x.MessageGroupId }).ToList()
+                Entries = baseMessages.Select(x => new SendMessageBatchRequestEntry(x.Id.ToString(), JsonConvert.SerializeObject(x)) { MessageGroupId = x.MessageGroupId }).ToList()
             };
 
             if (sqsClient != null)

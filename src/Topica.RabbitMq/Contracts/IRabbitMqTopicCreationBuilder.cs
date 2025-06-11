@@ -16,7 +16,7 @@ namespace Topica.RabbitMq.Contracts
     
     public interface IRabbitMqTopicBuilderWithQueues
     {
-        IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(params string[] queueNames);
+        IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
     }
     
     public interface IRabbitMqTopicBuilderWithQueueToSubscribeTo

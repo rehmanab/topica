@@ -70,7 +70,7 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
                 TopicArn = topicArn,
                 PublishBatchRequestEntries = baseMessages.Select(x => new PublishBatchRequestEntry
                 {
-                    Id = x.Id(),
+                    Id = x.Id.ToString(),
                     MessageGroupId = x.MessageGroupId,
                     MessageDeduplicationId = Guid.NewGuid().ToString(),
                     Message = JsonConvert.SerializeObject(x),

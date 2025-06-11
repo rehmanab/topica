@@ -26,7 +26,7 @@ namespace Topica.Kafka.Contracts
     
     public interface IKafkaTopicBuilderWithBootstrapServers
     {
-        IKafkaTopicBuilder WithBootstrapServers(params string[] bootstrapServers);
+        IKafkaTopicBuilder WithBootstrapServers(string[] bootstrapServers);
     }
     
     public interface IKafkaTopicBuilder

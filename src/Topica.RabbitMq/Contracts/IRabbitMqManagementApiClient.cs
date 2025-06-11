@@ -14,7 +14,7 @@ namespace Topica.RabbitMq.Contracts
         Task DeleteVHostsAsync(string vhostName);
         Task<ExchangeBinding> GetExchangeAndBindingsAsync(string name);
         Task CreateExchangeAndBindingsAsync(string exchangeName, bool durable, ExchangeTypes type, IEnumerable<CreateRabbitMqQueueRequest> queues);
-        Task DeleteExchangeAndBindingsAsync(params string[] exchangeNames);
+        Task DeleteExchangeAndBindingsAsync(string[] exchangeNames);
         Task<IEnumerable<User>> GetUsersAsync();
         Task CreateOrUpdateUserAsync(CreateOrUpdateUserRequest body);
         Task SetUserPermissionsAsync(SetUserPermissionsRequest body);

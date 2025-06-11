@@ -43,7 +43,7 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         return this;
     }
 
-    public IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(params string[] queueNames)
+    public IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
     {
         _queueNames = queueNames;
         return this;

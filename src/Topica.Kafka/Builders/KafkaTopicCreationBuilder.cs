@@ -47,7 +47,7 @@ public class KafkaTopicCreationBuilder(
         return this;
     }
 
-    public IKafkaTopicBuilder WithBootstrapServers(params string[] bootstrapServers)
+    public IKafkaTopicBuilder WithBootstrapServers(string[] bootstrapServers)
     {
         _bootstrapServers = bootstrapServers;
         return this; 

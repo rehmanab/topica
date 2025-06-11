@@ -6,7 +6,7 @@ namespace Topica.Messages
 {
     public class BaseMessage
     {
-        public string Id() => Guid.NewGuid().ToString();
+        public Guid Id { get; set; }
         public string? Type { get; set; }
         
         public long EventId { get; set; }   
@@ -24,7 +24,14 @@ namespace Topica.Messages
         
         public static BaseMessage? Parse<T>(string messageBody) where T: BaseMessage
         {
-            return JsonConvert.DeserializeObject<T>(messageBody);
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(messageBody);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

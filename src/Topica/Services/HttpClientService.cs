@@ -41,8 +41,13 @@ namespace Topica.Services
 
             return JsonConvert.DeserializeObject<T>(result);
         }
+        
+        public async Task<HttpResponseMessage> GetHttpResponseMessageAsync(string url)
+        {
+            return await _httpClient.GetAsync(url);
+        }
 
-        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent? content, CancellationToken ct = default)
         {
             var response = await _httpClient.PostAsync(new Uri(url), content, ct);
 
@@ -76,7 +81,7 @@ namespace Topica.Services
             throw new HttpRequestException(error);
         }
 
-        public async Task<HttpResponseMessage> PutAsync(string url, HttpContent content, CancellationToken ct = default)
+        public async Task<HttpResponseMessage> PutAsync(string url, HttpContent? content, CancellationToken ct = default)
         {
             var response = await _httpClient.PutAsync(new Uri(url), content, ct);
 

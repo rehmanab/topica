@@ -2,6 +2,6 @@ namespace Topica.Contracts
 {
     public interface IHandlerResolver
     {
-        (bool handlerFound, object handlerImpl, object methodToValidate, object? methodToExecute) ResolveHandler(string source);
+        (bool handlerFound, object handlerImpl, bool methodToValidate, object? methodToExecute) ResolveHandler(string source);
     }
 }

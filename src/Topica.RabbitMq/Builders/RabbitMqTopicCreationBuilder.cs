@@ -32,7 +32,7 @@ public class RabbitMqTopicCreationBuilder(
         return this;
     }
 
-    public IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(params string[] queueNames)
+    public IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
     {
         _queueNames = queueNames;
         return this;

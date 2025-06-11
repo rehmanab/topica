@@ -16,7 +16,7 @@ namespace Topica.Aws.Contracts
     
     public interface IAwsTopicBuilderWithQueues
     {
-        IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(params string[] queueNames);
+        IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
     }
     
     public interface IAwsTopicBuilderWithQueueToSubscribeTo

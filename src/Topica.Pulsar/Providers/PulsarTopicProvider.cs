@@ -15,6 +15,7 @@ namespace Topica.Pulsar.Providers
         
         public async Task CreateTopicAsync(MessagingSettings settings)
         {
+            await pulsarService.CreateTenantAsync(settings.PulsarTenant);
             await pulsarService.CreateNamespaceAsync(settings.PulsarTenant, settings.PulsarNamespace);
             await pulsarService.CreatePartitionedTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source, settings.PulsarTopicNumberOfPartitions);
             

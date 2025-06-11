@@ -19,21 +19,24 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
         var config = new AmazonSQSConfig();
         
         // Get from Profile name in credentials file
-        var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
-        if(!tryGetProfile && !string.IsNullOrWhiteSpace(awsSettings.ProfileName)) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
-        
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && tryGetProfile && AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
+        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName))
         {
-            var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
-            var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
-            logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {GetSqsClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSQSClient));
+            var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
+            if(!tryGetProfile) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
+        
+            if (AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
+            {
+                var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
+                var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
+                logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {ClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSQSClient));
             
-            config.RegionEndpoint = regionEndpoint;
-            if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
+                config.RegionEndpoint = regionEndpoint;
+                if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
             
-            return new AmazonSQSClient(credentials, config);
+                return new AmazonSQSClient(credentials, config);
+            }
         }
-            
+        
         // Get from Access key & Secret from local appsettings.json -> AwsHostSettings
         if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
         {
@@ -62,19 +65,22 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
         var config = new AmazonSimpleNotificationServiceConfig();
         
         // Get from Profile name in credentials file
-        var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
-        if(!tryGetProfile&& !string.IsNullOrWhiteSpace(awsSettings.ProfileName)) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
-        
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName) && tryGetProfile && AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
+        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName))
         {
-            var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
-            var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
-            logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {ClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSimpleNotificationServiceClient));
+            var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
+            if(!tryGetProfile) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
+        
+            if (AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
+            {
+                var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
+                var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
+                logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {ClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSimpleNotificationServiceClient));
             
-            config.RegionEndpoint = regionEndpoint;
-            if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
+                config.RegionEndpoint = regionEndpoint;
+                if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
             
-            return new AmazonSimpleNotificationServiceClient(credentials, config);
+                return new AmazonSimpleNotificationServiceClient(credentials, config);
+            }
         }
 
         // Get from Access key & Secret from local appsettings.json -> AwsHostSettings
