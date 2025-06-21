@@ -1,0 +1,9 @@
+# Up Windows
+docker-compose -f .docker/docker-compose-seq.yml -p seq up -d
+# Down Windows
+docker-compose -f .docker/docker-compose-seq.yml -p seq down
+  
+# Up macOS/Linux
+docker compose -f .docker/docker-compose-seq.yml -p seq up -d
+# Down macOS/Linux
+docker compose -f .docker/docker-compose-seq.yml -p seq down

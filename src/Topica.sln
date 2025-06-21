@@ -93,6 +93,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Integration.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Unit.Tests", "Topica.Unit.Tests\Topica.Unit.Tests.csproj", "{3790A2F4-B51E-42E0-AA88-0E13B9F711EF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{BDD5B349-C8D7-43E6-8215-06E341E7B61C}"
+	ProjectSection(SolutionItems) = preProject
+		..\.docker\docker-compose-seq.yml = ..\.docker\docker-compose-seq.yml
+		..\.docker\docker-compose-all-services.yml = ..\.docker\docker-compose-all-services.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -222,5 +228,6 @@ Global
 		{39E92426-E2D2-456F-B19C-5B62A9260AB1} = {D4049594-00C3-4442-A58C-02349759CE21}
 		{4878AFDF-CC5F-4724-86C4-13CF2CCE0171} = {D95600C8-CEF4-4B32-98C1-E4AE5E36BC97}
 		{3790A2F4-B51E-42E0-AA88-0E13B9F711EF} = {D95600C8-CEF4-4B32-98C1-E4AE5E36BC97}
+		{BDD5B349-C8D7-43E6-8215-06E341E7B61C} = {61A51C6C-9886-457E-9F71-7E41B7909B54}
 	EndGlobalSection
 EndGlobal

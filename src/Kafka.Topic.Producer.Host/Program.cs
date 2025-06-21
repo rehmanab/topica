@@ -23,13 +23,6 @@ var host = Host.CreateDefaultBuilder()
     )
     .ConfigureServices(services =>
     {
-        services.AddLogging(configure => configure.AddSimpleConsole(x =>
-        {
-            x.IncludeScopes = false;
-            x.TimestampFormat = "[HH:mm:ss] ";
-            x.SingleLine = true;
-        }));
-
         // Configuration
         var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
         var hostSettings = configuration.GetSection(KafkaHostSettings.SectionName).Get<KafkaHostSettings>();
@@ -43,6 +36,15 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
+        
+        services.AddLogging(configure => configure
+            .AddSimpleConsole(x =>
+            {
+                x.IncludeScopes = false;
+                x.TimestampFormat = "[HH:mm:ss] ";
+                x.SingleLine = true;
+            })
+            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddKafkaTopica(c =>
