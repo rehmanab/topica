@@ -11,7 +11,7 @@ WORKDIR /src
 COPY ["Aws.Queue.Producer.Host/Aws.Queue.Producer.Host.csproj", "Aws.Queue.Producer.Host/"]
 COPY ["Topica.Aws/Topica.Aws.csproj", "Topica.Aws/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 RUN dotnet restore "Aws.Queue.Producer.Host/Aws.Queue.Producer.Host.csproj"
 COPY . .
 WORKDIR "/src/Aws.Queue.Producer.Host"

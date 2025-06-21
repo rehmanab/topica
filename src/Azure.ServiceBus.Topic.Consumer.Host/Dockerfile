@@ -12,7 +12,7 @@ COPY ["Azure.ServiceBus.Topic.Consumer.Host/Azure.ServiceBus.Topic.Consumer.Host
 COPY ["Topica.Aws/Topica.Aws.csproj", "Topica.Aws/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.Azure.ServiceBus/Topica.Azure.ServiceBus.csproj", "Topica.Azure.ServiceBus/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 RUN dotnet restore "Azure.ServiceBus.Topic.Consumer.Host/Azure.ServiceBus.Topic.Consumer.Host.csproj"
 COPY . .
 WORKDIR "/src/Azure.ServiceBus.Topic.Consumer.Host"

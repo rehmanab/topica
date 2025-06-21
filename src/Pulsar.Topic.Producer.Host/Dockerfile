@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Pulsar.Topic.Producer.Host/Pulsar.Topic.Producer.Host.csproj", "Pulsar.Topic.Producer.Host/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.Pulsar/Topica.Pulsar.csproj", "Topica.Pulsar/"]
 RUN dotnet restore "Pulsar.Topic.Producer.Host/Pulsar.Topic.Producer.Host.csproj"

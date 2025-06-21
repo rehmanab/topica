@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Kafka.Topic.Consumer.Host/Kafka.Topic.Consumer.Host.csproj", "Kafka.Topic.Consumer.Host/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.Kafka/Topica.Kafka.csproj", "Topica.Kafka/"]
 RUN dotnet restore "Kafka.Topic.Consumer.Host/Kafka.Topic.Consumer.Host.csproj"

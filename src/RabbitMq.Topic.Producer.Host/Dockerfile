@@ -9,7 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["RabbitMq.Topic.Producer.Host/RabbitMq.Topic.Producer.Host.csproj", "RabbitMq.Topic.Producer.Host/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.RabbitMq/Topica.RabbitMq.csproj", "Topica.RabbitMq/"]
 RUN dotnet restore "RabbitMq.Topic.Producer.Host/RabbitMq.Topic.Producer.Host.csproj"

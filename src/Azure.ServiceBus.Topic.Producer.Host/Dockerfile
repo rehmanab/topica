@@ -11,7 +11,7 @@ WORKDIR /src
 COPY ["Azure.ServiceBus.Topic.Producer.Host/Azure.ServiceBus.Topic.Producer.Host.csproj", "Azure.ServiceBus.Topic.Producer.Host/"]
 COPY ["Topica.Azure.ServiceBus/Topica.Azure.ServiceBus.csproj", "Topica.Azure.ServiceBus/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
-COPY ["Topica.Host.Shared/Topica.Host.Shared.csproj", "Topica.Host.Shared/"]
+COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 RUN dotnet restore "Azure.ServiceBus.Topic.Producer.Host/Azure.ServiceBus.Topic.Producer.Host.csproj"
 COPY . .
 WORKDIR "/src/Azure.ServiceBus.Topic.Producer.Host"
