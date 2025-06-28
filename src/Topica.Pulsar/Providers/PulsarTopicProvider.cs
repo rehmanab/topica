@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Pulsar.Client.Api;
@@ -13,11 +14,11 @@ namespace Topica.Pulsar.Providers
     {
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Pulsar;
         
-        public async Task CreateTopicAsync(MessagingSettings settings)
+        public async Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken)
         {
-            await pulsarService.CreateTenantAsync(settings.PulsarTenant);
-            await pulsarService.CreateNamespaceAsync(settings.PulsarTenant, settings.PulsarNamespace);
-            await pulsarService.CreatePartitionedTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source, settings.PulsarTopicNumberOfPartitions);
+            await pulsarService.CreateTenantAsync(settings.PulsarTenant, cancellationToken);
+            await pulsarService.CreateNamespaceAsync(settings.PulsarTenant, settings.PulsarNamespace, cancellationToken);
+            await pulsarService.CreatePartitionedTopicAsync(settings.PulsarTenant, settings.PulsarNamespace, settings.Source, settings.PulsarTopicNumberOfPartitions, cancellationToken: cancellationToken);
             
             logger.LogInformation("**** CREATED: {PulsarTopicProviderName}.{CreateTopicAsyncName}: topic {Source}", nameof(PulsarTopicProvider), nameof(CreateTopicAsync), settings.Source);
         }

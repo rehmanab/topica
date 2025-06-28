@@ -15,7 +15,7 @@ public class KafkaTopicProducer(string consumerName, MessagingSettings messaging
 {
     private IProducer<string, string>? _producer;
 
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_producer is null)
         {
@@ -39,7 +39,7 @@ public class KafkaTopicProducer(string consumerName, MessagingSettings messaging
         }, cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_producer is null)
         {

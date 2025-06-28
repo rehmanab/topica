@@ -17,7 +17,7 @@ namespace Topica.Aws.Producer;
 
 public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, bool isFifo) : IProducer, IAsyncDisposable
 {
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var topicArn = GetTopicArn(source, cancellationToken);
         
@@ -56,7 +56,7 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
         }
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var topicArn = GetTopicArn(source, cancellationToken);
         

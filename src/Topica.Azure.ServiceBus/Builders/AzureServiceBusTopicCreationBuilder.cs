@@ -113,8 +113,9 @@ public class AzureServiceBusTopicCreationBuilder(
                 30,
                 _ => TimeSpan.FromSeconds(10),
                 (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
-                () => topicProvider.CreateTopicAsync(messagingSettings),
-                false
+                ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+                false,
+                cancellationToken
             );
         }
         else
@@ -142,8 +143,9 @@ public class AzureServiceBusTopicCreationBuilder(
                 30,
                 _ => TimeSpan.FromSeconds(10),
                 (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
-                () => topicProvider.CreateTopicAsync(messagingSettings),
-                false
+                ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+                false,
+                cancellationToken
             );
         }
         else

@@ -2,8 +2,8 @@
 {
     public class AwsSqsConfiguration
     {
-        public AwsQueueAttributes QueueAttributes { get; set; } = new();
-        public bool? CreateErrorQueue { get; set; }
-        public int ErrorQueueMaxReceiveCount { get; set; }
+        public AwsQueueAttributes QueueAttributes { get; init; } = new();
+        public bool CreateErrorQueue { get; init; }
+        public int ErrorQueueMaxReceiveCount { get; init; }
     }
 }

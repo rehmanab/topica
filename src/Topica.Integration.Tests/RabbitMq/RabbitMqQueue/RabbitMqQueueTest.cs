@@ -52,7 +52,7 @@ public class RabbitMqQueueTest(RabbitMqSharedFixture sharedFixture, ITestOutputH
                 await producer.ProduceAsync(queueName, message, null, producerCts.Token);
                 MessageCounter.RabbitMqQueueMessageSent.Add(message);
 
-                await Task.Delay(TimeSpan.FromSeconds(1), producerCts.Token);
+                await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
         }
         catch (TaskCanceledException)

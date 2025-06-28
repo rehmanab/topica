@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Polly;
 using Polly.Timeout;
@@ -12,12 +13,13 @@ public class PollyRetryService : IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<int> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var retryPolicy = Policy
@@ -26,7 +28,7 @@ public class PollyRetryService : IPollyRetryService
 
         try
         {
-            var result = await retryPolicy.ExecuteAsync(executeFunction);
+            var result = await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
 
             return result;
         }
@@ -39,33 +41,35 @@ public class PollyRetryService : IPollyRetryService
     public async Task WaitAndRetryAsync<TException>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException : Exception
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var retryPolicy = Policy
             .Handle<TException>()
             .WaitAndRetryAsync(retries, sleepDuration, retryAction.Invoke);
 
-        await retryPolicy.ExecuteAsync(executeFunction);
+        await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
     }
 
     public async Task WaitAndRetryAsync<TException1, TException2>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var retryPolicy = Policy
@@ -73,33 +77,35 @@ public class PollyRetryService : IPollyRetryService
             .Or<TException2>()
             .WaitAndRetryAsync(retries, sleepDuration, retryAction.Invoke);
 
-        await retryPolicy.ExecuteAsync(executeFunction);
+        await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
     }
 
     public async Task<TResult> WaitAndRetryAsync<TException, TResult>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task<TResult>> executeFunction)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        CancellationToken cancellationToken)
         where TException : Exception
     {
         var retryPolicy = Policy
             .Handle<TException>()
             .WaitAndRetryAsync(retries, sleepDuration, retryAction.Invoke);
 
-        return await retryPolicy.ExecuteAsync(executeFunction);
+        return await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
     }
 
     public async Task<TResult?> WaitAndRetryAsync<TException, TResult>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult?>> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException : Exception
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var retryPolicy = Policy
@@ -109,7 +115,7 @@ public class PollyRetryService : IPollyRetryService
 
         try
         {
-            var result = await retryPolicy.ExecuteAsync(executeFunction);
+            var result = await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
 
             return result;
         }
@@ -123,14 +129,15 @@ public class PollyRetryService : IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var retryPolicy = Policy
@@ -141,7 +148,7 @@ public class PollyRetryService : IPollyRetryService
 
         try
         {
-            var result = await retryPolicy.ExecuteAsync(executeFunction);
+            var result = await retryPolicy.ExecuteAsync(executeFunction, cancellationToken);
 
             return result;
         }
@@ -155,15 +162,16 @@ public class PollyRetryService : IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception
     {
         if (doInitialSleep)
         {
-            await Task.Delay(sleepDuration(0));
+            await Task.Delay(sleepDuration(0), cancellationToken);
         }
 
         var timeoutPolicy = Policy.TimeoutAsync<TResult>(timeout, TimeoutStrategy.Pessimistic,
@@ -181,8 +189,8 @@ public class PollyRetryService : IPollyRetryService
 
         try
         {
-            var resilientStrategy = Policy.WrapAsync<TResult>(retryPolicy, timeoutPolicy);
-            var result = await resilientStrategy.ExecuteAsync(() => executeFunction());
+            var resilientStrategy = Policy.WrapAsync(retryPolicy, timeoutPolicy);
+            var result = await resilientStrategy.ExecuteAsync(executeFunction, cancellationToken);
 
             return result;
         }
@@ -196,12 +204,13 @@ public class PollyRetryService : IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception
     {
-        if (doInitialSleep) await Task.Delay(sleepDuration(0));
+        if (doInitialSleep) await Task.Delay(sleepDuration(0), cancellationToken);
 
         var timeoutPolicy = Policy.TimeoutAsync<TResult>(timeout, TimeoutStrategy.Pessimistic,
             (context, timeSpan, task, ex) =>
@@ -218,7 +227,7 @@ public class PollyRetryService : IPollyRetryService
         try
         {
             var resilientStrategy = Policy.WrapAsync<TResult>(retryPolicy, timeoutPolicy);
-            var result = await resilientStrategy.ExecuteAsync(() => executeFunction());
+            var result = await resilientStrategy.ExecuteAsync(executeFunction, cancellationToken);
 
             return result;
         }
@@ -231,13 +240,14 @@ public class PollyRetryService : IPollyRetryService
     public async Task<TResult?> WaitAndRetryForeverWithTimeoutAsync<TException1, TException2, TResult>(Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, int, TimeSpan> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception
     {
-        if (doInitialSleep) await Task.Delay(sleepDuration(0));
+        if (doInitialSleep) await Task.Delay(sleepDuration(0), cancellationToken);
 
         var timeoutPolicy = Policy.TimeoutAsync<TResult>(timeout, TimeoutStrategy.Pessimistic, (context, timeSpan, task, ex) => Task.CompletedTask);
 
@@ -249,7 +259,7 @@ public class PollyRetryService : IPollyRetryService
 
         try
         {
-            return await Policy.WrapAsync(retryPolicy, timeoutPolicy).ExecuteAsync(executeFunction);
+            return await Policy.WrapAsync(retryPolicy, timeoutPolicy).ExecuteAsync(executeFunction, cancellationToken);
         }
         catch
         {

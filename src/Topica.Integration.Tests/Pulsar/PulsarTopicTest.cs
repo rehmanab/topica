@@ -55,7 +55,7 @@ public class PulsarTopicTest(PulsarTopicSharedFixture sharedFixture, ITestOutput
                 await producer.ProduceAsync(topicName, message, null, producerCts.Token);
                 MessageCounter.PulsarTopicMessageSent.Add(message);
 
-                await Task.Delay(TimeSpan.FromSeconds(1), producerCts.Token);
+                await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
         }
         catch (TaskCanceledException)

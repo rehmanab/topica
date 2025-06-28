@@ -95,8 +95,9 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
             30,
             _ => TimeSpan.FromSeconds(10),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AwsQueueCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            () => queueProvider.CreateQueueAsync(messagingSettings),
-            false
+            ct => queueProvider.CreateQueueAsync(messagingSettings, ct),
+            false,
+            cancellationToken
         );
         
         return await queueProvider.ProvideConsumerAsync(messagingSettings);
@@ -113,8 +114,9 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
             30,
             _ => TimeSpan.FromSeconds(10),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AwsQueueCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            () => queueProvider.CreateQueueAsync(messagingSettings),
-            false
+            ct => queueProvider.CreateQueueAsync(messagingSettings, ct),
+            false,
+            cancellationToken
         );
 
         return await queueProvider.ProvideProducerAsync(_workerName, messagingSettings);

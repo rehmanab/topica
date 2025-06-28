@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
@@ -22,7 +23,7 @@ namespace Topica.Aws.Providers
     {
         public MessagingPlatform MessagingPlatform => MessagingPlatform.Aws;
 
-        public async Task CreateTopicAsync(MessagingSettings settings)
+        public async Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken)
         {
             _ = await awsTopicService.CreateTopicWithOptionalQueuesSubscribedAsync(settings.Source, settings.AwsWithSubscribedQueues, new AwsSqsConfiguration
             {
@@ -38,7 +39,7 @@ namespace Topica.Aws.Providers
                 },
                 CreateErrorQueue = settings.AwsBuildWithErrorQueue,
                 ErrorQueueMaxReceiveCount = settings.AwsErrorQueueMaxReceiveCount
-            });
+            }, cancellationToken);
         }
 
         public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)

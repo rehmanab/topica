@@ -42,12 +42,12 @@ public static class AwsServiceExtensions
         var awsClientService = new AwsClientService(logger);
         services.AddScoped<IPollyRetryService, PollyRetryService>();
         services.AddScoped<IAwsClientService>(_ => awsClientService);
-        services.AddScoped<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
-        services.AddScoped<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
+        services.AddTransient<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
+        services.AddTransient<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
         services.AddScoped<IAwsQueueService, AwsQueueService>();
         services.AddScoped<IAwsTopicService, AwsTopicService>();
-        services.AddScoped<IAwsQueueCreationBuilder, AwsQueueCreationBuilder>();
-        services.AddScoped<IAwsTopicCreationBuilder, AwsTopicCreationBuilder>();
+        services.AddTransient<IAwsQueueCreationBuilder, AwsQueueCreationBuilder>();
+        services.AddTransient<IAwsTopicCreationBuilder, AwsTopicCreationBuilder>();
         services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<IQueueProvider, AwsQueueProvider>();

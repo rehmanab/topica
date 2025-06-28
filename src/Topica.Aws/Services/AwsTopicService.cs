@@ -119,7 +119,7 @@ namespace Topica.Aws.Services
             return topicSubscriptionArns.Any(x => string.Equals(endpointArn, x));
         }
 
-        public async Task<string> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration sqsConfiguration, CancellationToken cancellationToken = default)
+        public async Task<string> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration sqsConfiguration, CancellationToken cancellationToken)
         {
             var topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
 
@@ -131,8 +131,9 @@ namespace Topica.Aws.Services
                     _ => TimeSpan.FromSeconds(3),
                     (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsTopicService), index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
                     result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
-                    () => awsQueueService.CreateQueueAsync(queueName, sqsConfiguration, cancellationToken),
-                    false
+                    ct => awsQueueService.CreateQueueAsync(queueName, sqsConfiguration, ct),
+                    false,
+                    cancellationToken
                 );
                 
                 if (string.IsNullOrWhiteSpace(queueUrl))

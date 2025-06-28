@@ -16,7 +16,7 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
 {
     private IProducer<byte[]>? _producer;
     
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_producer == null)
         {
@@ -37,7 +37,7 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
         await _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_producer == null)
         {

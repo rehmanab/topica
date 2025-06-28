@@ -31,7 +31,7 @@ public class Worker(IRabbitMqQueueBuilder builder, RabbitMqProducerSettings sett
         {
             var message = new SearchTriggeredMessageV1 { ConversationId = Guid.NewGuid(), EventId = count, EventName = "search.triggered.web.v1", Type = nameof(SearchTriggeredMessageV1) };
 
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, cancellationToken: stoppingToken);
 
             logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
             count++;
@@ -55,7 +55,7 @@ public class Worker(IRabbitMqQueueBuilder builder, RabbitMqProducerSettings sett
             .Cast<BaseMessage>()
             .ToList();
         
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, null, cancellationToken: stoppingToken);
             
         logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, settings.WebAnalyticsTopicSettings.Source);
 

@@ -17,7 +17,7 @@ namespace Topica.Aws.Producer;
 
 public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo, ILogger logger) : IProducer
 {
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var queueUrl = await GetQueueUrl(source, cancellationToken);
         
@@ -56,7 +56,7 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
         }
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var queueUrl = await GetQueueUrl(source, cancellationToken);
         
@@ -98,8 +98,9 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
             _ => TimeSpan.FromSeconds(3),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueProducer), index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
             result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
-            () => awsQueueService.GetQueueUrlAsync(queueName, isFifo, cancellationToken),
-            false
+            ct => awsQueueService.GetQueueUrlAsync(queueName, isFifo, ct),
+            false,
+            cancellationToken
         );
 
         if (queueUrl == null)

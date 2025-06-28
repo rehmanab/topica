@@ -1,6 +1,3 @@
 ﻿namespace Topica.SharedMessageHandlers;
 
-public class ClassToReferenceAssembly
-{
-    
-}
+public class ClassToReferenceAssembly;

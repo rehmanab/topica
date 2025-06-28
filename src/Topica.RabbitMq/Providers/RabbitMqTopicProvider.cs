@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -16,7 +17,7 @@ namespace Topica.RabbitMq.Providers
     {
         public MessagingPlatform MessagingPlatform => MessagingPlatform.RabbitMq;
 
-        public async Task CreateTopicAsync(MessagingSettings settings)
+        public async Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken)
         {
             var queues = settings.RabbitMqWithSubscribedQueues.Select(subscribedQueue => new CreateRabbitMqQueueRequest
             {

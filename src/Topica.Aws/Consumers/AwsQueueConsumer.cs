@@ -72,8 +72,9 @@ namespace Topica.Aws.Consumers
                     _ => TimeSpan.FromSeconds(3),
                     (delegateResult, ts, index, context) => _logger.LogWarning("**** RETRY: {Name}:{ConsumerName}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueConsumer), consumerName, index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
                     result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
-                    () => _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, cancellationToken),
-                    false
+                    ct => _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, ct),
+                    false,
+                    cancellationToken
                 );
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
@@ -169,13 +170,13 @@ namespace Topica.Aws.Consumers
                 {
                     _logger.LogError(inner, "**** {Name}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
                 }
-                _sqsClient?.Dispose();
+                await DisposeAsync();
                 throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "**** {Name}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
-                _sqsClient?.Dispose();
+                await DisposeAsync();
                 throw;
             }
         }

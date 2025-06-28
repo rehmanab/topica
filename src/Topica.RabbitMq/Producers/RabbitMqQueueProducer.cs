@@ -15,7 +15,7 @@ public class RabbitMqQueueProducer(ConnectionFactory rabbitMqConnectionFactory) 
 {
     private IChannel? _channel;
     
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_channel == null)
         {
@@ -26,7 +26,7 @@ public class RabbitMqQueueProducer(ConnectionFactory rabbitMqConnectionFactory) 
         await _channel.BasicPublishAsync(string.Empty, source, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)), cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         if (_channel == null)
         {

@@ -12,7 +12,7 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.AzureServiceBus;
     
-    public async Task CreateTopicAsync(MessagingSettings settings)
+    public async Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken)
     {
         var topicOptions = new CreateTopicOptions(settings.Source)
         {
@@ -31,9 +31,9 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
         
         topicOptions.AuthorizationRules.Add(new SharedAccessAuthorizationRule("allClaims", [AccessRights.Manage, AccessRights.Send, AccessRights.Listen]));
 
-        if(!await administrationClientProvider.AdminClient.TopicExistsAsync(settings.Source))
+        if(!await administrationClientProvider.AdminClient.TopicExistsAsync(settings.Source, cancellationToken))
         {
-            await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions);
+            await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions, cancellationToken);
             logger.LogInformation("**** CREATED: topic: {TopicName}", settings.Source);
         }
         else
@@ -43,7 +43,7 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
         
         foreach (var subscription in settings.AzureServiceBusSubscriptions)
         {
-            if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(settings.Source, subscription.Source))
+            if (await administrationClientProvider.AdminClient.SubscriptionExistsAsync(settings.Source, subscription.Source, cancellationToken))
             {
                 logger.LogInformation("**** EXISTS: Subscription: {Subscription} for Topic: {TopicName} already exists!", subscription.Source, settings.Source);
                 continue;
@@ -65,7 +65,7 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
                 Status = subscription.EnabledStatus.HasValue && !subscription.EnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default
             };
 
-            _ = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions);
+            _ = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions, cancellationToken);
             logger.LogInformation("**** CREATED: subscription: {SubscriptionName} for topic: {TopicName}", subscription.Source, settings.Source);
         }
     }

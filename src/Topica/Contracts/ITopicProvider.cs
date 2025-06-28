@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Topica.Settings;
 
@@ -7,7 +8,7 @@ namespace Topica.Contracts
     {
         MessagingPlatform MessagingPlatform { get; }
 
-        Task CreateTopicAsync(MessagingSettings settings);
+        Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken);
         Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings);
         Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings);
     }

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Amazon.SQS;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Consumers;
@@ -19,7 +20,7 @@ public class AwsQueueProvider(
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.Aws;
 
-    public async Task CreateQueueAsync(MessagingSettings settings)
+    public async Task CreateQueueAsync(MessagingSettings settings, CancellationToken cancellationToken)
     {
         var sqsConfiguration = new AwsSqsConfiguration
         {
@@ -37,7 +38,7 @@ public class AwsQueueProvider(
             ErrorQueueMaxReceiveCount = settings.AwsErrorQueueMaxReceiveCount
         };
         
-        _ = await awsQueueService.CreateQueueAsync(settings.Source, sqsConfiguration);
+        _ = await awsQueueService.CreateQueueAsync(settings.Source, sqsConfiguration, cancellationToken);
     }
 
     public async Task<IConsumer> ProvideConsumerAsync(MessagingSettings messagingSettings)

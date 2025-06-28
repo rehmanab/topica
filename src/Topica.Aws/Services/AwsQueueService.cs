@@ -16,12 +16,12 @@ namespace Topica.Aws.Services
 {
     public class AwsQueueService(IAmazonSQS client, ILogger<AwsQueueService> logger) : IAwsQueueService
     {
-        public async Task<string?> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken = default)
+        public async Task<string?> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken)
         {
             return await GetQueueUrlAsync(queueName, false, cancellationToken);
         }
 
-        public async Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken = default)
+        public async Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken)
         {
             queueName = TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, isFifo);
             
@@ -56,9 +56,9 @@ namespace Topica.Aws.Services
             return queueAttributes;
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration, CancellationToken cancellationToken = default)
+        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration? awsSqsConfiguration, CancellationToken cancellationToken)
         {
-            var queueUrl = await GetQueueUrlAsync(queueName, awsSqsConfiguration.QueueAttributes.IsFifoQueue, cancellationToken);
+            var queueUrl = await GetQueueUrlAsync(queueName, awsSqsConfiguration?.QueueAttributes.IsFifoQueue ?? false, cancellationToken);
             
             if (!string.IsNullOrWhiteSpace(queueUrl))
             {
@@ -66,7 +66,7 @@ namespace Topica.Aws.Services
                 return queueUrl;
             }
             
-            var createQueueType = awsSqsConfiguration.CreateErrorQueue.HasValue && awsSqsConfiguration.CreateErrorQueue.Value
+            var createQueueType = awsSqsConfiguration.CreateErrorQueue
                 ? AwsQueueCreationType.WithErrorQueue
                 : AwsQueueCreationType.SoleQueue;
 
@@ -77,7 +77,7 @@ namespace Topica.Aws.Services
                 _ => throw new ApplicationException($"Can not find queue creator for: {createQueueType}")
             };
 
-            queueUrl = await queueCreator.CreateQueue(queueName, awsSqsConfiguration);
+            queueUrl = await queueCreator.CreateQueue(queueName, awsSqsConfiguration, cancellationToken);
             logger.LogDebug("**** CREATED QUEUE SUCCESS: QueueUrl: {QueueUrl}", queueUrl);
             
             return queueUrl;
@@ -91,7 +91,7 @@ namespace Topica.Aws.Services
             return response.HttpStatusCode == HttpStatusCode.OK;
         }
 
-        public async Task<bool> DeleteQueueAsync(string? queueUrl, CancellationToken cancellationToken = default)
+        public async Task<bool> DeleteQueueAsync(string? queueUrl, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(queueUrl)) return true;
             

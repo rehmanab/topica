@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -12,7 +13,7 @@ namespace Topica.Aws.Strategy
 {
     public class AwsSoleQueueCreator(IAmazonSQS client) : IAwsQueueCreator
     {
-        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration)
+        public async Task<string> CreateQueue(string queueName, AwsSqsConfiguration configuration, CancellationToken cancellationToken)
         {
             queueName = configuration.QueueAttributes.IsFifoQueue
                 ? TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, true)
@@ -24,7 +25,7 @@ namespace Topica.Aws.Strategy
                 Attributes = configuration.QueueAttributes.GetAttributeDictionary()
             };
 
-            var response = await client.CreateQueueAsync(request);
+            var response = await client.CreateQueueAsync(request, cancellationToken);
 
             if (response.HttpStatusCode == HttpStatusCode.OK)
             {

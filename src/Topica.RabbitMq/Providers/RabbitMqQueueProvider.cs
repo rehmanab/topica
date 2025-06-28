@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using Topica.Contracts;
@@ -13,7 +14,7 @@ public class RabbitMqQueueProvider(IRabbitMqManagementApiClient managementApiCli
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.RabbitMq;
 
-    public async Task CreateQueueAsync(MessagingSettings settings)
+    public async Task CreateQueueAsync(MessagingSettings settings, CancellationToken cancellationToken)
     {
         await managementApiClient.CreateVHostIfNotExistAsync();
         await managementApiClient.CreateQueueAsync(settings.Source, true);

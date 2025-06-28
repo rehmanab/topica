@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
@@ -15,7 +16,7 @@ public class KafkaTopicProvider(IMessageHandlerExecutor messageHandlerExecutor, 
 {
     public MessagingPlatform MessagingPlatform => MessagingPlatform.Kafka;
 
-    public async Task CreateTopicAsync(MessagingSettings settings)
+    public async Task CreateTopicAsync(MessagingSettings settings, CancellationToken cancellationToken)
     {
         using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", settings.KafkaBootstrapServers) }).Build();
         

@@ -11,7 +11,7 @@ public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusC
 {
     private ServiceBusSender? _sender;
 
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         _sender ??= provider.Client.CreateSender(source, new ServiceBusSenderOptions { Identifier = producerName });
         
@@ -25,7 +25,7 @@ public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusC
         await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes = null, CancellationToken cancellationToken = default)
+    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         _sender ??= provider.Client.CreateSender(source, new ServiceBusSenderOptions { Identifier = producerName });
         using var messageBatch = await _sender.CreateMessageBatchAsync(cancellationToken);

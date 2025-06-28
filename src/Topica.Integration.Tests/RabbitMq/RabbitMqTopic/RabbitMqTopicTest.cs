@@ -55,7 +55,7 @@ public class RabbitMqTopicTest(RabbitMqSharedFixture sharedFixture, ITestOutputH
                 await producer.ProduceAsync(topicName, message, null, producerCts.Token);
                 MessageCounter.RabbitMqTopicMessageSent.Add(message);
 
-                await Task.Delay(TimeSpan.FromSeconds(1), producerCts.Token);
+                await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
         }
         catch (TaskCanceledException)

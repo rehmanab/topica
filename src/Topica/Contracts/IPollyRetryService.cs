@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Polly;
 
@@ -10,44 +11,50 @@ public interface IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<int> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
-        bool doInitialSleep);
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken);
 
     Task WaitAndRetryAsync<TException>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException : Exception;
     
     Task WaitAndRetryAsync<TException1, TException2>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception;
 
     Task<TResult> WaitAndRetryAsync<TException, TResult>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<Exception, TimeSpan, int, Context> retryAction,
-        Func<Task<TResult>> executeFunction)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        CancellationToken cancellationToken)
         where TException : Exception;
 
     Task<TResult?> WaitAndRetryAsync<TException, TResult>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult?, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException : Exception;
 
     Task<TResult?> WaitAndRetryAsync<TException1, TException2, TResult>(int retries,
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
-        bool doInitialSleep)
+        Func<CancellationToken, Task<TResult>> executeFunction,
+        bool doInitialSleep,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception;
 
@@ -55,9 +62,10 @@ public interface IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception;
 
@@ -65,17 +73,19 @@ public interface IPollyRetryService
         Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, TimeSpan, int, Context> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception;
 
     Task<TResult?> WaitAndRetryForeverWithTimeoutAsync<TException1, TException2, TResult>(Func<int, TimeSpan> sleepDuration,
         Action<DelegateResult<TResult>, int, TimeSpan> retryAction,
         Func<TResult, bool> handleResultCondition,
-        Func<Task<TResult>> executeFunction,
+        Func<CancellationToken, Task<TResult>> executeFunction,
         bool doInitialSleep,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
         where TException1 : Exception
         where TException2 : Exception;
 }

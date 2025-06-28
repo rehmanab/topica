@@ -70,8 +70,9 @@ public class KafkaTopicCreationBuilder(
             30,
             _ => TimeSpan.FromSeconds(10),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(KafkaTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            () => topicProvider.CreateTopicAsync(messagingSettings),
-            false
+            ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+            false,
+            cancellationToken
         );
 
         return await topicProvider.ProvideConsumerAsync(messagingSettings);
@@ -89,8 +90,9 @@ public class KafkaTopicCreationBuilder(
             30,
             _ => TimeSpan.FromSeconds(10),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(KafkaTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            () => topicProvider.CreateTopicAsync(messagingSettings),
-            false
+            ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+            false,
+            cancellationToken
         );
         
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
