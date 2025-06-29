@@ -1,64 +1,55 @@
 using System.Diagnostics;
-using System.Net;
-using System.Text.Json;
-using Amazon.SQS;
-using Amazon.SQS.Model;
+using System.Text;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Topica.Messages;
+using Topica.RabbitMq.Contracts;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Topica.Web.HealthChecks;
 
-public class AwsQueueHealthCheck(IAmazonSQS sqsClient) : IHealthCheck
+public class RabbitMqQueueHealthCheck(IRabbitMqManagementApiClient managementApiClient, ConnectionFactory rabbitMqConnectionFactory) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        const string queueName = "topica_aws_queue_health_check_web_queue_1";
+        const string queueName = "topica_rmq_queue_health_check_web_queue_1";
 
         var sw = Stopwatch.StartNew();
 
         try
         {
-            var createQueueResponse = await sqsClient.CreateQueueAsync(queueName, cancellationToken);
+            await managementApiClient.CreateVHostIfNotExistAsync();
+            await managementApiClient.CreateQueueAsync(queueName, true);
 
-            if (createQueueResponse is null || createQueueResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(createQueueResponse.QueueUrl))
-            {
-                return HealthCheckResult.Unhealthy("Failed to create or retrieve Queue URL.", data: new Dictionary<string, object>
-                {
-                    { "QueueName", queueName }
-                });
-            }
+            await using var connection = await rabbitMqConnectionFactory.CreateConnectionAsync(cancellationToken);
+            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
             var testMessageName = Guid.NewGuid().ToString();
 
-            var sendMessageResponse = await sqsClient.SendMessageAsync(createQueueResponse.QueueUrl, JsonSerializer.Serialize(new BaseMessage
+            await channel.BasicPublishAsync(string.Empty, queueName, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new BaseMessage
             {
                 ConversationId = Guid.NewGuid(),
                 EventId = 1,
                 EventName = testMessageName,
                 Type = nameof(BaseMessage),
                 MessageGroupId = Guid.NewGuid().ToString()
-            }), cancellationToken);
+            })), cancellationToken);
 
-            if (sendMessageResponse is null || sendMessageResponse.HttpStatusCode != HttpStatusCode.OK)
+            var success = false;
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            consumer.ReceivedAsync += (_, e) =>
             {
-                return HealthCheckResult.Unhealthy("Failed to send message to Queue.", data: new Dictionary<string, object>
-                {
-                    { "QueueName", queueName }
-                });
-            }
-
-            var receiveMessageResponse = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+                var body = e.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                success = JsonSerializer.Deserialize<BaseMessage>(message)?.EventName == testMessageName;
+                return Task.CompletedTask;
+            };
+            
+            while (!cancellationToken.IsCancellationRequested && !success)
             {
-                QueueUrl = createQueueResponse.QueueUrl,
-                MaxNumberOfMessages = 10,
-                WaitTimeSeconds = 5
-            }, cancellationToken);
-
-            var success = receiveMessageResponse.Messages.Any(x => JsonSerializer.Deserialize<BaseMessage>(x.Body)?.EventName == testMessageName);
-
-            foreach (var x in receiveMessageResponse.Messages)
-            {
-                await sqsClient.DeleteMessageAsync(createQueueResponse.QueueUrl, x.ReceiptHandle, cancellationToken);
+                await channel.BasicConsumeAsync(queueName, true, consumer, cancellationToken: cancellationToken);
             }
 
             return success

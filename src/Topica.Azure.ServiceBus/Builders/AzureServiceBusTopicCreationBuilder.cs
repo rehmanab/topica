@@ -105,7 +105,7 @@ public class AzureServiceBusTopicCreationBuilder(
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.AzureServiceBus, _workerName, messagingSettings.Source);
         
         var connectionStringEndpoint = CloudConnectionStringHelper.ParseEndpointCloudConnectionString(provider.ConnectionString);
-        if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(".servicebus.windows.net"))
+        if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(provider.DomainUrlSuffix))
         {
             logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} with connection string endpoint: {ConnectionStringEndpoint}", _workerName, connectionStringEndpoint);
             await pollyRetryService.WaitAndRetryAsync<ServiceBusException>
@@ -135,7 +135,7 @@ public class AzureServiceBusTopicCreationBuilder(
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.AzureServiceBus, _workerName, messagingSettings.Source);
         
         var connectionStringEndpoint = CloudConnectionStringHelper.ParseEndpointCloudConnectionString(provider.ConnectionString);
-        if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(".servicebus.windows.net"))
+        if (!string.IsNullOrWhiteSpace(connectionStringEndpoint) && connectionStringEndpoint.Contains(provider.DomainUrlSuffix))
         {
             logger.LogInformation("Azure Service Bus Producer: {ProducerName} with connection string endpoint: {ConnectionStringEndpoint}", _workerName, connectionStringEndpoint);
             await pollyRetryService.WaitAndRetryAsync<ServiceBusException>

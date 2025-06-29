@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using Azure.ServiceBus.Topic.Consumer.Host;
 using Azure.ServiceBus.Topic.Consumer.Host.Settings;
 using Azure.ServiceBus.Topic.Consumer.Host.Validators;

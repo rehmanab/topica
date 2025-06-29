@@ -13,6 +13,7 @@ public class AzureServiceBusClientProvider : IAzureServiceBusClientProvider
             : new ServiceBusClient(ConnectionString, options);
     }
 
+    public string DomainUrlSuffix => ".servicebus.windows.net";
     public string ConnectionString { get; }
     public ServiceBusClient Client { get; }
 }

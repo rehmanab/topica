@@ -53,10 +53,10 @@ namespace Topica.Kafka.Consumers
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = string.Join(",", messagingSettings.KafkaBootstrapServers!),
+                BootstrapServers = string.Join(",", messagingSettings.KafkaBootstrapServers),
                 
-                // Each unique consumer group will will handle a share of the messages for that Topic
-                // e.g. group1 with 10 conumers, share the messages
+                // Each unique consumer group will handle a share of the messages for that Topic
+                // e.g. group1 with 10 consumers, share the messages
                 // group2 will be like a new subscribed queue, and get all the messages
                 // So each consumer GroupId is a subscribed queue
                 // https://www.confluent.io/blog/configuring-apache-kafka-consumer-group-ids/
@@ -89,6 +89,7 @@ namespace Topica.Kafka.Consumers
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message.Message.Value);
                             // _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                             // _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
+                            consumer.Commit();
                         }
 
                         consumer.Dispose(); // Doesn't get here as consumer.Consume blocks

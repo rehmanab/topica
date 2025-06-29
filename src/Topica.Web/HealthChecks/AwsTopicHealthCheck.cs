@@ -26,7 +26,7 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
             var createTopicResponse = await snsClient.CreateTopicAsync(topicName, cancellationToken);
             if (createTopicResponse is null || createTopicResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(createTopicResponse.TopicArn))
             {
-                return HealthCheckResult.Unhealthy("Failed to create or retrieve AWS Topic ARN.", data: new Dictionary<string, object>
+                return HealthCheckResult.Unhealthy("Failed to create or retrieve Topic ARN.", data: new Dictionary<string, object>
                 {
                     { "TopicName", topicName }
                 });
@@ -36,7 +36,7 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
 
             if (createQueueResponse is null || createQueueResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(createQueueResponse.QueueUrl))
             {
-                return HealthCheckResult.Unhealthy("Failed to create or retrieve AWS Queue URL.", data: new Dictionary<string, object>
+                return HealthCheckResult.Unhealthy("Failed to create or retrieve Queue URL.", data: new Dictionary<string, object>
                 {
                     { "QueueName", subscribedQueueName }
                 });
@@ -54,7 +54,7 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
 
             if (setQueueAttributesResponse is null || setQueueAttributesResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                return HealthCheckResult.Unhealthy("Failed to change AWS Queue attributes to subscribe to Topic.", data: new Dictionary<string, object>
+                return HealthCheckResult.Unhealthy("Failed to change Queue attributes to subscribe to Topic.", data: new Dictionary<string, object>
                 {
                     { "TopicName", topicName },
                     { "QueueName", subscribedQueueName },
@@ -73,7 +73,7 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
 
             if (sendMessageResponse is null || sendMessageResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                return HealthCheckResult.Unhealthy("Failed to send message to AWS Topic.", data: new Dictionary<string, object>
+                return HealthCheckResult.Unhealthy("Failed to send message to Topic.", data: new Dictionary<string, object>
                 {
                     { "TopicName", topicName }
                 });
@@ -102,36 +102,35 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
             }
 
             return success
-                ? HealthCheckResult.Healthy("Published to Topic: Success", data: new Dictionary<string, object>
+                ? HealthCheckResult.Healthy("Published, Subscribed to Topic: Success", data: new Dictionary<string, object>
                 {
                     { "SendTopicName", topicName },
                     { "ReceiveQueueName", subscribedQueueName },
                 })
-                : HealthCheckResult.Unhealthy("Failed AWS Topic health - did not receive message", data: new Dictionary<string, object>
+                : HealthCheckResult.Unhealthy("Failed Topic health - did not receive message", data: new Dictionary<string, object>
                 {
                     { "TopicName", topicName },
                     { "ReceiveQueueName", subscribedQueueName },
                 });
-            ;
         }
-        catch (Exception ex) when (ex is TimeoutException or TaskCanceledException)
+        catch (Exception ex) when (ex is TimeoutException or TaskCanceledException or OperationCanceledException)
         {
-            return HealthCheckResult.Unhealthy($"Timeout/Task Cancelled while checking AWS Topic health. ({sw.Elapsed})", ex, data: new Dictionary<string, object>
+            return HealthCheckResult.Unhealthy($"Timeout/Task Cancelled while checking Topic health. ({sw.Elapsed})", ex, data: new Dictionary<string, object>
             {
                 { "TopicName", topicName },
                 { "ReceiveQueueName", subscribedQueueName },
-                { "Exception", ex.GetType() },
+                { "ExceptionName", ex.GetType().FullName ?? ex.GetType().Name },
                 { "ExceptionMessage", ex.Message },
                 { "ExceptionStackTrace", ex.StackTrace ?? string.Empty },
             });
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Unhealthy("An error occurred while checking AWS Topic health.", ex, data: new Dictionary<string, object>
+            return HealthCheckResult.Unhealthy("An error occurred while checking Topic health.", ex, data: new Dictionary<string, object>
             {
                 { "TopicName", topicName },
                 { "ReceiveQueueName", subscribedQueueName },
-                { "Exception", ex.GetType() },
+                { "ExceptionName", ex.GetType().FullName ?? ex.GetType().Name },
                 { "ExceptionMessage", ex.Message },
                 { "ExceptionStackTrace", ex.StackTrace ?? string.Empty },
             });

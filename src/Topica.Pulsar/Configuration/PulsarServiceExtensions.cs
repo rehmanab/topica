@@ -62,7 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();
             services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
             services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
-            services.AddSingleton(_ => new PulsarClientBuilder().ServiceUrl(config.ServiceUrl));
+            services.AddTransient(_ => new PulsarClientBuilder().ServiceUrl(config.ServiceUrl));
             
             // Scan for IHandlers from Entry assembly
             services.Scan(s => s
