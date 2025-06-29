@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Web" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
+  <configuration default="false" name="Topica.Web" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/Topica.Web/Topica.Web.csproj" />
     <option name="LAUNCH_PROFILE_TFM" value="net9.0" />
     <option name="LAUNCH_PROFILE_NAME" value="https" />
