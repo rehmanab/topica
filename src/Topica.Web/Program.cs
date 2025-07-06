@@ -1,9 +1,7 @@
 using System.Reflection;
 using Topica.Web.Extensions;
-using Topica.Web.HealthChecks;
 using Topica.Web.Models;
 using Topica.Web.Settings;
-using static Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult;
 
 var builder = WebApplication.CreateBuilder(args);
 
