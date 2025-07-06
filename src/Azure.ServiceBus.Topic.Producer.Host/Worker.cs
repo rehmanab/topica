@@ -38,10 +38,12 @@ public class Worker(IAzureServiceBusTopicBuilder builder, AzureServiceBusProduce
                 Type = nameof(VideoPlayedMessageV1),
                 RaisingComponent = settings.WebAnalyticsTopicSettings.WorkerName,
                 Version = "V1",
-                AdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
+                MessageAdditionalProperties = new Dictionary<string, string> { { "key", "val" } }
             };
+
+            var applicationProperties = new Dictionary<string, string> { { "traceparent", "SB" }, { "tracestate", "SB" } };
             
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, stoppingToken);
+            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, applicationProperties, stoppingToken);
             logger.LogInformation("Sent to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, count);
             count++;
 
@@ -62,12 +64,14 @@ public class Worker(IAzureServiceBusTopicBuilder builder, AzureServiceBusProduce
                 Type = nameof(VideoPlayedMessageV1),
                 RaisingComponent = settings.WebAnalyticsTopicSettings.WorkerName,
                 Version = "V1",
-                AdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
+                MessageAdditionalProperties = new Dictionary<string, string> { { "prop1", "value1" } }
             })
             .Cast<BaseMessage>()
             .ToList();
 
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, null, stoppingToken);
+        var applicationProperties = new Dictionary<string, string> { { "traceparent", "SB" }, { "tracestate", "SB" } };
+
+        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, applicationProperties, stoppingToken);
         logger.LogInformation("Sent batch to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, messages.Count);
 
         return messages.Count;

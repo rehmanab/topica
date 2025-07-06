@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Aws.Topic.Producer.Host.Settings;
+﻿using Aws.Topic.Producer.Host.Settings;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
@@ -46,12 +41,14 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
                 MessageGroupId = messageGroupId
             };
 
-            var messageAttributes = new Dictionary<string, string>
+            var attributes = new Dictionary<string, string>
             {
-                {"SignatureVersion", "2" }
+                // {"SignatureVersion", "2" },
+                {"traceparent", "AWS topic" },
+                {"tracestate", "AWS topic" },
             };
             
-            await _producer1.ProduceAsync(topicName, message, messageAttributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(topicName, message, attributes, cancellationToken: stoppingToken);
             
             logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false), $"{message.EventId} : {message.EventName}");
             
@@ -79,12 +76,14 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
             .Cast<BaseMessage>()
             .ToList();
 
-        var messageAttributes = new Dictionary<string, string>
+        var attributes = new Dictionary<string, string>
         {
-            {"SignatureVersion", "2" }
+            // {"SignatureVersion", "2" },
+            {"traceparent", "AWS topic" },
+            {"tracestate", "AWS topic" },
         };
         
-        await _producer1.ProduceBatchAsync(topicName, messages, messageAttributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(topicName, messages, attributes, cancellationToken: stoppingToken);
             
         logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false));
 

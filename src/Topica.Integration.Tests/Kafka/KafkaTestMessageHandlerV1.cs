@@ -7,10 +7,10 @@ namespace Topica.Integration.Tests.Kafka;
 
 public class KafkaTestMessageHandlerV1(ILogger<KafkaTestMessageHandlerV1> logger) : IHandler<KafkaTestMessageV1>
 {
-    public async Task<bool> HandleAsync(KafkaTestMessageV1 source)
+    public async Task<bool> HandleAsync(KafkaTestMessageV1 source, Dictionary<string, string>? properties)
     {
-        MessageCounter.KafkaTopicMessageReceived.Add(source);
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(KafkaTestMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        MessageCounter.KafkaTopicMessageReceived.Add(new MessageAttributePair{ BaseMessage = source , Attributes = properties});
+        logger.LogInformation("Handle: {Name} for event: {Data}", nameof(KafkaTestMessageV1), $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 

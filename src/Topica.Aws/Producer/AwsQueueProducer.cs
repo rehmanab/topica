@@ -19,30 +19,21 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         var queueUrl = await GetQueueUrl(source, cancellationToken);
         
         var request = new SendMessageRequest
         {
             QueueUrl = queueUrl,
-            MessageBody = JsonConvert.SerializeObject(message)
+            MessageBody = JsonConvert.SerializeObject(message),
+            MessageAttributes = attributesToUse.ToDictionary(item => item.Key, item => new MessageAttributeValue
+            {
+                StringValue = item.Value,
+                DataType = "String"
+            })
         };
-        
-        if (attributes != null)
-        {
-            request.MessageAttributes = attributes.Select(x => new KeyValuePair<string, MessageAttributeValue>(
-                x.Key,
-                new MessageAttributeValue
-                {
-                    StringValue = x.Value,
-                    DataType = "String"
-                })).ToDictionary(x => x.Key, x => x.Value);
-        }
-        
-        request.MessageAttributes.Add("ProducerName", new MessageAttributeValue
-        {
-            StringValue = producerName,
-            DataType = "String"
-        });
 
         if (queueUrl.EndsWith(Constants.FifoSuffix))
         {
@@ -58,6 +49,9 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         var queueUrl = await GetQueueUrl(source, cancellationToken);
         
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
@@ -68,7 +62,16 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
             var request = new SendMessageBatchRequest
             {
                 QueueUrl = queueUrl,
-                Entries = baseMessages.Select(x => new SendMessageBatchRequestEntry(x.Id.ToString(), JsonConvert.SerializeObject(x)) { MessageGroupId = x.MessageGroupId }).ToList()
+                Entries = baseMessages.Select(x => new SendMessageBatchRequestEntry(x.Id.ToString(), JsonConvert.SerializeObject(x))
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    MessageGroupId = x.MessageGroupId, 
+                    MessageAttributes = attributesToUse.ToDictionary(item => item.Key, item => new MessageAttributeValue
+                    {
+                        StringValue = item.Value,
+                        DataType = "String"
+                    })
+                }).ToList()
             };
 
             if (sqsClient != null)

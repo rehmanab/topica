@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,15 @@ namespace Topica.Resolvers
         /// Resolves the handler for the given message type.
         /// </summary>
         /// <param name="source">The message body</param>
+        /// <param name="properties"></param>
         /// <returns>handlerImpl, methodToValidate, methodToExecute</returns>
         /// <exception cref="Exception"></exception>
-        public (bool handlerFound, object handlerImpl, bool methodToValidate, object? methodToExecute) ResolveHandler(string source)
+        public (bool handlerFound, object handlerImpl, bool methodToValidate, object? methodToExecute) ResolveHandler(string source, Dictionary<string, string>? properties)
         {
             var baseMessage = JsonConvert.DeserializeObject<BaseMessage>(source);
+            var mergedProperties = new Dictionary<string, string>();
+            properties?.ToList().ForEach(x => mergedProperties.TryAdd(x.Key, x.Value));
+            baseMessage?.MessageAdditionalProperties.ToList().ForEach(x => mergedProperties.TryAdd(x.Key, x.Value));
             
             if(baseMessage == null)
             {
@@ -63,12 +68,12 @@ namespace Topica.Resolvers
             
             var handlerImpl = serviceProvider.GetService(handlersInterface);
 
-            var executeHandler = ExecuteHandler(handlerImpl, message);
+            var executeHandler = ExecuteHandler(handlerImpl, message, mergedProperties);
             
             return (true, executeHandler.handlerImpl, executeHandler.methodToValidate, executeHandler.methodToExecute);
         }
 
-        private static (object handlerImpl, bool methodToValidate, object? methodToExecute) ExecuteHandler(object handlerImpl, object message)
+        private static (object handlerImpl, bool methodToValidate, object? methodToExecute) ExecuteHandler(object handlerImpl, object message, Dictionary<string, string>? properties)
         {
             var methodToValidate = handlerImpl.GetType().GetMethod("ValidateMessage");
             if (methodToValidate == null)
@@ -86,7 +91,7 @@ namespace Topica.Resolvers
             {
                 throw new Exception($"HandleAsync method not found on : {handlerImpl.GetType().Name}");
             }
-            var toExecute = methodToExecute.Invoke(handlerImpl, [message]);
+            var toExecute = methodToExecute.Invoke(handlerImpl, [message, properties]);
             if (toExecute == null)
             {
                 throw new Exception("invoked method returned null");   

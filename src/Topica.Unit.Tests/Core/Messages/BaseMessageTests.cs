@@ -33,7 +33,7 @@ public class BaseMessageTests
             Tenant = "TestTenant",
             ReceiptReference = "TestReceipt",
             MessageGroupId = "TestGroup",
-            AdditionalProperties = new Dictionary<string, string> { { "Key1", "Value1" } }
+            MessageAdditionalProperties = new Dictionary<string, string> { { "Key1", "Value1" } }
         };
 
         var messageBody = JsonConvert.SerializeObject(originalMessage);
@@ -51,7 +51,7 @@ public class BaseMessageTests
         Assert.Equal(originalMessage.Tenant, parsedMessage.Tenant);
         Assert.Equal(originalMessage.ReceiptReference, parsedMessage.ReceiptReference);
         Assert.Equal(originalMessage.MessageGroupId, parsedMessage.MessageGroupId);
-        Assert.Equal(originalMessage.AdditionalProperties, parsedMessage.AdditionalProperties);
+        Assert.Equal(originalMessage.MessageAdditionalProperties, parsedMessage.MessageAdditionalProperties);
     }
 
     [Fact]

@@ -46,11 +46,18 @@ public class RabbitMqQueueTest(RabbitMqSharedFixture sharedFixture, ITestOutputH
                     EventId = MessageCounter.RabbitMqQueueMessageSent.Count + 1,
                     EventName = "integration.test.v1",
                     Type = nameof(RabbitMqQueueTestMessageV1),
-                    MessageGroupId = messageGroupId
+                    MessageGroupId = messageGroupId,
+                    MessageAdditionalProperties = new Dictionary<string, string>
+                    {
+                        { "traceparent", "traceparent" },
+                        { "tracestate", "tracestate" }
+                    }
                 };
+                
+                var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
 
-                await producer.ProduceAsync(queueName, message, null, producerCts.Token);
-                MessageCounter.RabbitMqQueueMessageSent.Add(message);
+                await producer.ProduceAsync(queueName, message, attributes, producerCts.Token);
+                MessageCounter.RabbitMqQueueMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
@@ -64,6 +71,13 @@ public class RabbitMqQueueTest(RabbitMqSharedFixture sharedFixture, ITestOutputH
         testOutputHelper.WriteLine($"Messages Sent: {MessageCounter.RabbitMqQueueMessageSent.Count}");
 
         Assert.Equal(MessageCounter.RabbitMqQueueMessageSent.Count, MessageCounter.RabbitMqQueueMessageReceived.Count);
-        Assert.Equivalent(MessageCounter.RabbitMqQueueMessageSent, MessageCounter.RabbitMqQueueMessageReceived);
+        foreach (var sent in MessageCounter.RabbitMqQueueMessageReceived)
+        {
+            Assert.NotNull(sent.Attributes);
+            Assert.Equal("RabbitMqQueueIntegrationTestWorker", sent.Attributes["ProducerName"]);
+            Assert.Equal("value1", sent.Attributes["attr1"]);
+            Assert.Equal("traceparent", sent.Attributes["traceparent"]);
+            Assert.Equal("tracestate", sent.Attributes["tracestate"]);
+        }
     }   
 }

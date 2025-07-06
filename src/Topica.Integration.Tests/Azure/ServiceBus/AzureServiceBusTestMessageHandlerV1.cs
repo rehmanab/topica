@@ -7,10 +7,10 @@ namespace Topica.Integration.Tests.Azure.ServiceBus;
 
 public class AzureServiceBusTestMessageHandlerV1(ILogger<AzureServiceBusTestMessageHandlerV1> logger) : IHandler<AzureServiceBusTestMessageV1>
 {
-    public async Task<bool> HandleAsync(AzureServiceBusTestMessageV1 source)
+    public async Task<bool> HandleAsync(AzureServiceBusTestMessageV1 source, Dictionary<string, string>? properties)
     {
-        MessageCounter.AzureServiceBusTopicMessageReceived.Add(source);
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(AzureServiceBusTestMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        MessageCounter.AzureServiceBusTopicMessageReceived.Add(new MessageAttributePair{ BaseMessage = source , Attributes = properties});
+        logger.LogInformation("Handle: {Name} for event: {Data}", nameof(AzureServiceBusTestMessageV1), $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 

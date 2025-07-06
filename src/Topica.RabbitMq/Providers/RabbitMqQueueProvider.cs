@@ -33,6 +33,6 @@ public class RabbitMqQueueProvider(IRabbitMqManagementApiClient managementApiCli
     {
         await Task.CompletedTask;
 
-        return new RabbitMqQueueProducer(rabbitMqConnectionFactory);
+        return new RabbitMqQueueProducer(producerName, rabbitMqConnectionFactory);
     }
 }

@@ -16,8 +16,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
     {
         _producer1 = await builder.BuildProducerAsync(stoppingToken);
 
-        var count = await SendSingleAsync(stoppingToken);
-        // var count = await SendBatchAsync(stoppingToken);
+        // var count = await SendSingleAsync(stoppingToken);
+        var count = await SendBatchAsync(stoppingToken);
 
         await _producer1.DisposeAsync();
 
@@ -31,7 +31,13 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
         {
             var message = new FileDownloadedMessageV1 { ConversationId = Guid.NewGuid(), EventId = count, EventName = "file.downloaded.web.v1", Type = nameof(FileDownloadedMessageV1) };
             
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, null, stoppingToken);
+            var applicationProperties = new Dictionary<string, string>
+            {
+                { "traceparent", "Pulsar" },
+                { "tracestate", "Pulsar" }
+            };
+            
+            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, applicationProperties, stoppingToken);
             logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
             count++;
 
@@ -47,8 +53,14 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
             .Select(index => new FileDownloadedMessageV1 { ConversationId = Guid.NewGuid(), EventId = index, EventName = "file.downloaded.web.v1", Type = nameof(FileDownloadedMessageV1) })
             .Cast<BaseMessage>()
             .ToList();
+        
+        var applicationProperties = new Dictionary<string, string>
+        {
+            { "traceparent", "Pulsar" },
+            { "tracestate", "Pulsar" }
+        };
 
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, null, stoppingToken);
+        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, applicationProperties, stoppingToken);
         logger.LogInformation("Sent batch to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, messages.Count);
 
         return messages.Count;

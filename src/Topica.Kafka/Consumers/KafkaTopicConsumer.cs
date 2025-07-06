@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -86,7 +87,7 @@ namespace Topica.Kafka.Consumers
                                 throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {messagingSettings.Source}");
                             }
 
-                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message.Message.Value);
+                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message.Message.Value, message.Message.Headers.ToDictionary(x => x.Key, x => Encoding.UTF8.GetString(x.GetValueBytes())));
                             // _logger.LogInformation("**** {KafkaTopicConsumerName}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(KafkaTopicConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                             // _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
                             consumer.Commit();

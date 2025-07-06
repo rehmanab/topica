@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,7 +91,8 @@ namespace Topica.Aws.Consumers
                     QueueUrl = queueUrl, 
                     MaxNumberOfMessages = messagingSettings.AwsQueueReceiveMaximumNumberOfMessages, 
                     VisibilityTimeout = messagingSettings.AwsMessageVisibilityTimeoutSeconds, 
-                    WaitTimeSeconds = messagingSettings.AwsQueueReceiveMessageWaitTimeSeconds
+                    WaitTimeSeconds = messagingSettings.AwsQueueReceiveMessageWaitTimeSeconds,
+                    MessageAttributeNames = ["All"]
                 };
 
                 while (!cancellationToken.IsCancellationRequested)
@@ -137,16 +139,18 @@ namespace Topica.Aws.Consumers
                                 _logger.LogError("SQS: Error: could not convert Notification to AwsNotification object");
                                 continue;
                             }
-                            // baseMessage = BaseMessage.Parse<BaseMessage>(notification.Message);
-                            messageBody = notification.Message;
-                            if (string.IsNullOrWhiteSpace(messageBody))
+                           
+                            if (string.IsNullOrWhiteSpace(notification.Message))
                             {
                                 _logger.LogWarning("SQS: message body for the notification (SNS message) is empty or null ({MessageId})", message.MessageId);
                                 continue;
                             }
+                            
+                            messageBody = notification.Message;
+                            message.MessageAttributes = notification.MessageAttributes?.ToDictionary(x => x.Key, x => new MessageAttributeValue { StringValue = x.Value.Value, DataType = x.Value.Type });
                         }
 
-                        var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(messageBody);
+                        var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(messageBody, message.MessageAttributes?.ToDictionary(x => x.Key, x => x.Value.StringValue?.ToString() ?? ""));
                         // _logger.LogDebug("**** {Name}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AwsQueueConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
                         
                         if (!success) continue; // Undeleted messages will be retried by AWS SQS, or sent to the error queue if configured

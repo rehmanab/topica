@@ -18,6 +18,12 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
     
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
+        // Pulsar doesn't have extra attributes that can be set (far as I know), so they are added to the message itself
+        attributesToUse?.ToList().ForEach(x => message.MessageAdditionalProperties.TryAdd(x.Key, x.Value));
+        
         if (_producer == null)
         {
             var client = await clientBuilder.BuildAsync();
@@ -39,6 +45,9 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         if (_producer == null)
         {
             var client = await clientBuilder.BuildAsync();
@@ -56,7 +65,11 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
         }
         
         var tasks = new List<Task>();
-        tasks.AddRange(messages.Select(x => _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(x)))));
+        tasks.AddRange(messages.Select(x =>
+        {
+            x.MessageAdditionalProperties = attributesToUse;
+            return _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(x)));
+        }));
         
         await Task.WhenAll(tasks);
     }

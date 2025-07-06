@@ -49,11 +49,18 @@ public class PulsarTopicTest(PulsarTopicSharedFixture sharedFixture, ITestOutput
                     EventId = MessageCounter.PulsarTopicMessageSent.Count + 1,
                     EventName = "integration.test.v1",
                     Type = nameof(PulsarTestMessageV1),
-                    MessageGroupId = messageGroupId
+                    MessageGroupId = messageGroupId,
+                    MessageAdditionalProperties = new Dictionary<string, string>
+                    {
+                        { "traceparent", "traceparent" },
+                        { "tracestate", "tracestate" }
+                    }
                 };
+                
+                var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
 
-                await producer.ProduceAsync(topicName, message, null, producerCts.Token);
-                MessageCounter.PulsarTopicMessageSent.Add(message);
+                await producer.ProduceAsync(topicName, message, attributes, producerCts.Token);
+                MessageCounter.PulsarTopicMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
@@ -67,6 +74,13 @@ public class PulsarTopicTest(PulsarTopicSharedFixture sharedFixture, ITestOutput
         testOutputHelper.WriteLine($"Messages Sent: {MessageCounter.PulsarTopicMessageSent.Count}");
 
         Assert.Equal(MessageCounter.PulsarTopicMessageSent.Count, MessageCounter.PulsarTopicMessageReceived.Count);
-        Assert.Equivalent(MessageCounter.PulsarTopicMessageSent, MessageCounter.PulsarTopicMessageReceived);
+        foreach (var sent in MessageCounter.PulsarTopicMessageReceived)
+        {
+            Assert.NotNull(sent.Attributes);
+            Assert.Equal("PulsarTopicIntegrationTestWorker", sent.Attributes["ProducerName"]);
+            Assert.Equal("value1", sent.Attributes["attr1"]);
+            Assert.Equal("traceparent", sent.Attributes["traceparent"]);
+            Assert.Equal("tracestate", sent.Attributes["tracestate"]);
+        }
     }
 }

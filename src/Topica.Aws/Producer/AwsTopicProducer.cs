@@ -19,30 +19,21 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
 {
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         var topicArn = GetTopicArn(source, cancellationToken);
         
         var request = new PublishRequest
         {
             TopicArn = topicArn,
-            Message = JsonConvert.SerializeObject(message)
+            Message = JsonConvert.SerializeObject(message),
+            MessageAttributes = attributesToUse.ToDictionary(item => item.Key, item => new MessageAttributeValue
+            {
+                StringValue = item.Value,
+                DataType = "String"
+            })
         };
-        
-        if (attributes != null)
-        {
-            request.MessageAttributes = attributes.Select(x => new KeyValuePair<string, MessageAttributeValue>(
-                x.Key,
-                new MessageAttributeValue
-                {
-                    StringValue = x.Value,
-                    DataType = "String"
-                })).ToDictionary(x => x.Key, x => x.Value);
-        }
-        
-        request.MessageAttributes.Add("ProducerName", new MessageAttributeValue
-        {
-            StringValue = producerName,
-            DataType = "String"
-        });
 
         if (topicArn.EndsWith(Constants.FifoSuffix))
         {
@@ -58,6 +49,9 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         var topicArn = GetTopicArn(source, cancellationToken);
         
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
@@ -70,10 +64,15 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
                 TopicArn = topicArn,
                 PublishBatchRequestEntries = baseMessages.Select(x => new PublishBatchRequestEntry
                 {
-                    Id = x.Id.ToString(),
+                    Id = Guid.NewGuid().ToString(),
                     MessageGroupId = x.MessageGroupId,
                     MessageDeduplicationId = Guid.NewGuid().ToString(),
                     Message = JsonConvert.SerializeObject(x),
+                    MessageAttributes = attributesToUse.ToDictionary(item => item.Key, item => new MessageAttributeValue
+                    {
+                        StringValue = item.Value,
+                        DataType = "String"
+                    })
                 })
                 .ToList()
             };

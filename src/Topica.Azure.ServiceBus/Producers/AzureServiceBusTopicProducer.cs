@@ -20,6 +20,7 @@ public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusC
             MessageId = Guid.NewGuid().ToString() // MessageId is or can be used for deduplication
         };
 
+        serviceBusMessage.ApplicationProperties.Add("ProducerName", producerName);
         attributes?.ToList().ForEach(x => serviceBusMessage.ApplicationProperties.Add(x.Key, x.Value));
 
         await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
@@ -36,7 +37,8 @@ public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusC
             {
                 MessageId = Guid.NewGuid().ToString() // MessageId is or can be used for deduplication
             };
-            serviceBusMessage.ApplicationProperties.Add("userProp1", "value1");
+            
+            serviceBusMessage.ApplicationProperties.Add("ProducerName", producerName);
             attributes?.ToList().ForEach(x => serviceBusMessage.ApplicationProperties.Add(x.Key, x.Value));
             
             messageBatch.TryAddMessage(serviceBusMessage);

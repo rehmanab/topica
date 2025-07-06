@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -82,7 +83,8 @@ namespace Topica.Pulsar.Consumers
                                 throw new Exception($"{nameof(PulsarTopicConsumer)}: {consumerName}:{_messagingSettings.PulsarConsumerGroup} - Received null message on Topic: {_messagingSettings.Source}");
                             }
 
-                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Data));
+                            // Pulsar doesn't have extra attributes that can be set (far as I know), so they are added to the message itself
+                            var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Data), null);
 
                             // Need to Acknowledge all the messages whether success or not, I think when using partitioned topics, else the messages are sent again after restarting the worker..
                             await consumer.AcknowledgeAsync(message.MessageId);

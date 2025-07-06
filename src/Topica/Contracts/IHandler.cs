@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Topica.Contracts
 {
@@ -8,7 +9,7 @@ namespace Topica.Contracts
 
     public interface IHandler<in TMessage> : IHandler
     {
-        Task<bool> HandleAsync(TMessage source);
+        Task<bool> HandleAsync(TMessage source, Dictionary<string, string>? properties);
         bool ValidateMessage(TMessage message);
     }
 }

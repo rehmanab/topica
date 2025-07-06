@@ -41,12 +41,14 @@ public class Worker(IAwsQueueBuilder builder, AwsProducerSettings settings, ILog
                 MessageGroupId = messageGroupId
             };
 
-            var messageAttributes = new Dictionary<string, string>
+            var attributes = new Dictionary<string, string>
             {
-                {"SignatureVersion", "2" }
+                // {"SignatureVersion", "2" },
+                {"traceparent", "AWS queue" },
+                {"tracestate", "AWS queue" },
             };
             
-            await _producer1.ProduceAsync(queueName, message, messageAttributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(queueName, message, attributes, cancellationToken: stoppingToken);
             
             logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsQueueSettings.Source, settings.WebAnalyticsQueueSettings.IsFifoQueue ?? false), $"{message.EventId} : {message.EventName}");
             
@@ -74,12 +76,14 @@ public class Worker(IAwsQueueBuilder builder, AwsProducerSettings settings, ILog
             .Cast<BaseMessage>()
             .ToList();
 
-        var messageAttributes = new Dictionary<string, string>
+        var attributes = new Dictionary<string, string>
         {
-            {"SignatureVersion", "2" }
+            // {"SignatureVersion", "2" },
+            {"traceparent", "AWS queue" },
+            {"tracestate", "AWS queue" },
         };
         
-        await _producer1.ProduceBatchAsync(queueName, messages, messageAttributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(queueName, messages, attributes, cancellationToken: stoppingToken);
             
         logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsQueueSettings.Source, settings.WebAnalyticsQueueSettings.IsFifoQueue ?? false));
 

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Topica.Aws.Messages;
 
@@ -11,7 +12,7 @@ public class AwsNotification
     public string? Timestamp { get; set; }
     [JsonProperty("UnsubscribeURL")]
     public string? UnsubscribeUrl { get; set; }
-    public MessageAttributes? MessageAttributes { get; set; }
+    public Dictionary<string, AwsTypeValueObject>? MessageAttributes { get; set; }
     public string? SequenceNumber { get; set; }
     
     public static AwsNotification? Parse(string messageBody) 
@@ -20,9 +21,10 @@ public class AwsNotification
     }
 }
 
-public class MessageAttributes
+public class AwsTypeValueObject
 {
-    public SignatureVersion? SignatureVersion { get; set; }
+    public string Type { get; set; }
+    public string Value { get; set; }
 }
 
 public class SignatureVersion

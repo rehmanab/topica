@@ -7,10 +7,10 @@ namespace Topica.Integration.Tests.RabbitMq.RabbitMqTopic;
 
 public class RabbitMqTopicTestMessageHandlerV1(ILogger<RabbitMqTopicTestMessageHandlerV1> logger) : IHandler<RabbitMqTopicTestMessageV1>
 {
-    public async Task<bool> HandleAsync(RabbitMqTopicTestMessageV1 source)
+    public async Task<bool> HandleAsync(RabbitMqTopicTestMessageV1 source, Dictionary<string, string>? properties)
     {
-        MessageCounter.RabbitMqTopicMessageReceived.Add(source);
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(RabbitMqTopicTestMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        MessageCounter.RabbitMqTopicMessageReceived.Add(new MessageAttributePair{ BaseMessage = source , Attributes = properties});
+        logger.LogInformation("Handle: {Name} for event: {Data}", nameof(RabbitMqTopicTestMessageV1), $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 

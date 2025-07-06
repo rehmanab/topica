@@ -20,7 +20,7 @@ namespace Topica.Messages
         public string? Tenant { get; set; }
         public string? ReceiptReference { get; set; }
         public string? MessageGroupId { get; set; }
-        public IReadOnlyDictionary<string, string>? AdditionalProperties { get; set; }
+        public Dictionary<string, string> MessageAdditionalProperties { get; set; } = new();
         
         public static BaseMessage? Parse<T>(string messageBody) where T: BaseMessage
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -67,7 +68,15 @@ namespace Topica.RabbitMq.Consumers
                     var body = e.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
 
-                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message);
+                    var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message, e.BasicProperties.Headers?.ToDictionary(x => x.Key, x =>
+                    {
+                        if(x.Value is byte[] bytes)
+                        {
+                            return Encoding.UTF8.GetString(bytes) ?? "";
+                        }
+                        return x.Value?.ToString() ?? "";
+                    }) ?? new Dictionary<string, string>());
+                    
                     // _logger.LogInformation("**** {RabbitMqQueueConsumerName}: {ConsumerName}: {HandlerName}: Queue: {ConsumerSettingsSubscribeToSource}: {Succeeded} ****", nameof(RabbitMqQueueConsumer), consumerName, handlerName, messagingSettings.SubscribeToSource, success ? "SUCCEEDED" : "FAILED");
                 };
 

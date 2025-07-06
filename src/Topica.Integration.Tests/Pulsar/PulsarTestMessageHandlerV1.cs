@@ -7,10 +7,10 @@ namespace Topica.Integration.Tests.Pulsar;
 
 public class PulsarTestMessageHandlerV1(ILogger<PulsarTestMessageHandlerV1> logger) : IHandler<PulsarTestMessageV1>
 {
-    public async Task<bool> HandleAsync(PulsarTestMessageV1 source)
+    public async Task<bool> HandleAsync(PulsarTestMessageV1 source, Dictionary<string, string>? properties)
     {
-        MessageCounter.PulsarTopicMessageReceived.Add(source);
-        logger.LogInformation("Handle: {Name} for CID: {ConversationId} for event: {Data}", nameof(PulsarTestMessageV1), source.ConversationId, $"{source.EventId} : {source.EventName}");
+        MessageCounter.PulsarTopicMessageReceived.Add(new MessageAttributePair{ BaseMessage = source , Attributes = properties});
+        logger.LogInformation("Handle: {Name} for event: {Data}", nameof(PulsarTestMessageV1), $"{source.EventId} : {source.EventName}");
         return await Task.FromResult(true);
     }
 

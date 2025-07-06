@@ -61,11 +61,18 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
                     EventId = MessageCounter.AzureServiceBusTopicMessageSent.Count + 1,
                     EventName = "integration.test.v1",
                     Type = nameof(AzureServiceBusTestMessageV1),
-                    MessageGroupId = messageGroupId
+                    MessageGroupId = messageGroupId,
+                    MessageAdditionalProperties = new Dictionary<string, string>
+                    {
+                        { "traceparent", "traceparent" },
+                        { "tracestate", "tracestate" }
+                    }
                 };
 
-                await producer.ProduceAsync(topicName, message, null, producerCts.Token);
-                MessageCounter.AzureServiceBusTopicMessageSent.Add(message);
+                var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
+                
+                await producer.ProduceAsync(topicName, message, attributes, producerCts.Token);
+                MessageCounter.AzureServiceBusTopicMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);
             }
@@ -79,6 +86,13 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
         testOutputHelper.WriteLine($"Messages Sent: {MessageCounter.AzureServiceBusTopicMessageSent.Count}");
 
         Assert.Equal(MessageCounter.AzureServiceBusTopicMessageSent.Count, MessageCounter.AzureServiceBusTopicMessageReceived.Count);
-        Assert.Equivalent(MessageCounter.AzureServiceBusTopicMessageSent, MessageCounter.AzureServiceBusTopicMessageReceived);
+        foreach (var sent in MessageCounter.AzureServiceBusTopicMessageReceived)
+        {
+            Assert.NotNull(sent.Attributes);
+            Assert.Equal("AzureServiceBusIntegrationTestWorker", sent.Attributes["ProducerName"]);
+            Assert.Equal("value1", sent.Attributes["attr1"]);
+            Assert.Equal("traceparent", sent.Attributes["traceparent"]);
+            Assert.Equal("tracestate", sent.Attributes["tracestate"]);
+        }
     }
 }

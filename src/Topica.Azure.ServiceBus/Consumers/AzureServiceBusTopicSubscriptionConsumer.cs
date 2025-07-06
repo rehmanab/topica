@@ -73,7 +73,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 
                 if (message == null) continue;
                 
-                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Body));
+                var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(Encoding.UTF8.GetString(message.Body), message.ApplicationProperties.ToDictionary(x => x.Key, x => x.Value?.ToString() ?? ""));
                 // _logger.LogDebug("**** {Name}: {ConsumerName}: {HandlerName} {Succeeded} ****", nameof(AzureServiceBusTopicSubscriptionConsumer), consumerName, handlerName, success ? "SUCCEEDED" : "FAILED");
 
                 if (!success) continue;

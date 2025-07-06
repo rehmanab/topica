@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
@@ -11,12 +12,15 @@ using Topica.Settings;
 
 namespace Topica.Kafka.Producers;
 
-public class KafkaTopicProducer(string consumerName, MessagingSettings messagingSettings) : IProducer
+public class KafkaTopicProducer(string producerName, MessagingSettings messagingSettings) : IProducer
 {
     private IProducer<string, string>? _producer;
 
     public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         if (_producer is null)
         {
             var config = new ProducerConfig
@@ -32,15 +36,25 @@ public class KafkaTopicProducer(string consumerName, MessagingSettings messaging
                 .Build();
         }
 
+        var headers = new Headers();
+        foreach (var header in attributesToUse.Select(kvp => new Header(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value))))
+        {
+            headers.Add(header);
+        }
+        
         var result = await _producer.ProduceAsync(source, new Message<string, string>
         {
             Key = message.GetType().Name,
-            Value = JsonConvert.SerializeObject(message)
+            Value = JsonConvert.SerializeObject(message),
+            Headers = headers
         }, cancellationToken);
     }
 
     public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
+        var attributesToUse = attributes ?? new Dictionary<string, string>();
+        attributesToUse.Add("ProducerName", producerName);
+        
         if (_producer is null)
         {
             var config = new ProducerConfig
@@ -54,13 +68,20 @@ public class KafkaTopicProducer(string consumerName, MessagingSettings messaging
             _producer = new ProducerBuilder<string, string>(config)
                 //.SetValueSerializer(Serializers.ByteArray)
                 .Build();
+        }
+        
+        var headers = new Headers();
+        foreach (var header in attributesToUse.Select(kvp => new Header(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value))))
+        {
+            headers.Add(header);
         }
 
         var tasks = new List<Task>();
         tasks.AddRange(messages.Select(x => _producer.ProduceAsync(source, new Message<string, string>
         {
             Key = x.GetType().Name,
-            Value = JsonConvert.SerializeObject(x)
+            Value = JsonConvert.SerializeObject(x),
+            Headers = headers
         }, cancellationToken)));
         
         await Task.WhenAll(tasks);
