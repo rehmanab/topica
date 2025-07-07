@@ -46,9 +46,11 @@ public class MessageHandlerExecutorTests
     public async Task ExecuteHandlerAsync_Returns_HandlerName_With_validation_False_When_Validation_Fails()
     {
         var handlerImplementationFake = new MessageHandlerExecutorTests();
-        _handlerResolver.ResolveHandler("", new Dictionary<string, string>()) .Returns((true, handlerImplementationFake, false, new object()));
+        var properties = new Dictionary<string, string>();
         
-        var result = await _executor.ExecuteHandlerAsync("", new Dictionary<string, string>());
+        _handlerResolver.ResolveHandler("", properties) .Returns((true, handlerImplementationFake, false, new object()));
+        
+        var result = await _executor.ExecuteHandlerAsync("", properties);
         
         Assert.NotNull(result.Item1);
         Assert.Equal(handlerImplementationFake.GetType().Name, result.Item1);
@@ -59,9 +61,11 @@ public class MessageHandlerExecutorTests
     public async Task ExecuteHandlerAsync_Returns_HandlerName_With_validation_True_When_Validation_Succeeds()
     {
         var handlerImplementationFake = new MessageHandlerExecutorTests();
-        _handlerResolver.ResolveHandler("", new Dictionary<string, string>()) .Returns((true, handlerImplementationFake, true, Task.FromResult(true)));
+        var properties = new Dictionary<string, string>();
         
-        var result = await _executor.ExecuteHandlerAsync("", new Dictionary<string, string>());
+        _handlerResolver.ResolveHandler("", properties) .Returns((true, handlerImplementationFake, true, Task.FromResult(true)));
+        
+        var result = await _executor.ExecuteHandlerAsync("", properties);
         
         Assert.NotNull(result.Item1);
         Assert.Equal(handlerImplementationFake.GetType().Name, result.Item1);
