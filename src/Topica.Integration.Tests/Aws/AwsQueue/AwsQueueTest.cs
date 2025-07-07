@@ -1,4 +1,5 @@
-﻿using Topica.Integration.Tests.Shared;
+﻿using Topica.Aws.Helpers;
+using Topica.Integration.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,6 +25,7 @@ public class AwsQueueTest(AwsQueueSharedFixture sharedFixture, ITestOutputHelper
         testOutputHelper.WriteLine("Starting AWS Queue Test, to view ILogging output, please 'Debug' and view debug console.");
 
         var queueName = Guid.NewGuid().ToString();
+        const bool isFifo = false;
 
         var queueBuilder = sharedFixture.Builder
             .WithWorkerName("AwsQueueIntegrationTestWorker")
@@ -35,6 +37,7 @@ public class AwsQueueTest(AwsQueueSharedFixture sharedFixture, ITestOutputHelper
         try
         {
             var producer = await queueBuilder.BuildProducerAsync(producerCts.Token);
+            Assert.Equal(queueName, TopicQueueHelper.AddTopicQueueNameFifoSuffix(producer.Source, isFifo));
 
             while (!producerCts.IsCancellationRequested)
             {
@@ -56,7 +59,7 @@ public class AwsQueueTest(AwsQueueSharedFixture sharedFixture, ITestOutputHelper
 
                 var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
 
-                await producer.ProduceAsync(queueName, message, attributes, producerCts.Token);
+                await producer.ProduceAsync(message, attributes, producerCts.Token);
                 MessageCounter.AwsQueueMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);

@@ -17,15 +17,15 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
     {
         _producer1 = await builder.BuildProducerAsync(stoppingToken);
         
-        var count = await SendSingleAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
-        // var count = await SendBatchAsync(settings.WebAnalyticsTopicSettings.Source, stoppingToken);
+        var count = await SendSingleAsync(stoppingToken);
+        // var count = await SendBatchAsync(stoppingToken);
 
         await _producer1.DisposeAsync();
 
         logger.LogInformation("Finished: {Count} messages sent", count);
     }
     
-    private async Task<int> SendSingleAsync(string topicName, CancellationToken stoppingToken)
+    private async Task<int> SendSingleAsync(CancellationToken stoppingToken)
     {
         var count = 1;
         while (!stoppingToken.IsCancellationRequested)
@@ -48,9 +48,9 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
                 {"tracestate", "AWS topic" },
             };
             
-            await _producer1.ProduceAsync(topicName, message, attributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(message, attributes, cancellationToken: stoppingToken);
             
-            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false), $"{message.EventId} : {message.EventName}");
+            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", _producer1.Source, $"{message.EventId} : {message.EventName}");
             
             count++;
 
@@ -60,7 +60,7 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
         return count;
     }
     
-    private async Task<int> SendBatchAsync(string topicName, CancellationToken stoppingToken)
+    private async Task<int> SendBatchAsync(CancellationToken stoppingToken)
     {
         var messageGroupId = Guid.NewGuid();
             
@@ -83,9 +83,9 @@ public class Worker(IAwsTopicBuilder builder, AwsProducerSettings settings, ILog
             {"tracestate", "AWS topic" },
         };
         
-        await _producer1.ProduceBatchAsync(topicName, messages, attributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(messages, attributes, cancellationToken: stoppingToken);
             
-        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, TopicQueueHelper.AddTopicQueueNameFifoSuffix(settings.WebAnalyticsTopicSettings.Source, settings.WebAnalyticsTopicSettings.IsFifoQueue ?? false));
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, _producer1.Source);
 
         return messages.Count;
     }

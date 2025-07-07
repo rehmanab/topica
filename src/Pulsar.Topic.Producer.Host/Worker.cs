@@ -16,8 +16,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
     {
         _producer1 = await builder.BuildProducerAsync(stoppingToken);
 
-        // var count = await SendSingleAsync(stoppingToken);
-        var count = await SendBatchAsync(stoppingToken);
+        var count = await SendSingleAsync(stoppingToken);
+        // var count = await SendBatchAsync(stoppingToken);
 
         await _producer1.DisposeAsync();
 
@@ -37,8 +37,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
                 { "tracestate", "Pulsar" }
             };
             
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, applicationProperties, stoppingToken);
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
+            await _producer1.ProduceAsync(message, applicationProperties, stoppingToken);
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", _producer1.Source, $"{message.EventId} : {message.EventName}");
             count++;
 
             await Task.Delay(1000, stoppingToken);
@@ -60,8 +60,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
             { "tracestate", "Pulsar" }
         };
 
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, applicationProperties, stoppingToken);
-        logger.LogInformation("Sent batch to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, messages.Count);
+        await _producer1.ProduceBatchAsync(messages, applicationProperties, stoppingToken);
+        logger.LogInformation("Sent batch to {Topic}: {Count}", _producer1.Source, messages.Count);
 
         return messages.Count;
     }

@@ -50,6 +50,7 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
         try
         {
             var producer = await queueBuilder.BuildProducerAsync(producerCts.Token);
+            Assert.Equal(topicName, producer.Source);
 
             while (!producerCts.IsCancellationRequested)
             {
@@ -71,7 +72,7 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
 
                 var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
                 
-                await producer.ProduceAsync(topicName, message, attributes, producerCts.Token);
+                await producer.ProduceAsync(message, attributes, producerCts.Token);
                 MessageCounter.AzureServiceBusTopicMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);

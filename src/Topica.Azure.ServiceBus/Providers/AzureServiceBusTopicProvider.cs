@@ -81,6 +81,6 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
     {
         await Task.CompletedTask;
 
-        return new AzureServiceBusTopicProducer(producerName, azureServiceBusClientProvider);
+        return new AzureServiceBusTopicProducer(producerName, azureServiceBusClientProvider, messagingSettings);
     }
 }

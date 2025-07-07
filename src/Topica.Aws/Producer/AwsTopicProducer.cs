@@ -11,18 +11,21 @@ using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
 using Topica.Messages;
+using Topica.Settings;
 using MessageAttributeValue = Amazon.SimpleNotificationService.Model.MessageAttributeValue;
 
 namespace Topica.Aws.Producer;
 
-public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, bool isFifo) : IProducer, IAsyncDisposable
+internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, MessagingSettings messagingSettings) : IProducer, IAsyncDisposable
 {
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public string Source => TopicQueueHelper.AddTopicQueueNameFifoSuffix(messagingSettings.Source, messagingSettings.AwsIsFifoQueue);
+    
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
         
-        var topicArn = GetTopicArn(source, cancellationToken);
+        var topicArn = GetTopicArn(messagingSettings.Source, cancellationToken);
         
         var request = new PublishRequest
         {
@@ -47,12 +50,12 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
         }
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
         
-        var topicArn = GetTopicArn(source, cancellationToken);
+        var topicArn = GetTopicArn(messagingSettings.Source, cancellationToken);
         
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
         foreach (var messageBatch in messages.GetByBatch(10))
@@ -105,7 +108,7 @@ public class AwsTopicProducer(string producerName, IAwsTopicService awsTopicServ
     
     private string GetTopicArn(string topicName, CancellationToken cancellationToken)
     {
-        var topicArns = awsTopicService.GetAllTopics(topicName, isFifo).ToBlockingEnumerable(cancellationToken: cancellationToken).SelectMany(x => x).ToList();
+        var topicArns = awsTopicService.GetAllTopics(topicName, messagingSettings.AwsIsFifoQueue).ToBlockingEnumerable(cancellationToken: cancellationToken).SelectMany(x => x).ToList();
 
         switch (topicArns.Count)
         {

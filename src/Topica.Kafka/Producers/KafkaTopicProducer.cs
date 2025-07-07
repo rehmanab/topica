@@ -12,11 +12,13 @@ using Topica.Settings;
 
 namespace Topica.Kafka.Producers;
 
-public class KafkaTopicProducer(string producerName, MessagingSettings messagingSettings) : IProducer
+internal class KafkaTopicProducer(string producerName, MessagingSettings messagingSettings) : IProducer
 {
     private IProducer<string, string>? _producer;
+    
+    public string Source => messagingSettings.Source;
 
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
@@ -42,7 +44,7 @@ public class KafkaTopicProducer(string producerName, MessagingSettings messaging
             headers.Add(header);
         }
         
-        var result = await _producer.ProduceAsync(source, new Message<string, string>
+        var result = await _producer.ProduceAsync(messagingSettings.Source, new Message<string, string>
         {
             Key = message.GetType().Name,
             Value = JsonConvert.SerializeObject(message),
@@ -50,7 +52,7 @@ public class KafkaTopicProducer(string producerName, MessagingSettings messaging
         }, cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
@@ -77,7 +79,7 @@ public class KafkaTopicProducer(string producerName, MessagingSettings messaging
         }
 
         var tasks = new List<Task>();
-        tasks.AddRange(messages.Select(x => _producer.ProduceAsync(source, new Message<string, string>
+        tasks.AddRange(messages.Select(x => _producer.ProduceAsync(messagingSettings.Source, new Message<string, string>
         {
             Key = x.GetType().Name,
             Value = JsonConvert.SerializeObject(x),

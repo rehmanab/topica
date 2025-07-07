@@ -8,14 +8,17 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using Topica.Contracts;
 using Topica.Messages;
+using Topica.Settings;
 
 namespace Topica.RabbitMq.Producers;
 
-public class RabbitMqQueueProducer(string producerName, ConnectionFactory rabbitMqConnectionFactory) : IProducer
+internal class RabbitMqQueueProducer(string producerName, ConnectionFactory rabbitMqConnectionFactory, MessagingSettings messagingSettings) : IProducer
 {
     private IChannel? _channel;
     
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public string Source => messagingSettings.Source;
+    
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
@@ -31,10 +34,10 @@ public class RabbitMqQueueProducer(string producerName, ConnectionFactory rabbit
         {
             Headers = attributesToUse.ToDictionary(kvp => kvp.Key, kvp => (kvp.Value as object) ?? null)
         };
-        await _channel.BasicPublishAsync(string.Empty, source, true, props, messageBodyBytes, cancellationToken);
+        await _channel.BasicPublishAsync(string.Empty, messagingSettings.Source, true, props, messageBodyBytes, cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
@@ -53,7 +56,7 @@ public class RabbitMqQueueProducer(string producerName, ConnectionFactory rabbit
             {
                 Headers = attributesToUse.ToDictionary(kvp => kvp.Key, kvp => (kvp.Value as object) ?? null)
             };
-            return _channel.BasicPublishAsync(string.Empty, source, true, props, messageBodyBytes, cancellationToken);
+            return _channel.BasicPublishAsync(string.Empty, messagingSettings.Source, true, props, messageBodyBytes, cancellationToken);
         }));
         
         await Task.WhenAll(tasks.Select(x => x.AsTask()));

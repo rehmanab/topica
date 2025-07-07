@@ -12,17 +12,20 @@ using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.Helpers;
 using Topica.Messages;
+using Topica.Settings;
 
 namespace Topica.Aws.Producer;
 
-public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, bool isFifo, ILogger logger) : IProducer
+internal class AwsQueueProducer(string producerName, IPollyRetryService pollyRetryService, IAwsQueueService awsQueueService, IAmazonSQS? sqsClient, MessagingSettings messagingSettings, ILogger logger) : IProducer
 {
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public string Source => TopicQueueHelper.AddTopicQueueNameFifoSuffix(messagingSettings.Source, messagingSettings.AwsIsFifoQueue);
+
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
         
-        var queueUrl = await GetQueueUrl(source, cancellationToken);
+        var queueUrl = await GetQueueUrl(messagingSettings.Source, cancellationToken);
         
         var request = new SendMessageRequest
         {
@@ -47,12 +50,12 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
         }
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
         
-        var queueUrl = await GetQueueUrl(source, cancellationToken);
+        var queueUrl = await GetQueueUrl(messagingSettings.Source, cancellationToken);
         
         // batch messages by 10 items as SQS allows a maximum of 10 messages per batch
         foreach (var messageBatch in messages.GetByBatch(10))
@@ -101,7 +104,7 @@ public class AwsQueueProducer(string producerName, IPollyRetryService pollyRetry
             _ => TimeSpan.FromSeconds(3),
             (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueProducer), index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
             result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
-            ct => awsQueueService.GetQueueUrlAsync(queueName, isFifo, ct),
+            ct => awsQueueService.GetQueueUrlAsync(queueName, messagingSettings.AwsIsFifoQueue, ct),
             false,
             cancellationToken
         );

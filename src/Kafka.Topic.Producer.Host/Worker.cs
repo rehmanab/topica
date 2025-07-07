@@ -38,8 +38,8 @@ public class Worker(IKafkaTopicBuilder builder, KafkaProducerSettings settings, 
                 {"tracestate", "kafka" },
             };
             
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, attributes, stoppingToken);
-            logger.LogInformation("Sent to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, count);
+            await _producer1.ProduceAsync(message, attributes, stoppingToken);
+            logger.LogInformation("Sent to {Topic}: {Count}", _producer1.Source, count);
             count++;
 
             await Task.Delay(1000, stoppingToken);
@@ -62,8 +62,8 @@ public class Worker(IKafkaTopicBuilder builder, KafkaProducerSettings settings, 
             .Cast<BaseMessage>()
             .ToList();
 
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, attributes, stoppingToken);
-        logger.LogInformation("Sent batch to {Topic}: {Count}", settings.WebAnalyticsTopicSettings.Source, messages.Count);
+        await _producer1.ProduceBatchAsync(messages, attributes, stoppingToken);
+        logger.LogInformation("Sent batch to {Topic}: {Count}", _producer1.Source, messages.Count);
 
         return messages.Count;
     }

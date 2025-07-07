@@ -12,17 +12,19 @@ using Topica.Settings;
 
 namespace Topica.Pulsar.Producers;
 
-public class PulsarTopicProducer(string producerName, PulsarClientBuilder clientBuilder, MessagingSettings messagingSettings) : IProducer
+internal class PulsarTopicProducer(string producerName, PulsarClientBuilder clientBuilder, MessagingSettings messagingSettings) : IProducer
 {
     private IProducer<byte[]>? _producer;
     
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public string Source => messagingSettings.Source;
+    
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);
         
         // Pulsar doesn't have extra attributes that can be set (far as I know), so they are added to the message itself
-        attributesToUse?.ToList().ForEach(x => message.MessageAdditionalProperties.TryAdd(x.Key, x.Value));
+        attributesToUse.ToList().ForEach(x => message.MessageAdditionalProperties.TryAdd(x.Key, x.Value));
         
         if (_producer == null)
         {
@@ -43,7 +45,7 @@ public class PulsarTopicProducer(string producerName, PulsarClientBuilder client
         await _producer.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
         var attributesToUse = attributes ?? new Dictionary<string, string>();
         attributesToUse.Add("ProducerName", producerName);

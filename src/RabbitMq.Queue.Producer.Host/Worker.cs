@@ -38,9 +38,9 @@ public class Worker(IRabbitMqQueueBuilder builder, RabbitMqProducerSettings sett
                 {"tracestate", "RMQ Queue" },
             };
             
-            await _producer1.ProduceAsync(settings.WebAnalyticsTopicSettings.Source, message, attributes, cancellationToken: stoppingToken);
+            await _producer1.ProduceAsync(message, attributes, cancellationToken: stoppingToken);
 
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", settings.WebAnalyticsTopicSettings.Source, $"{message.EventId} : {message.EventName}");
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", _producer1.Source, $"{message.EventId} : {message.EventName}");
             count++;
             
             await Task.Delay(1000, stoppingToken);
@@ -69,9 +69,9 @@ public class Worker(IRabbitMqQueueBuilder builder, RabbitMqProducerSettings sett
             {"tracestate", "RMQ Queue" },
         };
         
-        await _producer1.ProduceBatchAsync(settings.WebAnalyticsTopicSettings.Source, messages, attributes, cancellationToken: stoppingToken);
+        await _producer1.ProduceBatchAsync(messages, attributes, cancellationToken: stoppingToken);
             
-        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, settings.WebAnalyticsTopicSettings.Source);
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, _producer1.Source);
 
         return messages.Count;
     }

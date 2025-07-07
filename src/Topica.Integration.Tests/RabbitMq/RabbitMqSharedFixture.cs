@@ -22,8 +22,8 @@ public class RabbitMqSharedFixture : IAsyncLifetime
             .WithName("rabbitmq-integration-test")
             .WithHostname("rabbitmq-integration-test")
             .WithUsername("guest").WithPassword("guest")
-            .WithPortBinding(15672, 15672)
-            .WithPortBinding(5672, 5672)
+            .WithPortBinding(15673, 15672)
+            .WithPortBinding(5674, 5672)
             .WithExposedPort(5672)
             .Build();
 
@@ -43,7 +43,7 @@ public class RabbitMqSharedFixture : IAsyncLifetime
                     c.Password = "guest";
                     c.Scheme = "amqp";
                     c.Port = mappedPublicPort;
-                    c.ManagementPort = 15672;
+                    c.ManagementPort = 15673;
                     c.ManagementScheme = "http";
                     c.VHost = "Test";
                 }, Assembly.GetExecutingAssembly());

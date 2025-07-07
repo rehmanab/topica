@@ -41,7 +41,7 @@ namespace Topica.RabbitMq.Providers
         {
             await Task.CompletedTask;
             
-            return new RabbitMqTopicProducer(producerName, rabbitMqConnectionFactory);
+            return new RabbitMqTopicProducer(producerName, rabbitMqConnectionFactory, messagingSettings);
         }
     }
 }

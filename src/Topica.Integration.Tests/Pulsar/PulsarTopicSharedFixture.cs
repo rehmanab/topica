@@ -18,8 +18,8 @@ public class PulsarTopicSharedFixture : IAsyncLifetime
         _container = new PulsarBuilder()
             .WithImage("apachepulsar/pulsar:4.0.4")
             .WithName("pulsarbroker-integration-test")
-            .WithPortBinding(6650, 6650)
-            .WithPortBinding(8080, 8080)
+            .WithPortBinding(6651, 6650)
+            .WithPortBinding(8081, 8080)
             //.WithEnvironment("PULSAR_MEM", "Xms256m -Xmx256m -XX:MaxDirectMemorySize=256m")
             .Build();
         

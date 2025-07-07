@@ -52,6 +52,6 @@ public class AwsQueueProvider(
     {
         await Task.CompletedTask;
         
-        return new AwsQueueProducer(producerName, pollyRetryService, awsQueueService, sqsClient, messagingSettings.AwsIsFifoQueue, logger);
+        return new AwsQueueProducer(producerName, pollyRetryService, awsQueueService, sqsClient, messagingSettings, logger);
     }
 }

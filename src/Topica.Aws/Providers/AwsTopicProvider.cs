@@ -53,7 +53,7 @@ namespace Topica.Aws.Providers
         {
             await Task.CompletedTask;
 
-            return new AwsTopicProducer(producerName, awsTopicService, snsClient, messagingSettings.AwsIsFifoQueue);
+            return new AwsTopicProducer(producerName, awsTopicService, snsClient, messagingSettings);
         }
     }
 }

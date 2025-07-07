@@ -38,6 +38,7 @@ public class KafkaTopicTest(KafkaTopicSharedFixture sharedFixture, ITestOutputHe
         try
         {
             var producer = await queueBuilder.BuildProducerAsync(producerCts.Token);
+            Assert.Equal(topicName, producer.Source);
 
             while (!producerCts.IsCancellationRequested)
             {
@@ -59,7 +60,7 @@ public class KafkaTopicTest(KafkaTopicSharedFixture sharedFixture, ITestOutputHe
                 
                 var attributes = new Dictionary<string, string> { { "attr1", "value1" } };
 
-                await producer.ProduceAsync(topicName, message, attributes, producerCts.Token);
+                await producer.ProduceAsync(message, attributes, producerCts.Token);
                 MessageCounter.KafkaTopicMessageSent.Add(new MessageAttributePair{ BaseMessage = message , Attributes = attributes});
 
                 await Task.Delay(TimeSpan.FromMinutes(5), consumerCts.Token);

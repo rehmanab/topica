@@ -25,10 +25,11 @@ public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
         var currentDomainBaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         var configFilePath = Path.Join(currentDomainBaseDirectory, "Azure", "ServiceBus", "AzureServiceBusConfig.json");
         const string sqlPassword = "Password123!";
+        var name = $"azure-integration-tests-{Guid.NewGuid()}";
         var sqlContainerName = $"sqledge-integration-tests-{Guid.NewGuid()}";
 
         _containersNetwork = new NetworkBuilder()
-            .WithName(sqlContainerName)
+            .WithName(name)
             .Build();
 
         _azureSqlEdgeContainer = new ContainerBuilder()
@@ -38,7 +39,7 @@ public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
             .WithEnvironment("ACCEPT_EULA", "Y")
             .WithEnvironment("MSSQL_SA_PASSWORD", sqlPassword)
             .WithNetwork(_containersNetwork)
-            .WithNetworkAliases(sqlContainerName)
+            .WithNetworkAliases(name)
             // .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged("SQL Server is now ready for client connections.", w => w.WithTimeout(TimeSpan.FromSeconds(30))))
             .WithOutputConsumer(Consume.RedirectStdoutAndStderrToStream(Console.OpenStandardOutput(), Console.OpenStandardError()))
             .Build();
@@ -46,6 +47,8 @@ public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
         _serviceBusContainer = new ContainerBuilder()
             .DependsOn(_azureSqlEdgeContainer)
             .WithImage("mcr.microsoft.com/azure-messaging/servicebus-emulator:latest")
+            .WithName(name)
+            .WithHostname(name)
             .WithEnvironment("ACCEPT_EULA", "Y")
             .WithEnvironment("MSSQL_SA_PASSWORD", sqlPassword)
             .WithEnvironment("SQL_SERVER", sqlContainerName)

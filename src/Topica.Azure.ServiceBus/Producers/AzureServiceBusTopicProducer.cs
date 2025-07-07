@@ -4,16 +4,19 @@ using Newtonsoft.Json;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
 using Topica.Messages;
+using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Producers;
 
-public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusClientProvider provider) : IProducer
+internal class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusClientProvider provider, MessagingSettings messagingSettings) : IProducer
 {
     private ServiceBusSender? _sender;
 
-    public async Task ProduceAsync(string source, BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public string Source => messagingSettings.Source;
+
+    public async Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
-        _sender ??= provider.Client.CreateSender(source, new ServiceBusSenderOptions { Identifier = producerName });
+        _sender ??= provider.Client.CreateSender(messagingSettings.Source, new ServiceBusSenderOptions { Identifier = producerName });
         
         var serviceBusMessage = new ServiceBusMessage(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)))
         {
@@ -26,9 +29,9 @@ public class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusC
         await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
     }
 
-    public async Task ProduceBatchAsync(string source, IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
+    public async Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken)
     {
-        _sender ??= provider.Client.CreateSender(source, new ServiceBusSenderOptions { Identifier = producerName });
+        _sender ??= provider.Client.CreateSender(messagingSettings.Source, new ServiceBusSenderOptions { Identifier = producerName });
         using var messageBatch = await _sender.CreateMessageBatchAsync(cancellationToken);
 
         foreach (var message in messages)
