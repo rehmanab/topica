@@ -13,7 +13,7 @@ namespace Topica.Aws.Builders;
 public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
     IPollyRetryService pollyRetryService,
     ILogger<AwsTopicCreationBuilder> logger) 
-    : IAwsTopicCreationBuilder, IAwsTopicBuilderWithTopicName, IAwsTopicBuilderWithQueues, IAwsTopicBuilderWithQueueToSubscribeTo, IAwsTopicBuilder
+    : IAwsTopicCreationBuilder, IAwsTopicCreationBuilderWithTopicName, IAwsTopicCreationBuilderWithQueues, IAwsTopicCreationBuilderWithQueueToSubscribeTo, IAwsTopicCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -31,38 +31,38 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
     private int? _numberOfInstances;
     private int? _receiveMaximumNumberOfMessages;
 
-    public IAwsTopicBuilderWithTopicName WithWorkerName(string workerName)
+    public IAwsTopicCreationBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IAwsTopicBuilderWithQueues WithTopicName(string topicName)
+    public IAwsTopicCreationBuilderWithQueues WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
+    public IAwsTopicCreationBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
     {
         _queueNames = queueNames;
         return this;
     }
     
-    public IAwsTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName)
+    public IAwsTopicCreationBuilderWithBuild WithQueueToSubscribeTo(string subscribeToQueueName)
     {
         _subscribeToQueueName = subscribeToQueueName;
         return this;
     }
 
-    public IAwsTopicBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
+    public IAwsTopicCreationBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
     {
         _buildErrorQueues = buildErrorQueues;
         _errorQueueMaxReceiveCount = errorQueueMaxReceiveCount;
         return this;
     }
 
-    public IAwsTopicBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
+    public IAwsTopicCreationBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
     {
         _messageVisibilityTimeoutSeconds = messageVisibilityTimeoutSeconds;
         _queueMessageDelaySeconds = queueMessageDelaySeconds;
@@ -71,20 +71,20 @@ public class AwsTopicCreationBuilder(ITopicProviderFactory topicProviderFactory,
         return this;
     }
 
-    public IAwsTopicBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
+    public IAwsTopicCreationBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
     {
         _isFifoQueue = isFifoQueue;
         _isFifoContentBasedDeduplication = isFifoContentBasedDeduplication;
         return this;
     }
 
-    public IAwsTopicBuilder WithQueueSettings(int? queueMaximumMessageSizeKb)
+    public IAwsTopicCreationBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb)
     {
         _queueMaximumMessageSizeKb = queueMaximumMessageSizeKb;
         return this;
     }
 
-    public IAwsTopicBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
+    public IAwsTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
     {
         _numberOfInstances = numberOfInstances;
         _receiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages;

@@ -46,7 +46,9 @@ public static class AwsServiceExtensions
         services.AddTransient<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
         services.AddTransient<IAwsQueueService, AwsQueueService>();
         services.AddTransient<IAwsTopicService, AwsTopicService>();
+        services.AddTransient<IAwsQueueBuilder, AwsQueueBuilder>();
         services.AddTransient<IAwsQueueCreationBuilder, AwsQueueCreationBuilder>();
+        services.AddTransient<IAwsTopicBuilder, AwsTopicBuilder>();
         services.AddTransient<IAwsTopicCreationBuilder, AwsTopicCreationBuilder>();
         services.AddTransient<IQueueProviderFactory, QueueProviderFactory>();
         services.AddTransient<ITopicProviderFactory, TopicProviderFactory>();

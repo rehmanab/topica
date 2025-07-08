@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Hosting;
-using Topica.Azure.ServiceBus.Contracts;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Topica.Contracts;
 
 namespace Azure.ServiceBus.Topic.Consumer.Host;
 
-public class Worker(IAzureServiceBusTopicBuilder builder) : BackgroundService
+public class Worker([FromKeyedServices("Consumer")] IConsumer consumer) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await (await builder.BuildConsumerAsync(stoppingToken)).ConsumeAsync(stoppingToken);
+        await consumer.ConsumeAsync(stoppingToken);
     }
 }

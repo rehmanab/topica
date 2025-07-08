@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Consumer.Host;
 using Pulsar.Topic.Consumer.Host.Settings;
 using Pulsar.Topic.Consumer.Host.Validators;
+using Topica.Contracts;
 using Topica.SharedMessageHandlers;
 using Topica.Pulsar.Contracts;
 
@@ -22,12 +23,11 @@ var host = Host.CreateDefaultBuilder()
                 .AddEnvironmentVariables();
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
-        var settings = configuration.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
+        var settings = ctx.Configuration.GetSection(PulsarConsumerSettings.SectionName).Get<PulsarConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(PulsarHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(PulsarConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -37,7 +37,7 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
-        
+
         services.AddLogging(configure => configure
             .AddSimpleConsole(x =>
             {
@@ -45,7 +45,7 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
@@ -58,19 +58,41 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
-            .WithConfiguration(
-                settings.WebAnalyticsTopicSettings.Tenant,
-                settings.WebAnalyticsTopicSettings.Namespace,
-                settings.WebAnalyticsTopicSettings.NumberOfPartitions
-            )
-            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
-            .WithConsumeSettings(settings.WebAnalyticsTopicSettings.NumberOfInstances));
+        AddCreationConsumer(services, settings);
+        // AddNonCreationConsumer(services, settings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationConsumer(IServiceCollection serviceCollection, PulsarConsumerSettings pulsarConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
+        .WithWorkerName(pulsarConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(pulsarConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(pulsarConsumerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithConfiguration(
+            pulsarConsumerSettings.WebAnalyticsTopicSettings.Tenant,
+            pulsarConsumerSettings.WebAnalyticsTopicSettings.Namespace,
+            pulsarConsumerSettings.WebAnalyticsTopicSettings.NumberOfPartitions
+        )
+        .WithTopicOptions(pulsarConsumerSettings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+        .WithConsumeSettings(pulsarConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .BuildConsumerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationConsumer(IServiceCollection serviceCollection, PulsarConsumerSettings pulsarConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IPulsarTopicBuilder>()
+        .WithWorkerName(pulsarConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(pulsarConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(pulsarConsumerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithConfiguration(
+            pulsarConsumerSettings.WebAnalyticsTopicSettings.Tenant,
+            pulsarConsumerSettings.WebAnalyticsTopicSettings.Namespace
+        )
+        .WithTopicOptions(pulsarConsumerSettings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+        .WithConsumeSettings(pulsarConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .BuildConsumerAsync(CancellationToken.None).Result);
+}

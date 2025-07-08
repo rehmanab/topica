@@ -6,31 +6,31 @@ namespace Topica.Aws.Contracts
 {
     public interface IAwsQueueCreationBuilder
     {
-        IAwsQueueBuilderWithQueueName WithWorkerName(string workerName);
+        IAwsQueueCreationBuilderWithQueueName WithWorkerName(string workerName);
     }
 
-    public interface IAwsQueueBuilderWithQueueName
+    public interface IAwsQueueCreationBuilderWithQueueName
     {
-        IAwsQueueBuilder WithQueueName(string queueName);
+        IAwsQueueCreationBuilderWithBuild WithQueueName(string queueName);
     }
     
-    public interface IAwsQueueBuilder
+    public interface IAwsQueueCreationBuilderWithBuild
     {
-        IAwsQueueBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
-        IAwsQueueBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
-        IAwsQueueBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
-        IAwsQueueBuilder WithQueueSettings(int? queueMaximumMessageSizeKb);
-        IAwsQueueBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
+        IAwsQueueCreationBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
+        IAwsQueueCreationBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
+        IAwsQueueCreationBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
+        IAwsQueueCreationBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsQueueCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
         
         /// <summary>
-        /// Builds the consumer with the specified number of instances and maximum number of messages to receive.
+        /// Builds the consumer as per the builder settings, ready to send messages.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns>Returns an <see cref="IConsumer"/> instance, ready to consume the SubscribeToQueueName app setting</returns>
         Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         
         /// <summary>
-        /// Builds the producer, ready to send messages to the Queue.
+        /// Builds the producer as per the builder settings, ready to send messages to the Queue.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <returns><see cref="IProducer"/></returns>

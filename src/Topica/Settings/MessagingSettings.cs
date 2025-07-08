@@ -67,5 +67,5 @@ public class MessagingSettings
 
         
     // RabbitMq
-    public string[] RabbitMqWithSubscribedQueues { get; set; }
+    public string[] RabbitMqWithSubscribedQueues { get; set; } = null!;
 }

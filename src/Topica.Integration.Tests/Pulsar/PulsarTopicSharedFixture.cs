@@ -29,7 +29,7 @@ public class PulsarTopicSharedFixture : IAsyncLifetime
         var serviceAddress = _container.GetServiceAddress();
         
         Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 // Add MessagingPlatform Components
                 services.AddPulsarTopica(c =>

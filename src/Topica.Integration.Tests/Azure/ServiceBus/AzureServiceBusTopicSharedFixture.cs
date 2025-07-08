@@ -71,7 +71,7 @@ public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 // Add MessagingPlatform Components
                 services.AddAzureServiceBusTopica(c => { c.ConnectionString = connectionString; }, Assembly.GetExecutingAssembly());

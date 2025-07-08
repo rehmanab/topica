@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Topica.Contracts;
 using Topica.Kafka.Contracts;
 
 Console.WriteLine("******* Starting Kafka.Topic.Producer.Host *******");
@@ -21,12 +22,11 @@ var host = Host.CreateDefaultBuilder()
                 .AddEnvironmentVariables();
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(KafkaHostSettings.SectionName).Get<KafkaHostSettings>();
-        var settings = configuration.GetSection(KafkaProducerSettings.SectionName).Get<KafkaProducerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(KafkaHostSettings.SectionName).Get<KafkaHostSettings>();
+        var settings = ctx.Configuration.GetSection(KafkaProducerSettings.SectionName).Get<KafkaProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(KafkaHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(KafkaProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -36,7 +36,7 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
-        
+
         services.AddLogging(configure => configure
             .AddSimpleConsole(x =>
             {
@@ -44,26 +44,41 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
-        services.AddKafkaTopica(c =>
-        {
-            c.BootstrapServers = hostSettings.BootstrapServers;
-        }, Assembly.GetExecutingAssembly());
+        services.AddKafkaTopica(c => { c.BootstrapServers = hostSettings.BootstrapServers; }, Assembly.GetExecutingAssembly());
 
         services.Configure<HostOptions>(options => { options.ShutdownTimeout = TimeSpan.FromSeconds(5); });
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IKafkaTopicCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
-            .WithTopicSettings(settings.WebAnalyticsTopicSettings.StartFromEarliestMessages, settings.WebAnalyticsTopicSettings.NumberOfTopicPartitions)
-            .WithBootstrapServers(hostSettings.BootstrapServers));
+        AddCreationProducer(services, settings, hostSettings);
+        // AddNonCreationProducer(services, settings, hostSettings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationProducer(IServiceCollection serviceCollection, KafkaProducerSettings kafkaProducerSettings, KafkaHostSettings kafkaHostSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IKafkaTopicCreationBuilder>()
+        .WithWorkerName(kafkaProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(kafkaProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(kafkaProducerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithTopicSettings(kafkaProducerSettings.WebAnalyticsTopicSettings.StartFromEarliestMessages, kafkaProducerSettings.WebAnalyticsTopicSettings.NumberOfTopicPartitions)
+        .WithBootstrapServers(kafkaHostSettings.BootstrapServers)
+        .BuildProducerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationProducer(IServiceCollection serviceCollection, KafkaProducerSettings kafkaProducerSettings, KafkaHostSettings kafkaHostSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IKafkaTopicBuilder>()
+        .WithWorkerName(kafkaProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(kafkaProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(kafkaProducerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithTopicSettings(kafkaProducerSettings.WebAnalyticsTopicSettings.StartFromEarliestMessages)
+        .WithBootstrapServers(kafkaHostSettings.BootstrapServers)
+        .BuildProducerAsync(CancellationToken.None).Result);
+}

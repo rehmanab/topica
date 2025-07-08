@@ -33,7 +33,7 @@ public class RabbitMqSharedFixture : IAsyncLifetime
         var mappedPublicPort = _container.GetMappedPublicPort(5672);
 
         Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 // Add MessagingPlatform Components
                 services.AddRabbitMqTopica(c =>
@@ -48,8 +48,9 @@ public class RabbitMqSharedFixture : IAsyncLifetime
                     c.VHost = "Test";
                 }, Assembly.GetExecutingAssembly());
 
-                QueueBuilder = services.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>();
-                TopicBuilder = services.BuildServiceProvider().GetRequiredService<IRabbitMqTopicCreationBuilder>();
+                var serviceProvider = services.BuildServiceProvider();
+                QueueBuilder = serviceProvider.GetRequiredService<IRabbitMqQueueCreationBuilder>();
+                TopicBuilder = serviceProvider.GetRequiredService<IRabbitMqTopicCreationBuilder>();
             }).Build();
     }
 

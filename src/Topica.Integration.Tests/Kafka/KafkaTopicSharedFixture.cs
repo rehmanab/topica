@@ -54,7 +54,7 @@ public class KafkaTopicSharedFixture : IAsyncLifetime
         var mappedPublicPort = _container.GetMappedPublicPort(9092);
         
         Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 // Add MessagingPlatform Components
                 services.AddKafkaTopica(c =>

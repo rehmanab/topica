@@ -37,6 +37,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             
             services.AddScoped<IPollyRetryService, PollyRetryService>();
+            services.AddScoped<IKafkaTopicBuilder, KafkaTopicBuilder>();
             services.AddScoped<IKafkaTopicCreationBuilder, KafkaTopicCreationBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<IAdminClient>(_ => new AdminClientBuilder(new AdminClientConfig { BootstrapServers = string.Join(",", config.BootstrapServers) }).Build());

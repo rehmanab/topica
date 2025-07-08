@@ -6,31 +6,31 @@ namespace Topica.Aws.Contracts
 {
     public interface IAwsTopicCreationBuilder
     {
-        IAwsTopicBuilderWithTopicName WithWorkerName(string workerName);
+        IAwsTopicCreationBuilderWithTopicName WithWorkerName(string workerName);
     }
 
-    public interface IAwsTopicBuilderWithTopicName
+    public interface IAwsTopicCreationBuilderWithTopicName
     {
-        IAwsTopicBuilderWithQueues WithTopicName(string topicName);
+        IAwsTopicCreationBuilderWithQueues WithTopicName(string topicName);
     }
     
-    public interface IAwsTopicBuilderWithQueues
+    public interface IAwsTopicCreationBuilderWithQueues
     {
-        IAwsTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
+        IAwsTopicCreationBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
     }
     
-    public interface IAwsTopicBuilderWithQueueToSubscribeTo
+    public interface IAwsTopicCreationBuilderWithQueueToSubscribeTo
     {
-        IAwsTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName);
+        IAwsTopicCreationBuilderWithBuild WithQueueToSubscribeTo(string subscribeToQueueName);
     }
     
-    public interface IAwsTopicBuilder
+    public interface IAwsTopicCreationBuilderWithBuild
     {
-        IAwsTopicBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
-        IAwsTopicBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
-        IAwsTopicBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
-        IAwsTopicBuilder WithQueueSettings(int? queueMaximumMessageSizeKb);
-        IAwsTopicBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
+        IAwsTopicCreationBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount);
+        IAwsTopicCreationBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds);
+        IAwsTopicCreationBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication);
+        IAwsTopicCreationBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb);
+        IAwsTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
         
         /// <summary>
         /// Builds the consumer with the specified number of instances and maximum number of messages to receive.

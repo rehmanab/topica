@@ -38,6 +38,7 @@ public static class AzureServiceBusExtensions
         services.AddScoped<IPollyRetryService, PollyRetryService>();
         services.AddScoped<IAzureServiceBusAdministrationClientProvider>(_ => new AzureServiceBusAdministrationClientProvider(config.ConnectionString!));
         services.AddScoped<IAzureServiceBusClientProvider>(_ => new AzureServiceBusClientProvider(config.ConnectionString!));
+        services.AddScoped<IAzureServiceBusTopicBuilder, AzureServiceBusTopicBuilder>();
         services.AddScoped<IAzureServiceBusTopicCreationBuilder, AzureServiceBusTopicCreationBuilder>();
         services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
         services.AddScoped<ITopicProvider, AzureServiceBusTopicProvider>();

@@ -12,7 +12,7 @@ public class AzureServiceBusTopicCreationBuilder(
     ITopicProviderFactory topicProviderFactory, 
     IAzureServiceBusClientProvider provider, 
     ILogger<AzureServiceBusTopicCreationBuilder> logger) 
-    : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscriptions, IAzureServiceBusTopicBuilderWithSubscribeToSubscription, IAzureServiceBusTopicBuilder
+    : IAzureServiceBusTopicCreationBuilder, IAzureServiceBusTopicCreationBuilderWithTopicName, IAzureServiceBusTopicCreationBuilderWithSubscriptions, IAzureServiceBusTopicCreationBuilderWithSubscribeToSubscription, IAzureServiceBusTopicCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -31,31 +31,31 @@ public class AzureServiceBusTopicCreationBuilder(
     private int? _numberOfInstances;
     private string _subscribeToSubscription = null!;
 
-    public IAzureServiceBusTopicBuilderWithTopicName WithWorkerName(string workerName)
+    public IAzureServiceBusTopicCreationBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IAzureServiceBusTopicBuilderWithSubscriptions WithTopicName(string topicName)
+    public IAzureServiceBusTopicCreationBuilderWithSubscriptions WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IAzureServiceBusTopicBuilderWithSubscribeToSubscription WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions)
+    public IAzureServiceBusTopicCreationBuilderWithSubscribeToSubscription WithSubscriptions(params AzureServiceBusTopicSubscriptionSettings[] subscriptions)
     {
         _subscriptions = subscriptions;
         return this;
     }
     
-    public IAzureServiceBusTopicBuilder WithSubscribeToSubscription(string subscribeToSubscription)
+    public IAzureServiceBusTopicCreationBuilderWithBuild WithSubscribeToSubscription(string subscribeToSubscription)
     {
         _subscribeToSubscription = subscribeToSubscription;
         return this;
     }
 
-    public IAzureServiceBusTopicBuilder WithTimings(
+    public IAzureServiceBusTopicCreationBuilderWithBuild WithTimings(
         string? autoDeleteOnIdle,
         string? defaultMessageTimeToLive, 
         string? duplicateDetectionHistoryTimeWindow)
@@ -66,7 +66,7 @@ public class AzureServiceBusTopicCreationBuilder(
         return this;
     }
 
-    public IAzureServiceBusTopicBuilder WithOptions(
+    public IAzureServiceBusTopicCreationBuilderWithBuild WithOptions(
         bool? enableBatchedOperations, 
         bool? enablePartitioning,
         int? maxSizeInMegabytes, 
@@ -85,13 +85,13 @@ public class AzureServiceBusTopicCreationBuilder(
         return this;
     }
 
-    public IAzureServiceBusTopicBuilder WithMetadata(string? metadata)
+    public IAzureServiceBusTopicCreationBuilderWithBuild WithMetadata(string? metadata)
     {
         _metadata = metadata;
         return this;
     }
 
-    public IAzureServiceBusTopicBuilder WithNumberOfInstances(int? numberOfInstances)
+    public IAzureServiceBusTopicCreationBuilderWithBuild WithNumberOfInstances(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;
         return this;

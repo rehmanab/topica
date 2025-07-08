@@ -1,12 +1,13 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Topica.Kafka.Contracts;
+using Topica.Contracts;
 
 namespace Kafka.Topic.Consumer.Host;
 
-public class Worker(IKafkaTopicBuilder builder) : BackgroundService
+public class Worker([FromKeyedServices("Consumer")] IConsumer consumer) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await (await builder.BuildConsumerAsync(stoppingToken)).ConsumeAsync(stoppingToken);
+        await consumer.ConsumeAsync(stoppingToken);
     }
 }

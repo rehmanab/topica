@@ -20,7 +20,7 @@ namespace Topica.Aws.Builders;
 public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory, 
     IPollyRetryService pollyRetryService,
     ILogger<AwsQueueCreationBuilder> logger) 
-    : IAwsQueueCreationBuilder, IAwsQueueBuilderWithQueueName, IAwsQueueBuilder
+    : IAwsQueueCreationBuilder, IAwsQueueCreationBuilderWithQueueName, IAwsQueueCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _queueName = null!;
@@ -36,26 +36,26 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
     private int? _numberOfInstances;
     private int? _receiveMaximumNumberOfMessages;
 
-    public IAwsQueueBuilderWithQueueName WithWorkerName(string workerName)
+    public IAwsQueueCreationBuilderWithQueueName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IAwsQueueBuilder WithQueueName(string queueName)
+    public IAwsQueueCreationBuilderWithBuild WithQueueName(string queueName)
     {
         _queueName = queueName;
         return this;
     }
 
-    public IAwsQueueBuilder WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
+    public IAwsQueueCreationBuilderWithBuild WithErrorQueueSettings(bool? buildErrorQueues, int? errorQueueMaxReceiveCount)
     {
         _buildErrorQueues = buildErrorQueues;
         _errorQueueMaxReceiveCount = errorQueueMaxReceiveCount;
         return this;
     }
 
-    public IAwsQueueBuilder WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
+    public IAwsQueueCreationBuilderWithBuild WithTemporalSettings(int? messageVisibilityTimeoutSeconds, int? queueMessageDelaySeconds, int? queueMessageRetentionPeriodSeconds, int? queueReceiveMessageWaitTimeSeconds)
     {
         _messageVisibilityTimeoutSeconds = messageVisibilityTimeoutSeconds;
         _queueMessageDelaySeconds = queueMessageDelaySeconds;
@@ -64,20 +64,20 @@ public class AwsQueueCreationBuilder(IQueueProviderFactory queueProviderFactory,
         return this;
     }
 
-    public IAwsQueueBuilder WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
+    public IAwsQueueCreationBuilderWithBuild WithFifoSettings(bool? isFifoQueue, bool? isFifoContentBasedDeduplication)
     {
         _isFifoQueue = isFifoQueue;
         _isFifoContentBasedDeduplication = isFifoContentBasedDeduplication;
         return this;
     }
 
-    public IAwsQueueBuilder WithQueueSettings(int? queueMaximumMessageSizeKb)
+    public IAwsQueueCreationBuilderWithBuild WithQueueSettings(int? queueMaximumMessageSizeKb)
     {
         _queueMaximumMessageSizeKb = queueMaximumMessageSizeKb;
         return this;
     }
 
-    public IAwsQueueBuilder WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
+    public IAwsQueueCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages)
     {
         _numberOfInstances = numberOfInstances;
         _receiveMaximumNumberOfMessages = receiveMaximumNumberOfMessages;

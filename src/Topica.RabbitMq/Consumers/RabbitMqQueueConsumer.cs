@@ -46,11 +46,11 @@ namespace Topica.RabbitMq.Consumers
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
             });
         }
 
-        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
+        private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             try
             {
@@ -77,9 +77,9 @@ namespace Topica.RabbitMq.Consumers
 
                 await Task.Run(() =>
                     {
-                        _logger.LogInformation("**** CONSUMER STARTED:{ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
+                        _logger.LogInformation("**** CONSUMER STARTED:{ConsumerName} started on Queue: {ConsumerSettingsSubscribeToSource}", consumerName, _messagingSettings.SubscribeToSource);
 
-                        _channel.BasicConsumeAsync(messagingSettings.SubscribeToSource, true, consumer, cancellationToken: cancellationToken);
+                        _channel.BasicConsumeAsync(_messagingSettings.SubscribeToSource, true, consumer, cancellationToken: cancellationToken);
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {

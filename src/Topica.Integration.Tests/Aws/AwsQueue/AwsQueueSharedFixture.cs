@@ -28,7 +28,7 @@ public class AwsQueueSharedFixture : IAsyncLifetime
         var serviceUrl = _container.GetConnectionString();
 
         Host.CreateDefaultBuilder()
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 // Add MessagingPlatform Components
                 services.AddAwsTopica(c => { c.ServiceUrl = serviceUrl; }, Assembly.GetExecutingAssembly());

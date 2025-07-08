@@ -51,7 +51,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     return new RabbitMqManagementApiClient(config.VHost, x);
                 });
             
+            services.AddScoped<IRabbitMqQueueBuilder, RabbitMqQueueBuilder>();
             services.AddScoped<IRabbitMqQueueCreationBuilder, RabbitMqQueueCreationBuilder>();
+            services.AddScoped<IRabbitMqTopicBuilder, RabbitMqTopicBuilder>();
             services.AddScoped<IRabbitMqTopicCreationBuilder, RabbitMqTopicCreationBuilder>();
             services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();

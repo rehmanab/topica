@@ -6,33 +6,33 @@ namespace Topica.Pulsar.Contracts
 {
     public interface IPulsarTopicCreationBuilder
     {
-        IPulsarTopicBuilderWithTopicName WithWorkerName(string workerName);
+        IPulsarTopicCreationBuilderWithTopicName WithWorkerName(string workerName);
     }
 
-    public interface IPulsarTopicBuilderWithTopicName
+    public interface IPulsarTopicCreationBuilderWithTopicName
     {
-        IPulsarTopicBuilderWithQueues WithTopicName(string topicName);
+        IPulsarTopicCreationBuilderWithQueues WithTopicName(string topicName);
     }
 
-    public interface IPulsarTopicBuilderWithQueues
+    public interface IPulsarTopicCreationBuilderWithQueues
     {
-        IPulsarTopicBuilderWithConfiguration WithConsumerGroup(string consumerGroup);
+        IPulsarTopicCreationBuilderWithConfiguration WithConsumerGroup(string consumerGroup);
     }
 
-    public interface IPulsarTopicBuilderWithConfiguration
+    public interface IPulsarTopicCreationBuilderWithConfiguration
     {
-        IPulsarTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions);
+        IPulsarTopicCreationBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions);
     }
 
-    public interface IPulsarTopicBuilderWithOptions
+    public interface IPulsarTopicCreationBuilderWithOptions
     {
-        IPulsarTopicBuilder WithTopicOptions(bool? startNewConsumerEarliest);
+        IPulsarTopicCreationBuilderWithBuild WithTopicOptions(bool? startNewConsumerEarliest);
     }
 
-    public interface IPulsarTopicBuilder
+    public interface IPulsarTopicCreationBuilderWithBuild
     {
-        IPulsarTopicBuilder WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds);
-        IPulsarTopicBuilder WithConsumeSettings(int? numberOfInstances);
+        IPulsarTopicCreationBuilderWithBuild WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds);
+        IPulsarTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances);
 
         Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);

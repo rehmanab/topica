@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,13 +50,13 @@ namespace Topica.Aws.Consumers
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
             });
 
             await Task.CompletedTask;
         }
 
-        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
+        private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             try
             {
@@ -67,15 +66,15 @@ namespace Topica.Aws.Consumers
                     _ => TimeSpan.FromSeconds(3),
                     (delegateResult, ts, index, context) => _logger.LogWarning("**** RETRY: {Name}:{ConsumerName}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueConsumer), consumerName, index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
                     result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
-                    ct => _awsQueueService.GetQueueUrlAsync(messagingSettings.SubscribeToSource, messagingSettings.AwsIsFifoQueue, ct),
+                    ct => _awsQueueService.GetQueueUrlAsync(_messagingSettings.SubscribeToSource, _messagingSettings.AwsIsFifoQueue, ct),
                     false,
                     cancellationToken
                 );
 
                 if (string.IsNullOrWhiteSpace(queueUrl))
                 {
-                    _logger.LogError("{Name}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), messagingSettings.SubscribeToSource);
-                    throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {messagingSettings.SubscribeToSource} does not exist.");
+                    _logger.LogError("{Name}: queue: {ConsumerSettingsSubscribeToSource} does not exist", nameof(AwsQueueConsumer), _messagingSettings.SubscribeToSource);
+                    throw new ApplicationException($"{nameof(AwsQueueConsumer)}: queue: {_messagingSettings.SubscribeToSource} does not exist.");
                 }
 
                 _logger.LogInformation("**** CONSUMER STARTED: {ConsumerName} consuming from QueueUrl: {QueueUrl}", consumerName, queueUrl);
@@ -83,9 +82,9 @@ namespace Topica.Aws.Consumers
                 var receiveMessageRequest = new ReceiveMessageRequest
                 {
                     QueueUrl = queueUrl, 
-                    MaxNumberOfMessages = messagingSettings.AwsQueueReceiveMaximumNumberOfMessages, 
-                    VisibilityTimeout = messagingSettings.AwsMessageVisibilityTimeoutSeconds, 
-                    WaitTimeSeconds = messagingSettings.AwsQueueReceiveMessageWaitTimeSeconds,
+                    MaxNumberOfMessages = _messagingSettings.AwsQueueReceiveMaximumNumberOfMessages, 
+                    VisibilityTimeout = _messagingSettings.AwsMessageVisibilityTimeoutSeconds, 
+                    WaitTimeSeconds = _messagingSettings.AwsQueueReceiveMessageWaitTimeSeconds,
                     MessageAttributeNames = ["All"]
                 };
 
@@ -151,7 +150,7 @@ namespace Topica.Aws.Consumers
 
                         if (!await _awsQueueService.DeleteMessageAsync(queueUrl, message.ReceiptHandle))
                         {
-                            _logger.LogError("{Name}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                            _logger.LogError("{Name}: {ConsumerName}: could not delete message on Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, _messagingSettings.SubscribeToSource);
                         }
                     }
                 }
@@ -160,7 +159,7 @@ namespace Topica.Aws.Consumers
             }
             catch (TaskCanceledException)
             {
-                _logger.LogWarning("**** {Name}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, messagingSettings.SubscribeToSource);
+                _logger.LogWarning("**** {Name}: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", nameof(AwsQueueConsumer), consumerName, _messagingSettings.SubscribeToSource);
             }
             catch (AggregateException ex)
             {

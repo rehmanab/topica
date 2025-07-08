@@ -6,27 +6,27 @@ namespace Topica.RabbitMq.Contracts
 {
     public interface IRabbitMqTopicCreationBuilder
     {
-        IRabbitMqTopicBuilderWithTopicName WithWorkerName(string workerName);
+        IRabbitMqTopicCreationBuilderWithTopicName WithWorkerName(string workerName);
     }
 
-    public interface IRabbitMqTopicBuilderWithTopicName
+    public interface IRabbitMqTopicCreationBuilderWithTopicName
     {
-        IRabbitMqTopicBuilderWithQueues WithTopicName(string topicName);
+        IRabbitMqTopicCreationBuilderWithQueues WithTopicName(string topicName);
     }
     
-    public interface IRabbitMqTopicBuilderWithQueues
+    public interface IRabbitMqTopicCreationBuilderWithQueues
     {
-        IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
+        IRabbitMqTopicCreationBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames);
     }
     
-    public interface IRabbitMqTopicBuilderWithQueueToSubscribeTo
+    public interface IRabbitMqTopicCreationBuilderWithQueueToSubscribeTo
     {
-        IRabbitMqTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName);
+        IRabbitMqTopicCreationBuilderWithBuild WithQueueToSubscribeTo(string subscribeToQueueName);
     }
     
-    public interface IRabbitMqTopicBuilder
+    public interface IRabbitMqTopicCreationBuilderWithBuild
     {
-        IRabbitMqTopicBuilder WithConsumeSettings(int? numberOfInstances);
+        IRabbitMqTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances);
         
         Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);

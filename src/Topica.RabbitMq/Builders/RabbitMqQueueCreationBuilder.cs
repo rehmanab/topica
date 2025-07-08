@@ -11,26 +11,26 @@ namespace Topica.RabbitMq.Builders;
 public class RabbitMqQueueCreationBuilder(
     IPollyRetryService pollyRetryService,
     IQueueProviderFactory queueProviderFactory, 
-    ILogger<RabbitMqTopicCreationBuilder> logger) 
-    : IRabbitMqQueueCreationBuilder, IRabbitMqQueueBuilderWithQueueName, IRabbitMqQueueBuilder
+    ILogger<RabbitMqQueueCreationBuilder> logger) 
+    : IRabbitMqQueueCreationBuilder, IRabbitMqQueueCreationBuilderWithQueueName, IRabbitMqQueueCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _queueName = null!;
     private int? _numberOfInstances;
 
-    public IRabbitMqQueueBuilderWithQueueName WithWorkerName(string workerName)
+    public IRabbitMqQueueCreationBuilderWithQueueName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IRabbitMqQueueBuilder WithQueueName(string queueName)
+    public IRabbitMqQueueCreationBuilderWithBuild WithQueueName(string queueName)
     {
         _queueName = queueName;
         return this;
     }
 
-    public IRabbitMqQueueBuilder WithConsumeSettings(int? numberOfInstances)
+    public IRabbitMqQueueCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;
         return this;
@@ -81,7 +81,7 @@ public class RabbitMqQueueCreationBuilder(
             WorkerName = _workerName,
             Source = _queueName,
             SubscribeToSource = _queueName,
-            NumberOfInstances = _numberOfInstances ?? 1,
+            NumberOfInstances = _numberOfInstances ?? 1
         };
     }
 }

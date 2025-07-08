@@ -44,15 +44,15 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
     {
         Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
         {
-            _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
+            _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
         });
     }
 
-    private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
+    private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("**** CONSUMER STARTED: {ConsumerName} started on Queue: {Subscription}", consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogInformation("**** CONSUMER STARTED: {ConsumerName} started on Queue: {Subscription}", consumerName, _messagingSettings.SubscribeToSource);
 
             var opt = new ServiceBusReceiverOptions
             {
@@ -60,7 +60,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 ReceiveMode = ServiceBusReceiveMode.PeekLock
             };
             
-            var receiver = _azureServiceBusClientProvider.Client.CreateReceiver(messagingSettings.Source, messagingSettings.SubscribeToSource, opt);
+            var receiver = _azureServiceBusClientProvider.Client.CreateReceiver(_messagingSettings.Source, _messagingSettings.SubscribeToSource, opt);
                 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -78,11 +78,11 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
                 // await Task.Delay(1000, cancellationToken); // Simulate processing delay
             }
 
-            _logger.LogInformation("**** CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogInformation("**** CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, _messagingSettings.SubscribeToSource);
         }
         catch (TaskCanceledException)
         {
-            _logger.LogWarning("**** ERROR: CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, messagingSettings.SubscribeToSource);
+            _logger.LogWarning("**** ERROR: CONSUMER STOPPED: {ConsumerName}: Stopped Queue: {ConsumerSettingsSubscribeToSource}", consumerName, _messagingSettings.SubscribeToSource);
         }
         catch (AggregateException ex)
         {

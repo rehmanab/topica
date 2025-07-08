@@ -6,17 +6,17 @@ namespace Topica.RabbitMq.Contracts
 {
     public interface IRabbitMqQueueCreationBuilder
     {
-        IRabbitMqQueueBuilderWithQueueName WithWorkerName(string workerName);
+        IRabbitMqQueueCreationBuilderWithQueueName WithWorkerName(string workerName);
     }
 
-    public interface IRabbitMqQueueBuilderWithQueueName
+    public interface IRabbitMqQueueCreationBuilderWithQueueName
     {
-        IRabbitMqQueueBuilder WithQueueName(string queueName);
+        IRabbitMqQueueCreationBuilderWithBuild WithQueueName(string queueName);
     }
     
-    public interface IRabbitMqQueueBuilder
+    public interface IRabbitMqQueueCreationBuilderWithBuild
     {
-        IRabbitMqQueueBuilder WithConsumeSettings(int? numberOfInstances);
+        IRabbitMqQueueCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances);
         
         Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);

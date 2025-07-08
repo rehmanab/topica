@@ -41,23 +41,23 @@ namespace Topica.Kafka.Consumers
         {
             Parallel.ForEach(Enumerable.Range(1, _messagingSettings.NumberOfInstances), index =>
             {
-                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", _messagingSettings, x), cancellationToken);
+                _retryPipeline.ExecuteAsync(x => StartAsync($"{_messagingSettings.WorkerName}-({index})", x), cancellationToken);
             });
         }
 
-        private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
+        private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = string.Join(",", messagingSettings.KafkaBootstrapServers),
+                BootstrapServers = string.Join(",", _messagingSettings.KafkaBootstrapServers),
                 
                 // Each unique consumer group will handle a share of the messages for that Topic
                 // e.g. group1 with 10 consumers, share the messages
                 // group2 will be like a new subscribed queue, and get all the messages
                 // So each consumer GroupId is a subscribed queue
                 // https://www.confluent.io/blog/configuring-apache-kafka-consumer-group-ids/
-                GroupId = messagingSettings.KafkaConsumerGroup,
-                AutoOffsetReset = messagingSettings.KafkaStartFromEarliestMessages
+                GroupId = _messagingSettings.KafkaConsumerGroup,
+                AutoOffsetReset = _messagingSettings.KafkaStartFromEarliestMessages
                     ? AutoOffsetReset.Earliest
                     : AutoOffsetReset.Latest,
                 SaslMechanism = SaslMechanism.Plain
@@ -67,7 +67,7 @@ namespace Topica.Kafka.Consumers
             try
             {
                 var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-                consumer.Subscribe(messagingSettings.Source);
+                consumer.Subscribe(_messagingSettings.Source);
 
                 _logger.LogInformation("**** STARTED CONSUMING: {ConsumerName}", consumerName);
 
@@ -79,7 +79,7 @@ namespace Topica.Kafka.Consumers
 
                             if (message == null)
                             {
-                                throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {messagingSettings.Source}");
+                                throw new Exception($"{nameof(KafkaTopicConsumer)}: {consumerName} - Received null message on Topic: {_messagingSettings.Source}");
                             }
 
                             var (handlerName, success) = await _messageHandlerExecutor.ExecuteHandlerAsync(message.Message.Value, message.Message.Headers.ToDictionary(x => x.Key, x => Encoding.UTF8.GetString(x.GetValueBytes())));

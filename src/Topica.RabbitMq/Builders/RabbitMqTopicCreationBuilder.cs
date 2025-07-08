@@ -12,7 +12,7 @@ public class RabbitMqTopicCreationBuilder(
     IPollyRetryService pollyRetryService,
     ITopicProviderFactory topicProviderFactory, 
     ILogger<RabbitMqTopicCreationBuilder> logger) 
-    : IRabbitMqTopicCreationBuilder, IRabbitMqTopicBuilderWithTopicName, IRabbitMqTopicBuilderWithQueues, IRabbitMqTopicBuilderWithQueueToSubscribeTo, IRabbitMqTopicBuilder
+    : IRabbitMqTopicCreationBuilder, IRabbitMqTopicCreationBuilderWithTopicName, IRabbitMqTopicCreationBuilderWithQueues, IRabbitMqTopicCreationBuilderWithQueueToSubscribeTo, IRabbitMqTopicCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -20,31 +20,31 @@ public class RabbitMqTopicCreationBuilder(
     private string _subscribeToQueueName = null!;
     private int? _numberOfInstances;
 
-    public IRabbitMqTopicBuilderWithTopicName WithWorkerName(string workerName)
+    public IRabbitMqTopicCreationBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IRabbitMqTopicBuilderWithQueues WithTopicName(string topicName)
+    public IRabbitMqTopicCreationBuilderWithQueues WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IRabbitMqTopicBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
+    public IRabbitMqTopicCreationBuilderWithQueueToSubscribeTo WithSubscribedQueues(string[] queueNames)
     {
         _queueNames = queueNames;
         return this;
     }
     
-    public IRabbitMqTopicBuilder WithQueueToSubscribeTo(string subscribeToQueueName)
+    public IRabbitMqTopicCreationBuilderWithBuild WithQueueToSubscribeTo(string subscribeToQueueName)
     {
         _subscribeToQueueName = subscribeToQueueName;
         return this;
     }
 
-    public IRabbitMqTopicBuilder WithConsumeSettings(int? numberOfInstances)
+    public IRabbitMqTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;
         return this;
@@ -96,7 +96,7 @@ public class RabbitMqTopicCreationBuilder(
             Source = _topicName,
             RabbitMqWithSubscribedQueues = _queueNames,
             SubscribeToSource = _subscribeToQueueName,
-            NumberOfInstances = _numberOfInstances ?? 1,
+            NumberOfInstances = _numberOfInstances ?? 1
         };
     }
 }

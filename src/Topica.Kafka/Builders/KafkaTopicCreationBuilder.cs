@@ -12,7 +12,7 @@ public class KafkaTopicCreationBuilder(
     IPollyRetryService pollyRetryService,
     ITopicProviderFactory topicProviderFactory, 
     ILogger<KafkaTopicCreationBuilder> logger) 
-    : IKafkaTopicCreationBuilder, IKafkaTopicBuilderWithTopicName, IKafkaTopicBuilderWithQueues, IKafkaTopicBuilderWithTopicSettings, IKafkaTopicBuilderWithBootstrapServers, IKafkaTopicBuilder
+    : IKafkaTopicCreationBuilder, IKafkaTopicCreationBuilderWithTopicName, IKafkaTopicCreationBuilderWithConsumerGroup, IKafkaTopicCreationBuilderWithTopicSettings, IKafkaTopicCreationBuilderWithBootstrapServers, IKafkaTopicCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
@@ -22,38 +22,38 @@ public class KafkaTopicCreationBuilder(
     private string[] _bootstrapServers = null!;
     private int? _numberOfInstances;
 
-    public IKafkaTopicBuilderWithTopicName WithWorkerName(string workerName)
+    public IKafkaTopicCreationBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IKafkaTopicBuilderWithQueues WithTopicName(string topicName)
+    public IKafkaTopicCreationBuilderWithConsumerGroup WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IKafkaTopicBuilderWithTopicSettings WithConsumerGroup(string consumerGroup)
+    public IKafkaTopicCreationBuilderWithTopicSettings WithConsumerGroup(string consumerGroup)
     {
         _consumerGroup = consumerGroup;
         return this;
     }
 
-    public IKafkaTopicBuilderWithBootstrapServers WithTopicSettings(bool? startFromEarliestMessages, int? numberOfTopicPartitions)
+    public IKafkaTopicCreationBuilderWithBootstrapServers WithTopicSettings(bool? startFromEarliestMessages, int? numberOfTopicPartitions)
     {
         _startFromEarliestMessages = startFromEarliestMessages;
         _numberOfTopicPartitions = numberOfTopicPartitions;
         return this;
     }
 
-    public IKafkaTopicBuilder WithBootstrapServers(string[] bootstrapServers)
+    public IKafkaTopicCreationBuilderWithBuild WithBootstrapServers(string[] bootstrapServers)
     {
         _bootstrapServers = bootstrapServers;
         return this; 
     }
 
-    public IKafkaTopicBuilder WithConsumeSettings(int? numberOfInstances)
+    public IKafkaTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;
         return this;

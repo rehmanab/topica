@@ -1,22 +1,16 @@
-using Aws.Queue.Producer.Host.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Topica.Aws.Contracts;
-using Topica.Aws.Helpers;
 using Topica.Contracts;
 using Topica.SharedMessageHandlers.Messages.V1;
 using Topica.Messages;
 
 namespace Aws.Queue.Producer.Host;
 
-public class Worker(IAwsQueueBuilder builder, AwsProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker([FromKeyedServices("Producer")] IProducer producer, ILogger<Worker> logger) : BackgroundService
 {
-    private IProducer _producer1 = null!;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder.BuildProducerAsync(stoppingToken);
-        
         var count = await SendSingleAsync(stoppingToken);
         // var count = await SendBatchAsync(stoppingToken);
 
@@ -46,9 +40,9 @@ public class Worker(IAwsQueueBuilder builder, AwsProducerSettings settings, ILog
                 {"tracestate", "AWS queue" },
             };
             
-            await _producer1.ProduceAsync(message, attributes, cancellationToken: stoppingToken);
+            await producer.ProduceAsync(message, attributes, cancellationToken: stoppingToken);
             
-            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", _producer1.Source, $"{message.EventId} : {message.EventName}");
+            logger.LogInformation("Produced single message to {MessagingSettingsSource}: {MessageIdName}", producer.Source, $"{message.EventId} : {message.EventName}");
             
             count++;
 
@@ -81,9 +75,9 @@ public class Worker(IAwsQueueBuilder builder, AwsProducerSettings settings, ILog
             {"tracestate", "AWS queue" },
         };
         
-        await _producer1.ProduceBatchAsync(messages, attributes, cancellationToken: stoppingToken);
+        await producer.ProduceBatchAsync(messages, attributes, cancellationToken: stoppingToken);
             
-        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, _producer1.Source);
+        logger.LogInformation("Produced ({Count}) batch messages in groups of 10 for AWS to {MessagingSettingsSource}", messages.Count, producer.Source);
 
         return messages.Count;
     }

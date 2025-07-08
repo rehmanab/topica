@@ -1,21 +1,17 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Producer.Host.Settings;
 using Topica.Contracts;
 using Topica.SharedMessageHandlers.Messages.V1;
 using Topica.Messages;
-using Topica.Pulsar.Contracts;
 
 namespace Pulsar.Topic.Producer.Host;
 
-public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings, ILogger<Worker> logger) : BackgroundService
+public class Worker([FromKeyedServices("Producer")] IProducer producer, PulsarProducerSettings settings, ILogger<Worker> logger) : BackgroundService
 {
-    private IProducer _producer1 = null!;
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _producer1 = await builder.BuildProducerAsync(stoppingToken);
-
         var count = await SendSingleAsync(stoppingToken);
         // var count = await SendBatchAsync(stoppingToken);
 
@@ -35,8 +31,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
                 { "tracestate", "Pulsar" }
             };
             
-            await _producer1.ProduceAsync(message, applicationProperties, stoppingToken);
-            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", _producer1.Source, $"{message.EventId} : {message.EventName}");
+            await producer.ProduceAsync(message, applicationProperties, stoppingToken);
+            logger.LogInformation("Produced message to {MessagingSettingsSource}: {MessageIdName}", producer.Source, $"{message.EventId} : {message.EventName}");
             count++;
 
             await Task.Delay(1000, stoppingToken);
@@ -58,8 +54,8 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
             { "tracestate", "Pulsar" }
         };
 
-        await _producer1.ProduceBatchAsync(messages, applicationProperties, stoppingToken);
-        logger.LogInformation("Sent batch to {Topic}: {Count}", _producer1.Source, messages.Count);
+        await producer.ProduceBatchAsync(messages, applicationProperties, stoppingToken);
+        logger.LogInformation("Sent batch to {Topic}: {Count}", producer.Source, messages.Count);
 
         return messages.Count;
     }

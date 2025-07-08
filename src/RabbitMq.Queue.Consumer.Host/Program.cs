@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMq.Queue.Consumer.Host;
 using RabbitMq.Queue.Consumer.Host.Settings;
 using RabbitMq.Queue.Consumer.Host.Validators;
+using Topica.Contracts;
 using Topica.SharedMessageHandlers;
 using Topica.RabbitMq.Contracts;
 
@@ -22,12 +23,11 @@ var host = Host.CreateDefaultBuilder()
                 .AddEnvironmentVariables();
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
-        var settings = configuration.GetSection(RabbitMqConsumerSettings.SectionName).Get<RabbitMqConsumerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(RabbitMqHostSettings.SectionName).Get<RabbitMqHostSettings>();
+        var settings = ctx.Configuration.GetSection(RabbitMqConsumerSettings.SectionName).Get<RabbitMqConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(RabbitMqHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(RabbitMqConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -37,7 +37,7 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
-        
+
         services.AddLogging(configure => configure
             .AddSimpleConsole(x =>
             {
@@ -45,7 +45,7 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddRabbitMqTopica(c =>
@@ -63,12 +63,28 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithQueueName(settings.WebAnalyticsTopicSettings.Source)
-            .WithConsumeSettings(settings.WebAnalyticsTopicSettings.NumberOfInstances));
+        AddCreationConsumer(services, settings);
+        // AddNonCreationConsumer(services, settings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationConsumer(IServiceCollection serviceCollection, RabbitMqConsumerSettings rabbitMqConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>()
+        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .BuildConsumerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationConsumer(IServiceCollection serviceCollection, RabbitMqConsumerSettings rabbitMqConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IRabbitMqQueueBuilder>()
+        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .BuildConsumerAsync(CancellationToken.None).Result);
+}

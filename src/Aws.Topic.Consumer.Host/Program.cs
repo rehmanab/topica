@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Aws.Contracts;
+using Topica.Contracts;
 using Topica.SharedMessageHandlers;
 
 Console.WriteLine("******* Starting Aws.Topic.Consumer.Host *******");
@@ -22,12 +23,11 @@ var host = Host.CreateDefaultBuilder()
                 .AddEnvironmentVariables();
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
-        var settings = configuration.GetSection(AwsConsumerSettings.SectionName).Get<AwsConsumerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>();
+        var settings = ctx.Configuration.GetSection(AwsConsumerSettings.SectionName).Get<AwsConsumerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(AwsHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(AwsConsumerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -45,7 +45,7 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddAwsTopica(c =>
@@ -60,32 +60,54 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IAwsTopicCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithSubscribedQueues(settings.WebAnalyticsTopicSettings.WithSubscribedQueues)
-            .WithQueueToSubscribeTo(settings.WebAnalyticsTopicSettings.SubscribeToSource)
-            .WithErrorQueueSettings(
-                settings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
-                settings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
-            )
-            .WithFifoSettings(
-                settings.WebAnalyticsTopicSettings.IsFifoQueue,
-                settings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
-            )
-            .WithTemporalSettings(
-                settings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
-                settings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
-                settings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
-                settings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
-            )
-            .WithQueueSettings(settings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
-            .WithConsumeSettings(
-                settings.WebAnalyticsTopicSettings.NumberOfInstances,
-                settings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages
-            ));
+        AddCreationProducer(services, settings);
+        // AddNonCreationProducer(services, settings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationProducer(IServiceCollection serviceCollection, AwsConsumerSettings awsConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAwsTopicCreationBuilder>()
+        .WithWorkerName(awsConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(awsConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithSubscribedQueues(awsConsumerSettings.WebAnalyticsTopicSettings.WithSubscribedQueues)
+        .WithQueueToSubscribeTo(awsConsumerSettings.WebAnalyticsTopicSettings.SubscribeToSource)
+        .WithErrorQueueSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.BuildWithErrorQueue,
+            awsConsumerSettings.WebAnalyticsTopicSettings.ErrorQueueMaxReceiveCount
+        )
+        .WithFifoSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoQueue,
+            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
+        )
+        .WithTemporalSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.MessageVisibilityTimeoutSeconds,
+            awsConsumerSettings.WebAnalyticsTopicSettings.QueueMessageDelaySeconds,
+            awsConsumerSettings.WebAnalyticsTopicSettings.QueueMessageRetentionPeriodSeconds,
+            awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
+        )
+        .WithQueueSettings(awsConsumerSettings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
+        .WithConsumeSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances,
+            awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages
+        ).BuildConsumerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationProducer(IServiceCollection serviceCollection, AwsConsumerSettings awsConsumerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAwsTopicBuilder>()
+        .WithWorkerName(awsConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(awsConsumerSettings.WebAnalyticsTopicSettings.Source)
+        .WithQueueToSubscribeTo(awsConsumerSettings.WebAnalyticsTopicSettings.SubscribeToSource)
+        .WithFifoSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoQueue,
+            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
+        )
+        .WithConsumeSettings(
+            awsConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances,
+            awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages
+        ).BuildConsumerAsync(CancellationToken.None).Result);
+}

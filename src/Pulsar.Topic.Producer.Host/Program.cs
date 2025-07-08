@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Pulsar.Topic.Producer.Host;
 using Pulsar.Topic.Producer.Host.Settings;
 using Pulsar.Topic.Producer.Host.Validators;
+using Topica.Contracts;
 using Topica.Pulsar.Contracts;
 
 Console.WriteLine("******* Starting Pulsar.Topic.Producer.Host *******");
@@ -21,12 +22,11 @@ var host = Host.CreateDefaultBuilder()
                 .AddEnvironmentVariables();
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
-        var settings = configuration.GetSection(PulsarProducerSettings.SectionName).Get<PulsarProducerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(PulsarHostSettings.SectionName).Get<PulsarHostSettings>();
+        var settings = ctx.Configuration.GetSection(PulsarProducerSettings.SectionName).Get<PulsarProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(PulsarHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(PulsarProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -36,7 +36,7 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
-        
+
         services.AddLogging(configure => configure
             .AddSimpleConsole(x =>
             {
@@ -44,7 +44,7 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddPulsarTopica(c =>
@@ -58,27 +58,55 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithConsumerGroup(settings.WebAnalyticsTopicSettings.ConsumerGroup)
-            .WithConfiguration(
-                settings.WebAnalyticsTopicSettings.Tenant,
-                settings.WebAnalyticsTopicSettings.Namespace,
-                settings.WebAnalyticsTopicSettings.NumberOfPartitions
-            )
-            .WithTopicOptions(settings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
-            .WithProducerOptions(
-                settings.WebAnalyticsTopicSettings.BlockIfQueueFull,
-                settings.WebAnalyticsTopicSettings.MaxPendingMessages,
-                settings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
-                settings.WebAnalyticsTopicSettings.EnableBatching,
-                settings.WebAnalyticsTopicSettings.EnableChunking,
-                settings.WebAnalyticsTopicSettings.BatchingMaxMessages,
-                settings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
-            ));
+        AddCreationProducer(services, settings);
+        // AddNonCreationProducer(services, settings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationProducer(IServiceCollection serviceCollection, PulsarProducerSettings pulsarProducerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IPulsarTopicCreationBuilder>()
+        .WithWorkerName(pulsarProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(pulsarProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(pulsarProducerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithConfiguration(
+            pulsarProducerSettings.WebAnalyticsTopicSettings.Tenant,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.Namespace,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.NumberOfPartitions
+        )
+        .WithTopicOptions(pulsarProducerSettings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+        .WithProducerOptions(
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BlockIfQueueFull,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.MaxPendingMessages,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.EnableBatching,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.EnableChunking,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BatchingMaxMessages,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
+        ).BuildProducerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationProducer(IServiceCollection serviceCollection, PulsarProducerSettings pulsarProducerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IPulsarTopicBuilder>()
+        .WithWorkerName(pulsarProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(pulsarProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithConsumerGroup(pulsarProducerSettings.WebAnalyticsTopicSettings.ConsumerGroup)
+        .WithConfiguration(
+            pulsarProducerSettings.WebAnalyticsTopicSettings.Tenant,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.Namespace
+        )
+        .WithTopicOptions(pulsarProducerSettings.WebAnalyticsTopicSettings.StartNewConsumerEarliest)
+        .WithProducerOptions(
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BlockIfQueueFull,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.MaxPendingMessages,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.MaxPendingMessagesAcrossPartitions,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.EnableBatching,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.EnableChunking,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BatchingMaxMessages,
+            pulsarProducerSettings.WebAnalyticsTopicSettings.BatchingMaxPublishDelayMilliseconds
+        ).BuildProducerAsync(CancellationToken.None).Result);
+}

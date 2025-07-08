@@ -6,32 +6,32 @@ namespace Topica.Kafka.Contracts
 {
     public interface IKafkaTopicCreationBuilder
     {
-        IKafkaTopicBuilderWithTopicName WithWorkerName(string workerName);
+        IKafkaTopicCreationBuilderWithTopicName WithWorkerName(string workerName);
     }
 
-    public interface IKafkaTopicBuilderWithTopicName
+    public interface IKafkaTopicCreationBuilderWithTopicName
     {
-        IKafkaTopicBuilderWithQueues WithTopicName(string topicName);
+        IKafkaTopicCreationBuilderWithConsumerGroup WithTopicName(string topicName);
     }
     
-    public interface IKafkaTopicBuilderWithQueues
+    public interface IKafkaTopicCreationBuilderWithConsumerGroup
     {
-        IKafkaTopicBuilderWithTopicSettings WithConsumerGroup(string consumerGroup);
+        IKafkaTopicCreationBuilderWithTopicSettings WithConsumerGroup(string consumerGroup);
     }
     
-    public interface IKafkaTopicBuilderWithTopicSettings
+    public interface IKafkaTopicCreationBuilderWithTopicSettings
     {
-        IKafkaTopicBuilderWithBootstrapServers WithTopicSettings(bool? startFromEarliestMessages, int? numberOfTopicPartitions);
+        IKafkaTopicCreationBuilderWithBootstrapServers WithTopicSettings(bool? startFromEarliestMessages, int? numberOfTopicPartitions);
     }
     
-    public interface IKafkaTopicBuilderWithBootstrapServers
+    public interface IKafkaTopicCreationBuilderWithBootstrapServers
     {
-        IKafkaTopicBuilder WithBootstrapServers(string[] bootstrapServers);
+        IKafkaTopicCreationBuilderWithBuild WithBootstrapServers(string[] bootstrapServers);
     }
     
-    public interface IKafkaTopicBuilder
+    public interface IKafkaTopicCreationBuilderWithBuild
     {
-        IKafkaTopicBuilder WithConsumeSettings(int? numberOfInstances);
+        IKafkaTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances);
         
         Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
         Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken);

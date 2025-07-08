@@ -57,6 +57,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 
                 return new PulsarService(config.PulsarManagerBaseUrl!, config.PulsarAdminBaseUrl!, httpClientService, localLogger);
             });
+            services.AddScoped<IPulsarTopicBuilder, PulsarTopicBuilder>();
             services.AddScoped<IPulsarTopicCreationBuilder, PulsarTopicCreationBuilder>();
             services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
             services.AddScoped<ITopicProvider, PulsarTopicProvider>();

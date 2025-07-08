@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Topica.Azure.ServiceBus.Contracts;
+using Topica.Contracts;
 
 Console.WriteLine("******* Starting Azure.ServiceBus.Topic.Producer.Host *******");
 
@@ -24,12 +25,11 @@ var host = Host.CreateDefaultBuilder()
 #endif
         }
     )
-    .ConfigureServices(services =>
+    .ConfigureServices((ctx, services) =>
     {
         // Configuration
-        var configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
-        var hostSettings = configuration.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
-        var settings = configuration.GetSection(AzureServiceBusProducerSettings.SectionName).Get<AzureServiceBusProducerSettings>();
+        var hostSettings = ctx.Configuration.GetSection(AzureServiceBusHostSettings.SectionName).Get<AzureServiceBusHostSettings>();
+        var settings = ctx.Configuration.GetSection(AzureServiceBusProducerSettings.SectionName).Get<AzureServiceBusProducerSettings>();
 
         if (hostSettings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusHostSettings)} is not configured. Please check your appsettings.json or environment variables.");
         if (settings == null) throw new InvalidOperationException($"{nameof(AzureServiceBusProducerSettings)} is not configured. Please check your appsettings.json or environment variables.");
@@ -39,7 +39,7 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddSingleton(hostSettings);
         services.AddSingleton(settings);
-        
+
         services.AddLogging(configure => configure
             .AddSimpleConsole(x =>
             {
@@ -47,7 +47,7 @@ var host = Host.CreateDefaultBuilder()
                 x.TimestampFormat = "[HH:mm:ss] ";
                 x.SingleLine = true;
             })
-            .AddSeq(configuration.GetSection(SeqSettings.SectionName)));
+            .AddSeq(ctx.Configuration.GetSection(SeqSettings.SectionName)));
 
         // Add MessagingPlatform Components
         services.AddAzureServiceBusTopica(c => { c.ConnectionString = hostSettings.ConnectionString; }, Assembly.GetExecutingAssembly());
@@ -56,31 +56,48 @@ var host = Host.CreateDefaultBuilder()
 
         services.AddHostedService<Worker>();
 
-        // Creation Builder
-        services.AddSingleton(services.BuildServiceProvider().GetRequiredService<IAzureServiceBusTopicCreationBuilder>()
-            .WithWorkerName(settings.WebAnalyticsTopicSettings.WorkerName)
-            .WithTopicName(settings.WebAnalyticsTopicSettings.Source)
-            .WithSubscriptions(settings.WebAnalyticsTopicSettings.Subscriptions)
-            .WithSubscribeToSubscription(settings.WebAnalyticsTopicSettings.SubscribeToSource)
-            .WithTimings
-            (
-                settings.WebAnalyticsTopicSettings.AutoDeleteOnIdle,
-                settings.WebAnalyticsTopicSettings.DefaultMessageTimeToLive,
-                settings.WebAnalyticsTopicSettings.DuplicateDetectionHistoryTimeWindow
-            )
-            .WithOptions
-            (
-                settings.WebAnalyticsTopicSettings.EnableBatchedOperations,
-                settings.WebAnalyticsTopicSettings.EnablePartitioning,
-                settings.WebAnalyticsTopicSettings.MaxSizeInMegabytes,
-                settings.WebAnalyticsTopicSettings.RequiresDuplicateDetection,
-                settings.WebAnalyticsTopicSettings.MaxMessageSizeInKilobytes,
-                settings.WebAnalyticsTopicSettings.EnabledStatus,
-                settings.WebAnalyticsTopicSettings.SupportOrdering
-            )
-            .WithMetadata(settings.WebAnalyticsTopicSettings.UserMetadata)
-            .WithNumberOfInstances(1));
+        AddCreationProducer(services, settings);
+        // AddNonCreationProducer(services, settings);
     })
     .Build();
 
 await host.RunAsync();
+return;
+
+void AddCreationProducer(IServiceCollection serviceCollection, AzureServiceBusProducerSettings azureServiceBusProducerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAzureServiceBusTopicCreationBuilder>()
+        .WithWorkerName(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithSubscriptions(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.Subscriptions)
+        .WithSubscribeToSubscription(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.SubscribeToSource)
+        .WithTimings
+        (
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.AutoDeleteOnIdle,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.DefaultMessageTimeToLive,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.DuplicateDetectionHistoryTimeWindow
+        )
+        .WithOptions
+        (
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.EnableBatchedOperations,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.EnablePartitioning,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.MaxSizeInMegabytes,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.RequiresDuplicateDetection,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.MaxMessageSizeInKilobytes,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.EnabledStatus,
+            azureServiceBusProducerSettings.WebAnalyticsTopicSettings.SupportOrdering
+        )
+        .WithMetadata(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.UserMetadata)
+        .WithNumberOfInstances(1)
+        .BuildProducerAsync(CancellationToken.None).Result);
+}
+
+void AddNonCreationProducer(IServiceCollection serviceCollection, AzureServiceBusProducerSettings azureServiceBusProducerSettings)
+{
+    serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAzureServiceBusTopicBuilder>()
+        .WithWorkerName(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.WorkerName)
+        .WithTopicName(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.Source)
+        .WithSubscribeToSubscription(azureServiceBusProducerSettings.WebAnalyticsTopicSettings.SubscribeToSource)
+        .WithNumberOfInstances(1)
+        .BuildProducerAsync(CancellationToken.None).Result);
+}

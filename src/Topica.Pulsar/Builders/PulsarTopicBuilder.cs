@@ -1,25 +1,20 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Topica.Contracts;
 using Topica.Pulsar.Contracts;
 using Topica.Settings;
 
 namespace Topica.Pulsar.Builders;
 
-public class PulsarTopicCreationBuilder(
-    IPollyRetryService pollyRetryService,
-    ITopicProviderFactory topicProviderFactory, 
-    ILogger<PulsarTopicCreationBuilder> logger) 
-    : IPulsarTopicCreationBuilder, IPulsarTopicCreationBuilderWithTopicName, IPulsarTopicCreationBuilderWithQueues, IPulsarTopicCreationBuilderWithConfiguration, IPulsarTopicCreationBuilderWithOptions, IPulsarTopicCreationBuilderWithBuild
+public class PulsarTopicBuilder(
+    ITopicProviderFactory topicProviderFactory) 
+    : IPulsarTopicBuilder, IPulsarTopicBuilderWithTopicName, IPulsarTopicBuilderWithQueues, IPulsarTopicBuilderWithConfiguration, IPulsarTopicBuilderWithOptions, IPulsarTopicBuilderWithBuild
 {
     private string _workerName = null!;
     private string _topicName = null!;
     private string _consumerGroup = null!;
     private string _tenant = null!;
     private string _namespace = null!;
-    private int? _numberOfPartitions;
     private bool? _startNewConsumerEarliest;
     private bool? _blockIfQueueFull;
     private int? _maxPendingMessages;
@@ -30,39 +25,38 @@ public class PulsarTopicCreationBuilder(
     private long? _batchingMaxPublishDelayMilliseconds;
     private int? _numberOfInstances;
 
-    public IPulsarTopicCreationBuilderWithTopicName WithWorkerName(string workerName)
+    public IPulsarTopicBuilderWithTopicName WithWorkerName(string workerName)
     {
         _workerName = workerName;
         return this;
     }
 
-    public IPulsarTopicCreationBuilderWithQueues WithTopicName(string topicName)
+    public IPulsarTopicBuilderWithQueues WithTopicName(string topicName)
     {
         _topicName = topicName;
         return this;
     }
 
-    public IPulsarTopicCreationBuilderWithConfiguration WithConsumerGroup(string consumerGroup)
+    public IPulsarTopicBuilderWithConfiguration WithConsumerGroup(string consumerGroup)
     {
         _consumerGroup = consumerGroup;
         return this;
     }
 
-    public IPulsarTopicCreationBuilderWithOptions WithConfiguration(string tenant, string @namespace, int? numberOfPartitions)
+    public IPulsarTopicBuilderWithOptions WithConfiguration(string tenant, string @namespace)
     {
         _tenant = tenant;
         _namespace = @namespace;
-        _numberOfPartitions = numberOfPartitions;
         return this;
     }
         
-    public IPulsarTopicCreationBuilderWithBuild WithTopicOptions(bool? startNewConsumerEarliest)
+    public IPulsarTopicBuilderWithBuild WithTopicOptions(bool? startNewConsumerEarliest)
     {
         _startNewConsumerEarliest = startNewConsumerEarliest;
         return this;
     }
 
-    public IPulsarTopicCreationBuilderWithBuild WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds)
+    public IPulsarTopicBuilderWithBuild WithProducerOptions(bool? blockIfQueueFull, int? maxPendingMessages, int? maxPendingMessagesAcrossPartitions, bool? enableBatching, bool? enableChunking, int? batchingMaxMessages, long? batchingMaxPublishDelayMilliseconds)
     {
         _blockIfQueueFull = blockIfQueueFull;
         _maxPendingMessages = maxPendingMessages;
@@ -74,7 +68,7 @@ public class PulsarTopicCreationBuilder(
         return this;
     }
 
-    public IPulsarTopicCreationBuilderWithBuild WithConsumeSettings(int? numberOfInstances)
+    public IPulsarTopicBuilderWithBuild WithConsumeSettings(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;
         return this;
@@ -84,23 +78,13 @@ public class PulsarTopicCreationBuilder(
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
         var messagingSettings = GetMessagingSettings();
-        
-        logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Pulsar, _workerName, messagingSettings.Source);
-        await pollyRetryService.WaitAndRetryAsync<Exception>
-        (
-            30,
-            _ => TimeSpan.FromSeconds(10),
-            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(PulsarTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
-            false,
-            cancellationToken
-        );
 
         return await topicProvider.ProvideConsumerAsync(messagingSettings);
     }
 
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
     {
+        var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
         var messagingSettings = GetMessagingSettings();
         messagingSettings.PulsarBlockIfQueueFull = _blockIfQueueFull ?? true;
         messagingSettings.PulsarMaxPendingMessages = _maxPendingMessages ?? int.MaxValue;
@@ -109,19 +93,6 @@ public class PulsarTopicCreationBuilder(
         messagingSettings.PulsarEnableChunking = _enableChunking ?? false;
         messagingSettings.PulsarBatchingMaxMessages = _batchingMaxMessages ?? 10;
         messagingSettings.PulsarBatchingMaxPublishDelayMilliseconds = _batchingMaxPublishDelayMilliseconds ?? 500;
-
-        var topicProvider = topicProviderFactory.Create(MessagingPlatform.Pulsar);
-        
-        logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.Pulsar, _workerName, messagingSettings.Source);
-        await pollyRetryService.WaitAndRetryAsync<Exception>
-        (
-            30,
-            _ => TimeSpan.FromSeconds(10),
-            (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(PulsarTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating queue."),
-            ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
-            false,
-            cancellationToken
-        );
 
         return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
@@ -136,7 +107,7 @@ public class PulsarTopicCreationBuilder(
             PulsarNamespace = _namespace,
             PulsarConsumerGroup = _consumerGroup,
             PulsarStartNewConsumerEarliest = _startNewConsumerEarliest ?? false,
-            PulsarTopicNumberOfPartitions = _numberOfPartitions ?? 6,
+            PulsarTopicNumberOfPartitions = 6,
             NumberOfInstances = _numberOfInstances ?? 1
         };
     }
