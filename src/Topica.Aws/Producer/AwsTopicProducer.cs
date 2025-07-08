@@ -93,16 +93,9 @@ internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicSe
         await Task.CompletedTask;
     }
 
-    ValueTask IProducer.DisposeAsync()
-    {
-        // No resources to dispose of in this implementation
-        snsClient?.Dispose();
-        return new ValueTask(Task.CompletedTask);
-    }
-
     public async ValueTask DisposeAsync()
     {
-        snsClient?.Dispose();
+        // snsClient?.Dispose();
         await Task.CompletedTask;
     }
     

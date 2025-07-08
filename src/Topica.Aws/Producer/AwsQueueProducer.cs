@@ -92,7 +92,7 @@ internal class AwsQueueProducer(string producerName, IPollyRetryService pollyRet
 
     public async ValueTask DisposeAsync()
     {
-        sqsClient?.Dispose();
+        // sqsClient?.Dispose();
         await Task.CompletedTask;
     }
     
