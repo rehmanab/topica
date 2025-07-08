@@ -40,19 +40,19 @@ public static class AwsServiceExtensions
         }
             
         var awsClientService = new AwsClientService(logger);
-        services.AddScoped<IPollyRetryService, PollyRetryService>();
-        services.AddScoped<IAwsClientService>(_ => awsClientService);
+        services.AddTransient<IPollyRetryService, PollyRetryService>();
+        services.AddTransient<IAwsClientService>(_ => awsClientService);
         services.AddTransient<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
         services.AddTransient<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
-        services.AddScoped<IAwsQueueService, AwsQueueService>();
-        services.AddScoped<IAwsTopicService, AwsTopicService>();
+        services.AddTransient<IAwsQueueService, AwsQueueService>();
+        services.AddTransient<IAwsTopicService, AwsTopicService>();
         services.AddTransient<IAwsQueueCreationBuilder, AwsQueueCreationBuilder>();
         services.AddTransient<IAwsTopicCreationBuilder, AwsTopicCreationBuilder>();
-        services.AddScoped<IQueueProviderFactory, QueueProviderFactory>();
-        services.AddScoped<ITopicProviderFactory, TopicProviderFactory>();
-        services.AddScoped<IQueueProvider, AwsQueueProvider>();
-        services.AddScoped<ITopicProvider, AwsTopicProvider>();
-        services.AddScoped<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
+        services.AddTransient<IQueueProviderFactory, QueueProviderFactory>();
+        services.AddTransient<ITopicProviderFactory, TopicProviderFactory>();
+        services.AddTransient<IQueueProvider, AwsQueueProvider>();
+        services.AddTransient<ITopicProvider, AwsTopicProvider>();
+        services.AddTransient<IHandlerResolver>(_ => new HandlerResolver(services.BuildServiceProvider(), assembly, logger));
         services.AddTransient<IMessageHandlerExecutor, MessageHandlerExecutor>();
             
         // Scan for IHandlers from Entry assembly
@@ -60,7 +60,7 @@ public static class AwsServiceExtensions
             .FromAssemblies(assembly)
             .AddClasses(c => c.AssignableTo(typeof(IHandler<>)))
             .AsImplementedInterfaces()
-            .WithScopedLifetime());
+            .WithTransientLifetime());
 
         return services;
     }
