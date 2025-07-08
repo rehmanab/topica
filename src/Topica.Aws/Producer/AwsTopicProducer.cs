@@ -16,7 +16,7 @@ using MessageAttributeValue = Amazon.SimpleNotificationService.Model.MessageAttr
 
 namespace Topica.Aws.Producer;
 
-internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, MessagingSettings messagingSettings) : IProducer, IAsyncDisposable
+internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicService, IAmazonSimpleNotificationService? snsClient, MessagingSettings messagingSettings) : IProducer
 {
     public string Source => TopicQueueHelper.AddTopicQueueNameFifoSuffix(messagingSettings.Source, messagingSettings.AwsIsFifoQueue);
     
@@ -90,12 +90,6 @@ internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicSe
     public async Task FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
         // does not require explicit flushing, messages are sent immediately
-        await Task.CompletedTask;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        // snsClient?.Dispose();
         await Task.CompletedTask;
     }
     

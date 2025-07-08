@@ -89,12 +89,6 @@ internal class AwsQueueProducer(string producerName, IPollyRetryService pollyRet
         // does not require explicit flushing, messages are sent immediately
         await Task.CompletedTask;
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        // sqsClient?.Dispose();
-        await Task.CompletedTask;
-    }
     
     private async Task<string> GetQueueUrl(string queueName, CancellationToken cancellationToken)
     {

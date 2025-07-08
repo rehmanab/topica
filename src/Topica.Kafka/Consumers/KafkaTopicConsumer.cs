@@ -45,11 +45,6 @@ namespace Topica.Kafka.Consumers
             });
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await Task.CompletedTask;
-        }
-
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             var config = new ConsumerConfig
@@ -92,9 +87,6 @@ namespace Topica.Kafka.Consumers
                             // _logger.LogDebug("{TimestampUtcDateTime}: {ConsumerName} : {MessageTopicPartitionOffset} (topic [partition] @ offset): {MessageValue}", message.Message.Timestamp.UtcDateTime, consumerName, message.TopicPartitionOffset, message.Message.Value);
                             consumer.Commit();
                         }
-
-                        consumer.Dispose(); // Doesn't get here as consumer.Consume blocks
-                        _logger.LogInformation("**** Disposed: {KafkaTopicConsumerName}:", nameof(KafkaTopicConsumer));
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {

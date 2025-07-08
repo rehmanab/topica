@@ -49,11 +49,6 @@ namespace Topica.Pulsar.Consumers
             });
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await Task.CompletedTask;
-        }
-
         private async ValueTask StartAsync(string consumerName, CancellationToken cancellationToken)
         {
             try
@@ -91,10 +86,6 @@ namespace Topica.Pulsar.Consumers
 
                             // _logger.LogInformation("**** {PulsarTopicConsumerName}: {ConsumerName}:{ConsumerSettingsPulsarConsumerGroup}: {HandlerName} {Succeeded} ****", nameof(PulsarTopicConsumer), consumerName, _messagingSettings.PulsarConsumerGroup, handlerName, success ? "SUCCEEDED" : "FAILED");
                         }
-
-                        await consumer.DisposeAsync();
-                        _logger.LogInformation("**** DISPOSED: {PulsarTopicConsumerName}", nameof(PulsarTopicConsumer));
-
                     }, cancellationToken)
                     .ContinueWith(x =>
                     {

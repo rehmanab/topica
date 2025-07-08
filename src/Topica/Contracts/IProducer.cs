@@ -12,5 +12,4 @@ public interface IProducer
     Task ProduceAsync(BaseMessage message, Dictionary<string, string>? attributes, CancellationToken cancellationToken);
     Task ProduceBatchAsync(IEnumerable<BaseMessage> messages, Dictionary<string, string>? attributes, CancellationToken cancellationToken);
     Task FlushAsync(TimeSpan timeout, CancellationToken cancellationToken);
-    ValueTask DisposeAsync();
 }

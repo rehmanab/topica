@@ -55,10 +55,4 @@ internal class AzureServiceBusTopicProducer(string producerName, IAzureServiceBu
         // does not require explicit flushing, messages are sent immediately
         await Task.CompletedTask;
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_sender != null) await _sender.DisposeAsync();
-        await provider.Client.DisposeAsync();
-    }
 }

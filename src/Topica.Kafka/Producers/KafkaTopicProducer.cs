@@ -95,10 +95,4 @@ internal class KafkaTopicProducer(string producerName, MessagingSettings messagi
         _producer?.Flush(timeout);
         await Task.CompletedTask;
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        _producer?.Dispose();
-        await Task.CompletedTask;
-    }
 }

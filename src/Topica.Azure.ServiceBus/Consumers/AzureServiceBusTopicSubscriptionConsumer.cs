@@ -48,11 +48,6 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
         });
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        await _azureServiceBusClientProvider.Client.DisposeAsync();
-    }
-
     private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
     {
         try
@@ -95,13 +90,11 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
             {
                 _logger.LogError(inner, "****ERROR: CONSUMER STOPPED: {ConsumerName}: AggregateException:", consumerName);
             }
-            await _azureServiceBusClientProvider.Client.DisposeAsync();
             throw;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "**** CONSUMER STOPPED: {ConsumerName}: Exception:", consumerName);
-            await _azureServiceBusClientProvider.Client.DisposeAsync();
             throw;
         }
     }

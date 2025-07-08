@@ -57,12 +57,6 @@ namespace Topica.Aws.Consumers
             await Task.CompletedTask;
         }
 
-        public ValueTask DisposeAsync()
-        {
-            _sqsClient?.Dispose();
-            return ValueTask.CompletedTask;
-        }
-
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             try
@@ -174,13 +168,11 @@ namespace Topica.Aws.Consumers
                 {
                     _logger.LogError(inner, "**** {Name}: {ConsumerName}: AggregateException:", nameof(AwsQueueConsumer), consumerName);
                 }
-                await DisposeAsync();
                 throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "**** {Name}: {ConsumerName}: Exception:", nameof(AwsQueueConsumer), consumerName);
-                await DisposeAsync();
                 throw;
             }
         }

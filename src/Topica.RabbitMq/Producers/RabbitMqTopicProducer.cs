@@ -67,9 +67,4 @@ internal class RabbitMqTopicProducer(string producerName, ConnectionFactory rabb
         // does not require explicit flushing, messages are sent immediately
         await Task.CompletedTask;
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_channel != null) await _channel.DisposeAsync();
-    }
 }

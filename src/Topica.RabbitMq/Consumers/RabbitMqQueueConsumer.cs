@@ -50,11 +50,6 @@ namespace Topica.RabbitMq.Consumers
             });
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            if (_channel != null) await _channel.DisposeAsync();
-        }
-
         private async ValueTask StartAsync(string consumerName, MessagingSettings messagingSettings, CancellationToken cancellationToken)
         {
             try

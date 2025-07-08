@@ -6,6 +6,5 @@ namespace Topica.Contracts
     public interface IConsumer
     {
         Task ConsumeAsync(CancellationToken cancellationToken);
-        ValueTask DisposeAsync();
     }
 }

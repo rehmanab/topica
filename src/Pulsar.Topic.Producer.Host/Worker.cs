@@ -19,8 +19,6 @@ public class Worker(IPulsarTopicBuilder builder, PulsarProducerSettings settings
         var count = await SendSingleAsync(stoppingToken);
         // var count = await SendBatchAsync(stoppingToken);
 
-        await _producer1.DisposeAsync();
-
         logger.LogInformation("Finished: {Count} messages sent", count);
     }
     

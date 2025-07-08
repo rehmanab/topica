@@ -81,9 +81,4 @@ internal class PulsarTopicProducer(string producerName, PulsarClientBuilder clie
         // does not require explicit flushing, messages are sent immediately
         await Task.CompletedTask;
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if(_producer != null) await _producer.DisposeAsync();
-    }
 }
