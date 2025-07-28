@@ -5,13 +5,16 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Topica.Messages;
+using Topica.Web.Settings;
 
 namespace Topica.Web.HealthChecks;
 
-public class AwsQueueHealthCheck(IAmazonSQS sqsClient) : IHealthCheck
+public class AwsQueueHealthCheck(IAmazonSQS sqsClient, HealthCheckSettings healthCheckSettings) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
+        if (!healthCheckSettings.HealthCheckEnabled.AwsQueue) return HealthCheckResult.Degraded($"{nameof(AwsQueueHealthCheck)} is Disabled");
+        
         const string queueName = "topica_aws_queue_health_check_web_queue_1";
 
         var sw = Stopwatch.StartNew();

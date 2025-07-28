@@ -7,13 +7,16 @@ using Newtonsoft.Json;
 using Topica.Azure.ServiceBus.Contracts;
 using Topica.Helpers;
 using Topica.Messages;
+using Topica.Web.Settings;
 
 namespace Topica.Web.HealthChecks;
 
-public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider) : IHealthCheck
+public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider, HealthCheckSettings healthCheckSettings) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
+        if (!healthCheckSettings.HealthCheckEnabled.AzureServiceBus) return HealthCheckResult.Degraded($"{nameof(AzureServiceBusHealthCheck)} is Disabled");
+
         const string topicName = "topica_azure_sb_topic_health_check_web_topic_1";
         const string subscribedQueueName = "topica_azure_sb_topic_health_check_web_queue_1";
 

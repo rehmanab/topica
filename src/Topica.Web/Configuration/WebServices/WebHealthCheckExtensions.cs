@@ -25,7 +25,7 @@ public static class WebHealthCheckExtensions
             .AddCheck<RabbitMqQueueHealthCheck>("RabbitMq Queue", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.RabbitMq)])
             .AddCheck<RabbitMqTopicHealthCheck>("RabbitMq Topic", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.RabbitMq)])
             .AddUrlGroup(new Uri("https://mock.httpstatus.io/200"), name: "https://mock.httpstatus.io/200", tags: [nameof(HealthCheckTags.Ping)]);
-        
+            
         services.AddHealthChecksUI(setup =>
         {
             setup.SetHeaderText("Health Checks Status - Topica platforms");

@@ -6,14 +6,17 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Topica.Messages;
 using Topica.RabbitMq.Contracts;
+using Topica.Web.Settings;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Topica.Web.HealthChecks;
 
-public class RabbitMqQueueHealthCheck(IRabbitMqManagementApiClient managementApiClient, ConnectionFactory rabbitMqConnectionFactory) : IHealthCheck
+public class RabbitMqQueueHealthCheck(IRabbitMqManagementApiClient managementApiClient, ConnectionFactory rabbitMqConnectionFactory, HealthCheckSettings healthCheckSettings) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
+        if (!healthCheckSettings.HealthCheckEnabled.RabbitMqQueue) return HealthCheckResult.Degraded($"{nameof(RabbitMqQueueHealthCheck)} is Disabled");
+
         const string queueName = "topica_rmq_queue_health_check_web_queue_1";
 
         var sw = Stopwatch.StartNew();

@@ -22,6 +22,10 @@ builder.Services.AddHealthCheckServices(config =>
 
 builder.Services.AddHealthChecksUI().AddInMemoryStorage();
 
+var healthCheckSettings = builder.Configuration.GetSection(HealthCheckSettings.SectionName).Get<HealthCheckSettings>() ?? throw new Exception("Could not bind the HealthCheck Settings, please check configuration");
+if (healthCheckSettings == null) throw new InvalidOperationException($"{nameof(HealthCheckSettings)} is not configured. Please check your appsettings.json or environment variables.");
+builder.Services.AddSingleton(healthCheckSettings);
+
 // Add MessagingPlatform Components
 var awsHostSettings = builder.Configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>() ?? throw new Exception("Could not bind the AWS Host Settings, please check configuration");
 if (awsHostSettings == null) throw new InvalidOperationException($"{nameof(AwsHostSettings)} is not configured. Please check your appsettings.json or environment variables.");

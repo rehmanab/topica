@@ -9,13 +9,16 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Topica.Aws.Messages;
 using Topica.Aws.Queues;
 using Topica.Messages;
+using Topica.Web.Settings;
 
 namespace Topica.Web.HealthChecks;
 
-public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAmazonSQS sqsClient) : IHealthCheck
+public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAmazonSQS sqsClient, HealthCheckSettings healthCheckSettings) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
+        if (!healthCheckSettings.HealthCheckEnabled.AwsTopic) return HealthCheckResult.Degraded($"{nameof(AwsTopicHealthCheck)} is Disabled");
+
         const string topicName = "topica_aws_topic_health_check_web_topic_1";
         const string subscribedQueueName = "topica_aws_topic_health_check_web_queue_1";
 
