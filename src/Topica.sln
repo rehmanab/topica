@@ -92,6 +92,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Arm", "Arm", "{66358FB9-666
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bicep", "Bicep", "{9D99EA63-7284-4BF2-9FB5-ACFC45DEE4B5}"
+	ProjectSection(SolutionItems) = preProject
+		..\.azure\templates\bicep\topica.all.bicep = ..\.azure\templates\bicep\topica.all.bicep
+		..\.azure\templates\bicep\topica-dev.bicepparam = ..\.azure\templates\bicep\topica-dev.bicepparam
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
