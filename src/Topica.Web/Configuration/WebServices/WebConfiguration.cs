@@ -1,8 +1,10 @@
-﻿namespace Topica.Web.Configuration.WebServices;
+﻿using Topica.Web.Settings;
+
+namespace Topica.Web.Configuration.WebServices;
 
 public class WebConfiguration
 {
-    public int HealthCheckTimeoutSeconds { get; set; }
+    public HealthCheckSettings HealthCheckSettings { get; set; } = null!;
 
     public IWebHostEnvironment Environment { get; set; } = null!;
 }

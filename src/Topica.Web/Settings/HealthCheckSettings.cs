@@ -1,19 +1,24 @@
+using Topica.Web.Models;
+
 namespace Topica.Web.Settings;
 
 public class HealthCheckSettings
 {
     public static string SectionName => nameof(HealthCheckSettings);
-    
-    public HealthCheckEnabled HealthCheckEnabled { get; set; } = null!;
+
+    public HealthCheckModel AwsQueue { get; set; } = null!;
+    public HealthCheckModel AwsTopic { get; set; } = null!;
+    public HealthCheckModel AzureServiceBus { get; set; } = null!;
+    public HealthCheckModel Kafka { get; set; } = null!;
+    public HealthCheckModel Pulsar { get; set; } = null!;
+    public HealthCheckModel RabbitMqQueue { get; set; } = null!; 
+    public HealthCheckModel RabbitMqTopic { get; set; } = null!;
 }
 
-public class HealthCheckEnabled
+public class HealthCheckModel
 {
-    public bool AwsQueue { get; set; }   
-    public bool AwsTopic { get; set; }   
-    public bool AzureServiceBus { get; set; }   
-    public bool Kafka { get; set; }   
-    public bool Pulsar { get; set; }   
-    public bool RabbitMqQueue { get; set; }   
-    public bool RabbitMqTopic { get; set; }   
+    public string Name { get; set; } = null!;
+    public HealthCheckTag Tag { get; set; }
+    public bool Enabled { get; set; }
+    public TimeSpan TimeOut { get; set; }
 }

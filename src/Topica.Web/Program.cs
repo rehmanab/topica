@@ -11,20 +11,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddSimpleConsole().AddFilter(level => level >= LogLevel.Information);
 // var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddSimpleConsole().AddFilter(level => level >= LogLevel.Information)).CreateLogger("Program");
 
+// Configuration
+var healthCheckSettings = builder.Configuration.GetSection(HealthCheckSettings.SectionName).Get<HealthCheckSettings>() ?? throw new Exception("Could not bind the HealthCheck Settings, please check configuration");
+if (healthCheckSettings == null) throw new InvalidOperationException($"{nameof(HealthCheckSettings)} is not configured. Please check your appsettings.json or environment variables.");
+builder.Services.AddSingleton(healthCheckSettings);
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 // The tags correspond to the health check groups, which can be used to filter health checks in the UI or when querying the health status. (EndpointRouteBuilderExtensions.cs)
 builder.Services.AddHealthCheckServices(config =>
 {
-    config.HealthCheckTimeoutSeconds = 5;
+    config.HealthCheckSettings = healthCheckSettings;
 });
 
 builder.Services.AddHealthChecksUI().AddInMemoryStorage();
-
-var healthCheckSettings = builder.Configuration.GetSection(HealthCheckSettings.SectionName).Get<HealthCheckSettings>() ?? throw new Exception("Could not bind the HealthCheck Settings, please check configuration");
-if (healthCheckSettings == null) throw new InvalidOperationException($"{nameof(HealthCheckSettings)} is not configured. Please check your appsettings.json or environment variables.");
-builder.Services.AddSingleton(healthCheckSettings);
 
 // Add MessagingPlatform Components
 var awsHostSettings = builder.Configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>() ?? throw new Exception("Could not bind the AWS Host Settings, please check configuration");
@@ -100,7 +101,7 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 // Custom Middleware for Health Checks
-app.MapCustomHealthCheck(Enum.GetValues<HealthCheckTags>().Select(x => x.ToString()).ToArray());
+app.MapCustomHealthCheck(Enum.GetValues<HealthCheckTag>().Select(x => x.ToString()).ToArray());
 app.MapHealthChecksUI(options =>
 {
     options.UIPath = "/health";

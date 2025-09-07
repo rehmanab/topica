@@ -8,12 +8,10 @@ using Topica.Web.Settings;
 
 namespace Topica.Web.HealthChecks;
 
-public class KafkaHealthCheck(KafkaHostSettings hostSettings, HealthCheckSettings healthCheckSettings) : IHealthCheck
+public class KafkaHealthCheck(KafkaHostSettings hostSettings) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        if (!healthCheckSettings.HealthCheckEnabled.Kafka) return HealthCheckResult.Degraded($"{nameof(KafkaHealthCheck)} is Disabled");
-
         const string topicName = "topica_kafka_topic_health_check_web_topic_1";
 
         var sw = Stopwatch.StartNew();

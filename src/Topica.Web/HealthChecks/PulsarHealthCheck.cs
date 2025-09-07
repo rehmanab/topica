@@ -6,17 +6,14 @@ using Pulsar.Client.Api;
 using Pulsar.Client.Common;
 using Topica.Messages;
 using Topica.Pulsar.Contracts;
-using Topica.Web.Settings;
 using TimeoutException = System.TimeoutException;
 
 namespace Topica.Web.HealthChecks;
 
-public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder pulsarClientBuilder, HealthCheckSettings healthCheckSettings) : IHealthCheck
+public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder pulsarClientBuilder) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        if (!healthCheckSettings.HealthCheckEnabled.Pulsar) return HealthCheckResult.Degraded($"{nameof(PulsarHealthCheck)} is Disabled");
-
         const string topicName = "topica_pulsar_topic_health_check_web_topic_1";
 
         var sw = Stopwatch.StartNew();

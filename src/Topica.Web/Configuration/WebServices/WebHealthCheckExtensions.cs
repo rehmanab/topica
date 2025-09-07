@@ -14,18 +14,59 @@ public static class WebHealthCheckExtensions
         var config = new WebConfiguration();
         configuration(config);
         
+        var tags = new List<string>();
+
         // Health Checks and Health Checks UI (https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks)
-        services.AddHealthChecks()
-            .AddCheck("Topica Platforms Running", () => Healthy(), tags: [nameof(HealthCheckTags.Local)])
-            .AddCheck<AwsQueueHealthCheck>("Aws Queue", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.Aws)])
-            .AddCheck<AwsTopicHealthCheck>("Aws Topic", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.Aws)])
-            .AddCheck<AzureServiceBusHealthCheck>("Azure ServiceBus Topic", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.Azure)])
-            .AddCheck<KafkaHealthCheck>("Kafka Topic", timeout: TimeSpan.FromMinutes(2), tags: [nameof(HealthCheckTags.Kafka)])
-            .AddCheck<PulsarHealthCheck>("Pulsar Topic", timeout: TimeSpan.FromMinutes(2), tags: [nameof(HealthCheckTags.Pulsar)])
-            .AddCheck<RabbitMqQueueHealthCheck>("RabbitMq Queue", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.RabbitMq)])
-            .AddCheck<RabbitMqTopicHealthCheck>("RabbitMq Topic", timeout: TimeSpan.FromSeconds(15), tags: [nameof(HealthCheckTags.RabbitMq)])
-            .AddUrlGroup(new Uri("https://mock.httpstatus.io/200"), name: "https://mock.httpstatus.io/200", tags: [nameof(HealthCheckTags.Ping)]);
-            
+        var healthChecksBuilder = services.AddHealthChecks();
+        
+        tags.Add(nameof(HealthCheckTag.Local));
+        healthChecksBuilder.AddCheck("Topica Platforms Running", () => Healthy(), tags: [nameof(HealthCheckTag.Local)]);
+        
+        tags.Add(nameof(HealthCheckTag.Ping));
+        healthChecksBuilder.AddUrlGroup(new Uri("https://mock.httpstatus.io/200"), name: "https://mock.httpstatus.io/200", tags: [nameof(HealthCheckTag.Ping)]);
+        
+        if (config.HealthCheckSettings.AwsQueue.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.AwsQueue.Tag.ToString());
+            healthChecksBuilder.AddCheck<AwsQueueHealthCheck>(config.HealthCheckSettings.AwsQueue.Name, timeout: config.HealthCheckSettings.AwsQueue.TimeOut, tags: [config.HealthCheckSettings.AwsQueue.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.AwsTopic.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.AwsTopic.Tag.ToString());
+            healthChecksBuilder.AddCheck<AwsTopicHealthCheck>(config.HealthCheckSettings.AwsTopic.Name, timeout: config.HealthCheckSettings.AwsTopic.TimeOut, tags: [config.HealthCheckSettings.AwsTopic.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.AzureServiceBus.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.AzureServiceBus.Tag.ToString());
+            healthChecksBuilder.AddCheck<AzureServiceBusHealthCheck>(config.HealthCheckSettings.AzureServiceBus.Name, timeout: config.HealthCheckSettings.AzureServiceBus.TimeOut, tags: [config.HealthCheckSettings.AzureServiceBus.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.Kafka.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.Kafka.Tag.ToString());
+            healthChecksBuilder.AddCheck<KafkaHealthCheck>(config.HealthCheckSettings.Kafka.Name, timeout: config.HealthCheckSettings.Kafka.TimeOut, tags: [config.HealthCheckSettings.Kafka.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.Pulsar.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.Pulsar.Tag.ToString());
+            healthChecksBuilder.AddCheck<PulsarHealthCheck>(config.HealthCheckSettings.Pulsar.Name, timeout: config.HealthCheckSettings.Pulsar.TimeOut, tags: [config.HealthCheckSettings.Pulsar.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.RabbitMqQueue.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.RabbitMqQueue.Tag.ToString());
+            healthChecksBuilder.AddCheck<RabbitMqQueueHealthCheck>(config.HealthCheckSettings.RabbitMqQueue.Name, timeout: config.HealthCheckSettings.RabbitMqQueue.TimeOut, tags: [config.HealthCheckSettings.RabbitMqQueue.Tag.ToString()]);
+        }
+
+        if (config.HealthCheckSettings.RabbitMqTopic.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.RabbitMqTopic.Tag.ToString());
+            healthChecksBuilder.AddCheck<RabbitMqTopicHealthCheck>(config.HealthCheckSettings.RabbitMqTopic.Name, timeout: config.HealthCheckSettings.RabbitMqTopic.TimeOut, tags: [config.HealthCheckSettings.RabbitMqTopic.Tag.ToString()]);
+        }
+
         services.AddHealthChecksUI(setup =>
         {
             setup.SetHeaderText("Health Checks Status - Topica platforms");
@@ -33,10 +74,9 @@ public static class WebHealthCheckExtensions
             setup.SetMinimumSecondsBetweenFailureNotifications(60);
             setup.MaximumHistoryEntriesPerEndpoint(100);
             setup.SetApiMaxActiveRequests(1);
-            
-            var tags = Enum.GetValues<HealthCheckTags>().Select(x => x.ToString()).ToList();
-            tags.ForEach(x => setup.AddHealthCheckEndpoint(x, $"http://localhost:7022/api/health/{x}"));
-            
+
+            tags.Distinct().ToList().ForEach(x => setup.AddHealthCheckEndpoint(x, $"http://localhost:7022/api/health/{x}"));
+
             setup.AddWebhookNotification("Webhook (https://memquran.requestcatcher.com)", uri: "https://memquran.requestcatcher.com/anything",
                 payload: "{ \"message\": \"Webhook report for [[LIVENESS]] Health Check: [[FAILURE]] - Description: [[DESCRIPTIONS]]\"}",
                 restorePayload: "{ \"message\": \"[[LIVENESS]] Health Check is back to life\"}",
