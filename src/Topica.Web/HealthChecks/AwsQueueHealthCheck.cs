@@ -8,11 +8,11 @@ using Topica.Messages;
 
 namespace Topica.Web.HealthChecks;
 
-public class AwsQueueHealthCheck(IAmazonSQS sqsClient) : IHealthCheck
+public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        const string queueName = "topica_aws_queue_health_check_web_queue_1";
+        var queueName = $"topica_aws_queue_health_check_web_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

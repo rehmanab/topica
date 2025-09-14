@@ -10,11 +10,11 @@ using TimeoutException = System.TimeoutException;
 
 namespace Topica.Web.HealthChecks;
 
-public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder pulsarClientBuilder) : IHealthCheck
+public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder pulsarClientBuilder, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        const string topicName = "topica_pulsar_topic_health_check_web_topic_1";
+        var topicName = $"topica_pulsar_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 
@@ -30,15 +30,15 @@ public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder
             var client = await pulsarClientBuilder.BuildAsync();
             await using var consumer = await client.NewConsumer()
                 .Topic($"persistent://{tenant}/{@namespace}/{topicName}")
-                .ConsumerName("topica_pulsar_health_check_web_consumer_1") // Consumer name is used to identify the consumer, if it is unique, it will act as a new subscriber
-                .SubscriptionName("topica_pulsar_health_check_1") // will act as a new subscriber and read all messages if the name is unique
+                .ConsumerName("topica_pulsar_health_check_web_consumer_dev") // Consumer name is used to identify the consumer, if it is unique, it will act as a new subscriber
+                .SubscriptionName("topica_pulsar_health_check_dev") // will act as a new subscriber and read all messages if the name is unique
                 .SubscriptionType(SubscriptionType.Shared) // If the topic is partitioned, then shared will allow other concurrent consumers (scale horizontally), with the same subscription name to split the messages between them
                 .AcknowledgementsGroupTime(TimeSpan.FromSeconds(5)) // Acknowledgements will be sent immediately after processing the message, no batching, set this higher if you want to batch acknowledgements and less network traffic
                 .SubscriptionInitialPosition(SubscriptionInitialPosition.Earliest) //Earliest will read unread, Latest will read live incoming messages only
                 .SubscribeAsync();
 
             await using var producer = await client.NewProducer(Schema.BYTES())
-                .ProducerName("topica_pulsar_health_check_web_producer_1")
+                .ProducerName("topica_pulsar_health_check_web_producer_dev")
                 .Topic($"persistent://{tenant}/{@namespace}/{topicName}")
                 .BlockIfQueueFull(true)
                 .MaxPendingMessages(int.MaxValue)

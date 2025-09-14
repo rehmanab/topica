@@ -8,11 +8,11 @@ using Topica.Web.Settings;
 
 namespace Topica.Web.HealthChecks;
 
-public class KafkaHealthCheck(KafkaHostSettings hostSettings) : IHealthCheck
+public class KafkaHealthCheck(KafkaHostSettings hostSettings, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        const string topicName = "topica_kafka_topic_health_check_web_topic_1";
+        var topicName = $"topica_kafka_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 
@@ -38,7 +38,7 @@ public class KafkaHealthCheck(KafkaHostSettings hostSettings) : IHealthCheck
                 // group2 will be like a new subscribed queue, and get all the messages
                 // So each consumer GroupId is a subscribed queue
                 // https://www.confluent.io/blog/configuring-apache-kafka-consumer-group-ids/
-                GroupId = "topica_kafka_health_check_web_group_1",
+                GroupId = "topica_kafka_health_check_web_group_dev",
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 SaslMechanism = SaslMechanism.Plain
                 //SecurityProtocol = SecurityProtocol.Ssl

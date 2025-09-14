@@ -10,12 +10,12 @@ using Topica.Messages;
 
 namespace Topica.Web.HealthChecks;
 
-public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider) : IHealthCheck
+public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        const string topicName = "topica_azure_sb_topic_health_check_web_topic_1";
-        const string subscribedQueueName = "topica_azure_sb_topic_health_check_web_queue_1";
+        var topicName = $"topica_azure_sb_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
+        var subscribedQueueName = $"topica_azure_sb_topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

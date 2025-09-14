@@ -12,12 +12,12 @@ using Topica.Messages;
 
 namespace Topica.Web.HealthChecks;
 
-public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAmazonSQS sqsClient) : IHealthCheck
+public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAmazonSQS sqsClient, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        const string topicName = "topica_aws_topic_health_check_web_topic_1";
-        const string subscribedQueueName = "topica_aws_topic_health_check_web_queue_1";
+        var topicName = $"topica_aws_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
+        var subscribedQueueName = $"topica_aws_topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

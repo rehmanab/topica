@@ -10,11 +10,11 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Topica.Web.HealthChecks;
 
-public class RabbitMqQueueHealthCheck(IRabbitMqManagementApiClient managementApiClient, ConnectionFactory rabbitMqConnectionFactory) : IHealthCheck
+public class RabbitMqQueueHealthCheck(IRabbitMqManagementApiClient managementApiClient, ConnectionFactory rabbitMqConnectionFactory, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        const string queueName = "topica_rmq_queue_health_check_web_queue_1";
+        var queueName = $"topica_rmq_queue_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 
