@@ -20,7 +20,9 @@ public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) 
         {
             var createQueueResponse = await sqsClient.CreateQueueAsync(queueName, cancellationToken);
 
-            if (createQueueResponse is null || createQueueResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(createQueueResponse.QueueUrl))
+            Uri.TryCreate(createQueueResponse?.QueueUrl, UriKind.Absolute, out var queueUri);
+
+            if (createQueueResponse is null || createQueueResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(queueUri?.ToString()))
             {
                 return HealthCheckResult.Unhealthy("Failed to create or retrieve Queue URL.", data: new Dictionary<string, object>
                 {
@@ -30,7 +32,7 @@ public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) 
 
             var testMessageName = Guid.NewGuid().ToString();
 
-            var sendMessageResponse = await sqsClient.SendMessageAsync(createQueueResponse.QueueUrl, JsonSerializer.Serialize(new BaseMessage
+            var sendMessageResponse = await sqsClient.SendMessageAsync(queueUri.AbsoluteUri, JsonSerializer.Serialize(new BaseMessage
             {
                 ConversationId = Guid.NewGuid(),
                 EventId = 1,
@@ -49,7 +51,7 @@ public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) 
 
             var receiveMessageResponse = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
             {
-                QueueUrl = createQueueResponse.QueueUrl,
+                QueueUrl = queueUri.AbsoluteUri,
                 MaxNumberOfMessages = 10,
                 WaitTimeSeconds = 5
             }, cancellationToken);
@@ -58,15 +60,15 @@ public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) 
 
             foreach (var x in receiveMessageResponse.Messages)
             {
-                await sqsClient.DeleteMessageAsync(createQueueResponse.QueueUrl, x.ReceiptHandle, cancellationToken);
+                await sqsClient.DeleteMessageAsync(queueUri.AbsoluteUri, x.ReceiptHandle, cancellationToken);
             }
 
             return success
-                ? HealthCheckResult.Healthy("Published, Subscribed to Queue: Success", data: new Dictionary<string, object>
+                ? HealthCheckResult.Healthy($"Publish to host {queueUri.Host} - Success", data: new Dictionary<string, object>
                 {
                     { "SendQueueName", queueName }
                 })
-                : HealthCheckResult.Unhealthy("Failed Queue health - did not receive message", data: new Dictionary<string, object>
+                : HealthCheckResult.Unhealthy($"Failed Queue health - did not receive message on host: {queueUri.Host}", data: new Dictionary<string, object>
                 {
                     { "QueueName", queueName }
                 });

@@ -37,6 +37,7 @@
             </DockerPortBindingImpl>
           </list>
         </option>
+        <option name="commandLineOptions" value="--env-file ./Topica.Web/local.env" />
         <option name="showCommandPreview" value="true" />
         <option name="sourceFilePath" value="Topica.Web/Dockerfile" />
         <option name="volumeBindings">

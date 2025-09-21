@@ -32,7 +32,7 @@ namespace Topica.Aws.Services
 
                 var lastEntryTopicName = x.TopicArn.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
 
-                return !string.IsNullOrEmpty(lastEntryTopicName)
+                return !string.IsNullOrWhiteSpace(lastEntryTopicName)
                        && lastEntryTopicName.StartsWith(topicNamePrefix, StringComparison.CurrentCultureIgnoreCase)
                        && (isFifo.HasValue && isFifo.Value ? lastEntryTopicName.EndsWith(Constants.FifoSuffix) : !lastEntryTopicName.EndsWith(Constants.FifoSuffix));
             };
@@ -65,7 +65,7 @@ namespace Topica.Aws.Services
                 topicArnFound = response.Topics.Select(x => x.TopicArn.ToLower()).SingleOrDefault(y => y.EndsWith(TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName.ToLower(), isFifo)));
                 if (!string.IsNullOrWhiteSpace(topicArnFound)) found = true;
                 nextToken = response.NextToken;
-            } while (!found && !string.IsNullOrEmpty(nextToken));
+            } while (!found && !string.IsNullOrWhiteSpace(nextToken));
 
             return !string.IsNullOrWhiteSpace(topicArnFound) ? topicArnFound : null;
         }

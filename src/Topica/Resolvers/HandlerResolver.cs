@@ -31,7 +31,7 @@ namespace Topica.Resolvers
                 return (false, new object(), false, new object());
             }
             
-            if(string.IsNullOrEmpty(baseMessage.Type))
+            if(string.IsNullOrWhiteSpace(baseMessage.Type))
             {
                 logger.LogError("Message type property is null or empty for for incoming message body: {Source}", source);
                 return (false, new object(), false, new object());

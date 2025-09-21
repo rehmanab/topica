@@ -413,5 +413,4 @@ data/zookeeper/
 .docker/volume/
 volume/cache/
 
-
-# End of https://www.gitignore.io/api/macos,linux,windows,sublimetext,dotsettings,visualstudio,visualstudiocode
+*.env*

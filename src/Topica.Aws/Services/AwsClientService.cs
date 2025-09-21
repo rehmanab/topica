@@ -44,13 +44,13 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
             logger.LogDebug("**** AWS PROFILE: Using AwsAccessKeyId & AwsSecretAccessKey from appsettings.json for Region: {Region} {ServiceUrl} for {GetSqsClientName}", regionEndpoint, !string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? $" - ServiceUrl: {awsSettings.ServiceUrl}" : "", nameof(AmazonSQSClient));
 
             config.RegionEndpoint = regionEndpoint;
-            if (!string.IsNullOrEmpty(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
+            if (!string.IsNullOrWhiteSpace(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
             
             return new AmazonSQSClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
         }
             
         // Get from LocalStack
-        if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
+        if (string.IsNullOrWhiteSpace(awsSettings.ServiceUrl))
         {
             throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(AmazonSQSClient)}");
         }
@@ -90,13 +90,13 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
             logger.LogDebug("**** AWS PROFILE: Using AwsAccessKeyId & AwsSecretAccessKey from appsettings.json for Region: {Region} {ServiceUrl} for {GetSqsClientName}", regionEndpoint, !string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? $" - ServiceUrl: {awsSettings.ServiceUrl}" : "", nameof(AmazonSimpleNotificationServiceClient));
 
             config.RegionEndpoint = regionEndpoint;
-            if (!string.IsNullOrEmpty(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
+            if (!string.IsNullOrWhiteSpace(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
             
             return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
         }
             
         // Get from LocalStack
-        if (string.IsNullOrEmpty(awsSettings.ServiceUrl))
+        if (string.IsNullOrWhiteSpace(awsSettings.ServiceUrl))
         {
             throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(AmazonSimpleNotificationServiceClient)}");
         }

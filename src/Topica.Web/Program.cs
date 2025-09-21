@@ -2,6 +2,7 @@ using System.Reflection;
 using Topica.Web.Extensions;
 using Topica.Web.Models;
 using Topica.Web.Settings;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,24 @@ builder.Logging.AddSimpleConsole().AddFilter(level => level >= LogLevel.Informat
 // var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddSimpleConsole().AddFilter(level => level >= LogLevel.Information)).CreateLogger("Program");
 
 // Configuration
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    // .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>()
+    .AddEnvironmentVariables();
+
+// If env is not local,load secrets from Azure Key Vault, else will use appsettings and secrets
+if (!builder.Environment.IsEnvironment("local"))
+{
+    builder.Configuration.AddAzureKeyVault(
+        new Uri($"https://{builder.Configuration["AzureKeyVaultName"]}.vault.azure.net/"),
+        new DefaultAzureCredential(new DefaultAzureCredentialOptions
+        {
+            ManagedIdentityClientId = builder.Configuration["AzureUserManagedIdentityClientId"]
+        })
+    );
+}
+
 var healthCheckSettings = builder.Configuration.GetSection(HealthCheckSettings.SectionName).Get<HealthCheckSettings>() ?? throw new Exception("Could not bind the HealthCheck Settings, please check configuration");
 if (healthCheckSettings == null) throw new InvalidOperationException($"{nameof(HealthCheckSettings)} is not configured. Please check your appsettings.json or environment variables.");
 builder.Services.AddSingleton(healthCheckSettings);
@@ -20,10 +39,7 @@ builder.Services.AddSingleton(healthCheckSettings);
 builder.Services.AddControllersWithViews();
 
 // The tags correspond to the health check groups, which can be used to filter health checks in the UI or when querying the health status. (EndpointRouteBuilderExtensions.cs)
-builder.Services.AddHealthCheckServices(config =>
-{
-    config.HealthCheckSettings = healthCheckSettings;
-});
+builder.Services.AddHealthCheckServices(config => { config.HealthCheckSettings = healthCheckSettings; });
 
 builder.Services.AddHealthChecksUI().AddInMemoryStorage();
 

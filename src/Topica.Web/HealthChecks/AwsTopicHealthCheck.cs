@@ -24,7 +24,10 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
         try
         {
             var createTopicResponse = await snsClient.CreateTopicAsync(topicName, cancellationToken);
-            if (createTopicResponse is null || createTopicResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(createTopicResponse.TopicArn))
+
+            var topicArn = createTopicResponse?.TopicArn;
+            
+            if (createTopicResponse is null || createTopicResponse.HttpStatusCode != HttpStatusCode.OK || string.IsNullOrWhiteSpace(topicArn))
             {
                 return HealthCheckResult.Unhealthy("Failed to create or retrieve Topic ARN.", data: new Dictionary<string, object>
                 {
@@ -45,9 +48,9 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
             var queueAttributes = (await sqsClient.GetQueueAttributesAsync(createQueueResponse.QueueUrl, ["All"], cancellationToken)).Attributes;
             queueAttributes.Add("QueueUrl", createQueueResponse.QueueUrl);
             var queueArn = queueAttributes[AwsQueueAttributes.QueueArnName];
-            await snsClient.SubscribeAsync(createTopicResponse.TopicArn, "sqs", queueArn, cancellationToken);
+            await snsClient.SubscribeAsync(topicArn, "sqs", queueArn, cancellationToken);
 
-            var accessPolicy = BuildQueueAllowPolicyForTopicToSendMessage(queueArn, createTopicResponse.TopicArn);
+            var accessPolicy = BuildQueueAllowPolicyForTopicToSendMessage(queueArn, topicArn);
             var awsSqsConfiguration = new AwsSqsConfiguration { QueueAttributes = new AwsQueueAttributes { Policy = accessPolicy } };
 
             var setQueueAttributesResponse = await sqsClient.SetQueueAttributesAsync(createQueueResponse.QueueUrl, awsSqsConfiguration.QueueAttributes.GetAttributeDictionary(), cancellationToken);
@@ -63,7 +66,7 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
 
             var testMessageName = Guid.NewGuid().ToString();
 
-            var sendMessageResponse = await snsClient.PublishAsync(createTopicResponse.TopicArn, JsonSerializer.Serialize(new BaseMessage
+            var sendMessageResponse = await snsClient.PublishAsync(topicArn, JsonSerializer.Serialize(new BaseMessage
             {
                 ConversationId = Guid.NewGuid(),
                 EventId = 1,
@@ -71,11 +74,15 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
                 Type = nameof(BaseMessage),
             }), cancellationToken);
 
+            var topicArnAccount = topicArn.Split(':')[4];
+            
             if (sendMessageResponse is null || sendMessageResponse.HttpStatusCode != HttpStatusCode.OK)
             {
-                return HealthCheckResult.Unhealthy("Failed to send message to Topic.", data: new Dictionary<string, object>
+                return HealthCheckResult.Unhealthy($"Failed to send message to Topic Arn account: {topicArnAccount}", data: new Dictionary<string, object>
                 {
-                    { "TopicName", topicName }
+                    { "TopicName", topicName },
+                    { "TopicArn", topicArn },
+                    { "QueueName", subscribedQueueName }
                 });
             }
 
@@ -102,14 +109,16 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
             }
 
             return success
-                ? HealthCheckResult.Healthy("Published, Subscribed to Topic: Success", data: new Dictionary<string, object>
+                ? HealthCheckResult.Healthy($"Published to Topic - on Topic Arn Account: {topicArnAccount} - Success", data: new Dictionary<string, object>
                 {
                     { "SendTopicName", topicName },
+                    { "TopicArn", topicArn },
                     { "ReceiveQueueName", subscribedQueueName },
                 })
-                : HealthCheckResult.Unhealthy("Failed Topic health - did not receive message", data: new Dictionary<string, object>
+                : HealthCheckResult.Unhealthy($"Failed Topic health - did not receive message - on Topic Arn Account: {topicArnAccount}", data: new Dictionary<string, object>
                 {
                     { "TopicName", topicName },
+                    { "TopicArn", topicArn },
                     { "ReceiveQueueName", subscribedQueueName },
                 });
         }
