@@ -82,6 +82,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Topica.Web", "Topica.Web\Topica.Web.csproj", "{A50231D4-25E4-4BA4-8A1F-DEB7540DCC27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{3D338369-EC0A-4AC6-B956-F7A75F4B7C4C}"
+	ProjectSection(SolutionItems) = preProject
+		..\bicepconfig.json = ..\bicepconfig.json
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{8B93E09A-DCCA-4C6D-9710-AD36959E800E}"
 EndProject
