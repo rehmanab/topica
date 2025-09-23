@@ -77,7 +77,7 @@ public static class WebHealthCheckExtensions
 
             tags.Distinct().ToList().ForEach(x => setup.AddHealthCheckEndpoint(x, $"http://localhost:7022/api/health/{x}"));
 
-            setup.AddWebhookNotification("Webhook (https://memquran.requestcatcher.com)", uri: "https://memquran.requestcatcher.com/anything",
+            setup.AddWebhookNotification("Webhook (https://topica.requestcatcher.com)", uri: "https://topica.requestcatcher.com/anything",
                 payload: "{ \"message\": \"Webhook report for [[LIVENESS]] Health Check: [[FAILURE]] - Description: [[DESCRIPTIONS]]\"}",
                 restorePayload: "{ \"message\": \"[[LIVENESS]] Health Check is back to life\"}",
                 shouldNotifyFunc: (livenessName, report) => DateTime.UtcNow.Hour >= 8 && DateTime.UtcNow.Hour <= 23,
