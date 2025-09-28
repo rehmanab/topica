@@ -150,7 +150,7 @@ await producer.ProduceAsync(message, attributes, cancellationToken);
 Consume messages using `IConsumer` that was created above. Depending on your configuration of .WithConsumerSettings() instance count, those many instances of the worker will be spun up running in parallel allowing multiple different messages to be processed in parallel. The actual platform message system is responsible of passing a single unique message to any one consumer. i.e. if you run an instance count of 5 workers and there are 10 messages on the AWS queue, each worker will process 2 messages each...depending on each message handling time that is.
 
 ```csharp
-await consumer1.ConsumeAsync(cancellationToken);
+await consumer.ConsumeAsync(cancellationToken);
 ```
 
 ### 5. Running a Host
