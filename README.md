@@ -20,13 +20,22 @@ Topica is a lightweight, modular library for managing messages and topics in .NE
 - **Topica.RabbitMq**: RabbitMQ implementation
 - **Topica.SharedMessageHandlers**: Shared message handler logic
 - **\*.Host**: Example producer/consumer host applications for each platform
+- **Topica.SharedMessageHandlers**: Shared messages classes and handlers for all the Host producers & consumers
+- **Topica.Web**: An ASP.NET website that hosts Health Checks with a UI
+
+## Description
+These are a set of libraries that handle topic, queue messages processing, where you can consume messages from a queue that is subscribed to a topic. 
+
+Consumers can run multiple instances in parallel to split the workload. When using the nuget packages, you only need create the message and handler classes and correct handler class HandleAsync() method will be called where the generic type argument of the handler matches the `Type` property of the `BaseMessage`
+
+After creating a message class and a handler for that class, the subscriber will look for a message handler that implements that message type and execute its Validate then Handle methods.
 
 ## Installation
 
 Add the relevant NuGet packages to your project:
 
 ```shell
-dotnet add package Topica
+dotnet add package Topica (Required)
 dotnet add package Topica.Aws
 dotnet add package Topica.Azure.ServiceBus
 dotnet add package Topica.Kafka
@@ -36,71 +45,115 @@ dotnet add package Topica.RabbitMq
 
 ## Quick Start
 
-### 1. Define a Message
-Create a message class that implements `ITopicMessage`.
+### 1. Define a Message & Handler
+Create a message class that implements `BaseMessage`.
 
 ```csharp
-using Microsoft.Extensions.DependencyInjection;
-using Topica;
-using Topica.Aws; // or Topica.Azure.ServiceBus, etc.
-
-var services = new ServiceCollection();
-
-services.AddLogging();
-services.AddTopica(); // Registers core services
-
-// Register the desired transport
-services.AddTopicaAws(options => {
-    options.Region = "us-east-1";
-    // ...other AWS options
-});
+public class ButtonClickedMessageV1 : BaseMessage
+{
+    public string? ButtonText { get; set; }
+    public string? ButtonId { get; set; }
+    public string? UserId { get; set; }
+    public string? SessionId { get; set; }
+    public DateTime? Timestamp { get; set; }
+}
 ```
 
-### 2. Publishing a Message
-Publish messages using `ITopicPublisher<T>`.
+Create a handler class that implements `IHandler<ButtonClickedMessageV1>`.
 
 ```csharp
-public class MyMessage
+public class ButtonClickedMessageHandlerV1(ILogger<ButtonClickedMessageHandlerV1> logger) : IHandler<ButtonClickedMessageV1>
 {
-    public string Content { get; set; }
-}
-
-// Inject ITopicPublisher<MyMessage>
-public class MyService
-{
-    private readonly ITopicPublisher<MyMessage> _publisher;
-
-    public MyService(ITopicPublisher<MyMessage> publisher)
+    public async Task<bool> HandleAsync(ButtonClickedMessageV1 source, Dictionary<string, string>? properties)
     {
-        _publisher = publisher;
+        logger.LogInformation("Handle: {Name} for event: {Data} - {Props}", nameof(ButtonClickedMessageV1), $"{source.EventId} : {source.EventName}", string.Join("; ", properties?.Select(x => $"{x.Key}:{x.Value}") ?? []));
+        return await Task.FromResult(true);
     }
 
-    public async Task SendAsync()
+    public bool ValidateMessage(ButtonClickedMessageV1 message)
     {
-        var message = new MyMessage { Content = "Hello, World!" };
-        await _publisher.PublishAsync(message, topicName: "my-topic");
+        // Do some validation on the incoming message
+        return true;
     }
 }
 ```
 
-### 3. Subscribing to a Topic
-Subscribe to a topic by implementing `ITopicMessageHandler<T>`.
+### 2. Setup the startup dependencies and configuration using the extension method
+Example with AWS SNS Topics
+
+Configure the messaging options in your `appsettings.json` or through code.
 
 ```csharp
-public class MyMessageHandler : ITopicMessageHandler<MyMessage>
+services.AddAwsTopica(c =>
 {
-    public Task HandleAsync(MyMessage message, CancellationToken cancellationToken)
-    {
-        Console.WriteLine($"Received: {message.Content}");
-        return Task.CompletedTask;
-    }
-}
+    c.ProfileName = hostSettings.ProfileName;
+    c.AccessKey = hostSettings.AccessKey;
+    c.SecretKey = hostSettings.SecretKey;
+    c.ServiceUrl = hostSettings.ServiceUrl;
+    c.RegionEndpoint = hostSettings.RegionEndpoint;
+}, Assembly.GetAssembly(typeof(ClassToReferenceAssembly)) ?? throw new InvalidOperationException());
+```
+`ClassToReferenceAssembly` is a holding class in the project where your messages & handlers are located, if they are in the same project, you can just use `Program`
 
-// Register handler in DI
-services.AddScoped<ITopicMessageHandler<MyMessage>, MyMessageHandler>();
+Inject an instance of `IAwsTopicCreationBuilder` and use its builder methods to configure the topic and queue properties, this builder will also create the topic and subscribed queues if they dont exist on the source messaging system (AWS in this case). The setup for producer and consumer are similar because they will both independently create the topic and queues if they dont exist. 
+
+To use a builder that does NOT create the Topic and queue, please ensure that they already exist (else producing and consuming will throw an exception) use an instance of `IAwsTopicBuilder`
+
+```csharp
+var producer = await builder
+    .WithWorkerName(nameof(ButtonClickedMessageV1)) // Just the name of the worker so you can identify it when you log
+    .WithTopicName(topicName)
+    .WithSubscribedQueues(["topica_web_analytics_queue_sales_v1", "topica_web_analytics_queue_reporting_v1"]) // Topic will publish to these queues
+    .WithQueueToSubscribeTo("topica_web_analytics_queue_sales_v1") // Will consume from this queue
+    .WithFifoSettings(true, true) // First in First out, do duplication based on message content
+    .WithErrorQueueSettings(true, 5) // Create and error queue that is published to after 5 handling errors
+    .BuildProducerAsync(cancellationToken);
 ```
 
-### 4. Running a Host
+```csharp
+var consumer = await builder
+    .WithWorkerName(nameof(ButtonClickedMessageV1)) // Just the name of the worker so you can identify it when you log
+    .WithTopicName("topica_web_analytics_topic_v1")
+    .WithSubscribedQueues(["topica_web_analytics_queue_sales_v1", "topica_web_analytics_queue_reporting_v1"]) // Topic will publish to these queues
+    .WithQueueToSubscribeTo("topica_web_analytics_queue_sales_v1") // Will consume from this queue
+    .WithFifoSettings(true, true) // First in First out, do duplication based on message content
+    .WithErrorQueueSettings(true, 5) // Create and error queue that is published to after 5 handling errors
+    .WithConsumeSettings(1, 10) // Number of parallel instances, QueueReceiveMaximumNumberOfMessages
+    .BuildConsumerAsync(cancellationToken);
+```
+
+### 3. Publishing a Message
+Publish messages using `IProducer` that was created above.
+
+```csharp
+var message = new ButtonClickedMessageV1
+{
+    ConversationId = Guid.NewGuid(), 
+    EventId = count, 
+    EventName = "button.clicked.web.v1", 
+    Type = nameof(ButtonClickedMessageV1), // This string value must match the name of the generic type parameter of the Handler when consuming messages. i.e. `IHandler<ButtonClickedMessageV1>`
+    MessageGroupId = Guid.NewGuid().ToString()
+};
+
+// Add some AWS topic message attributes
+var attributes = new Dictionary<string, string>
+{
+    {"traceparent", "AWS topic" },
+    {"tracestate", "AWS topic" },
+};
+
+await producer.ProduceAsync(message, attributes, cancellationToken);
+
+```
+
+### 4. Consuming from a Topic or Queue.
+Consume messages using `IConsumer` that was created above. Depending on your configuration of .WithConsumerSettings() instance count, those many instances of the worker will be spun up running in parallel allowing multiple different messages to be processed in parallel. The actual platform message system is responsible of passing a single unique message to any one consumer. i.e. if you run an instance count of 5 workers and there are 10 messages on the AWS queue, each worker will process 2 messages each...depending on each message handling time that is.
+
+```csharp
+await consumer1.ConsumeAsync(cancellationToken);
+```
+
+### 5. Running a Host
 Each *.Host project demonstrates a producer or consumer for a specific platform. For example, to run a RabbitMQ topic consumer:
 
 ```code
@@ -108,25 +161,9 @@ cd src/RabbitMq.Topic.Consumer.Host
 dotnet run
 ```
 
-## Configuration
-Configure the messaging options in your `appsettings.json` or through code.
-
-```json
-{
-  "Topica": {
-    "Aws": {
-      "Region": "us-east-1",
-      "AccessKey": "your-access-key"
-    }
-  }
-}
-```
-
 Configure connection settings in appsettings.json as needed.
-Configuration
-Each transport supports its own configuration options, typically set in appsettings.json or via code. See the respective project for details.
-Extending
-To add support for a new broker, implement the relevant interfaces from Topica and register your implementation via DI.
+Each Messaging platform supports its own configuration options, typically set in appsettings.json or via code. See the respective Host project for details.
+
 License
 MIT
 <hr/>
