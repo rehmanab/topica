@@ -1,5 +1,7 @@
 # Topica
 
+[![Build](https://github.com/rehmanab/topica/actions/workflows/ci_main.yml/badge.svg)](https://github.com/rehmanab/topica/actions/workflows/ci_main.yml)&nbsp;&nbsp;&nbsp;[![Publish Nuget Packages](https://github.com/rehmanab/topica/actions/workflows/ci_main_tag.yml/badge.svg)](https://github.com/rehmanab/topica/actions/workflows/ci_main_tag.yml)
+
 Topica is a lightweight, modular library for managing messages and topics in .NET applications. It provides a unified API for creating, publishing, and subscribing to messages across multiple messaging platforms, including AWS SQS/SNS, Azure Service Bus, Kafka, Pulsar, and RabbitMQ.
 
 ## Features
@@ -31,6 +33,9 @@ Consumers can run multiple instances in parallel to split the workload. When usi
 After creating a message class and a handler for that class, the subscriber will look for a message handler that implements that message type and execute its Validate then Handle methods.
 
 ## Installation
+
+You can view/run the docker compose files in the [docker-scripts](https://github.com/rehmanab/docker-scripts) GitHub repository folder for setting up local instances of the various messaging platforms.
+
 
 Add the relevant NuGet packages to your project:
 
@@ -199,3 +204,6 @@ For more details, see the individual example host applications, and it's appsett
 
 ### Web (Health Checks UI)
 - [Topica Web (ASP.NET Health Check UI)](src/Topica.Web)
+
+### Docker Compose Files
+- You can view/run the docker compose files in the [docker-scripts](https://github.com/rehmanab/docker-scripts) GitHub repository folder for setting up local instances of the various messaging platforms.
