@@ -169,4 +169,33 @@ MIT
 <hr/>
 
 ## Documentation
-For more details, see the individual example host applications and is appsettings.json.
+For more details, see the individual example host applications, and it's appsettings.json files for configuration options.
+
+### Example Consumer Hosts
+- [AWS SQS (Queue) Host](src/Aws.Queue.Consumer.Host)
+- [AWS SNS (Topic) Host](src/Aws.Topic.Consumer.Host)
+- [Azure Service Bus Host](src/Azure.ServiceBus.Topic.Consumer.Host)
+- [Kafka Host](src/Kafka.Topic.Consumer.Host)
+- [Pulsar Host](src/Pulsar.Topic.Consumer.Host)
+- [RabbitMQ Queue Host](src/RabbitMq.Queue.Consumer.Host)
+- [RabbitMQ Topic Host](src/RabbitMq.Topic.Consumer.Host)
+
+### Example Producer Hosts
+- [AWS SQS (Queue) Host](src/Aws.Queue.Producer.Host)
+- [AWS SNS (Topic) Host](src/Aws.Topic.Producer.Host)
+- [Azure Service Bus Host](src/Azure.ServiceBus.Topic.Producer.Host)
+- [Kafka Host](src/Kafka.Topic.Producer.Host)
+- [Pulsar Host](src/Pulsar.Topic.Producer.Host)
+- [RabbitMQ Queue Host](src/RabbitMq.Queue.Producer.Host)
+- [RabbitMQ Topic Host](src/RabbitMq.Topic.Producer.Host)
+
+### Libraries - Implementations
+- [Topica (Core)](src/Topica)
+- [Topica AWS](src/Topica.Aws)
+- [Topica Azure Service Bus](src/Topica.Azure.ServiceBus)
+- [Topica Kafka](src/Topica.Kafka)
+- [Topica Pulsar](src/Topica.Pulsar)
+- [Topica RabbitMQ](src/Topica.RabbitMq)
+
+### Web (Health Checks UI)
+- [Topica Web (ASP.NET Health Check UI)](src/Topica.Web)
