@@ -6,6 +6,8 @@
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Description>Lightweight, modular library for managing messages and topics in .NET</Description>
+        <PackageProjectUrl>https://github.com/rehmanab/topica</PackageProjectUrl>
         <RepositoryUrl>https://github.com/rehmanab/topica</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
     </PropertyGroup>
