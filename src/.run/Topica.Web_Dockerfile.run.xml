@@ -2,7 +2,7 @@
   <configuration default="false" name="Topica.Web/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="localhost">
     <deployment type="dockerfile">
       <settings>
-        <option name="imageTag" value="topica.web:latest" />
+        <option name="imageTag" value="rehmanab/topica.web:latest" />
         <option name="containerName" value="topica.web" />
         <option name="contextFolderPath" value="." />
         <option name="envVars">

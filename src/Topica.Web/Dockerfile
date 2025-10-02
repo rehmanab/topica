@@ -1,5 +1,5 @@
 ﻿# buid and run from the src folder using cmd
-# docker build -f Topica.Web\Dockerfile -t topica.web:latest . && docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --name topica.web topica.web:latest
+# docker build -f Topica.Web\Dockerfile -t rehmanab/topica.web:latest . && docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --env-file Topica.Web/local.env --name topica.web rehmanab/topica.web:latest
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 USER $APP_UID
