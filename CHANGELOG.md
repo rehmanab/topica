@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.0.3"></a>
+## [1.0.3](https://www.github.com/rehmanab/topica/releases/tag/v1.0.3) (2025-10-02)
+
+### Bug Fixes
+
+* update Description, PackageProjectUrl in nuget projects ([cf16baf](https://www.github.com/rehmanab/topica/commit/cf16bafc8b0af88c2892869386e86a85b7303bda))
+
 <a name="1.0.2"></a>
 ## [1.0.2](https://www.github.com/rehmanab/topica/releases/tag/v1.0.2) (2025-10-02)
 
