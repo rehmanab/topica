@@ -7,6 +7,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>0d933513-cba7-4ea6-bcc8-2310785f6f7c</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RepositoryUrl>https://github.com/rehmanab/topica</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
