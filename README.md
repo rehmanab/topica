@@ -190,7 +190,7 @@ To enable a health check for a specific messaging service, change the relevant s
 }
 ```
 
-To run in DOcker, then run the following command from the src/ directory:
+To run in Docker, then run the following command from the src/ directory:
 ```bash
 docker build -f Topica.Web\Dockerfile -t topica.web:latest .
 ```
