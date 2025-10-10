@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t rehmanab/topica.web:${{ github.run_number }} ./src/Topica.Web
+          docker build -f .\src\Topica.Web\Dockerfile -t rehmanab/topica.web:${{ github.run_number }} .\src
 
       - name: Push Docker image
         run: |
