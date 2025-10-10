@@ -1,15 +1,10 @@
 # To pull and run locally:
-# docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --env-file Topica.Web/local.env --name topica.web rehmanab/topica.web:5
+# docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --name topica.web rehmanab/topica.web:latest
+# docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Production -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --env-file Topica.Web/local.env --name topica.web rehmanab/topica.web:latest
 
-name: Docker Build & Push
+name: Docker Build & Push latest (Manual)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - ".github/workflows/cd_docker_build_push.yml"
-      - "src/**"
-  
   workflow_dispatch:
 
 env:
