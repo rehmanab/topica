@@ -169,7 +169,48 @@ dotnet run
 Configure connection settings in appsettings.json as needed.
 Each Messaging platform supports its own configuration options, typically set in appsettings.json or via code. See the respective Host project for details.
 
-License
+### 6. Running Topic.Web - Health Checks UI
+The Topica.Web project is an ASP.NET Core web application that provides a health check UI for monitoring the status of your messaging services. It uses the AspNetCore.HealthChecks.UI package to display health check results in a user-friendly interface.
+
+The Topica.Web project uses "UserSecrets" to manage sensitive configuration data during local development (i.e. running the project in VS or Rider). When running locally, then you can add your Messaging platform keys in your secret file, using the json from the appsettings.json
+
+To enable a health check for a specific messaging service, change the relevant section to the `HealthCheckSettings` in your `appsettings.json` file. For example, to enable a health check for an AWS SNS Topic:
+```json
+{
+  "HealthCheckSettings": {
+    ...
+    "AwsTopic": {
+      "Name": "AWS SNS Topic",
+      "Tag": "Aws",
+      "Enabled": true, // Set to true to enable this health check
+      "TimeOut": "00:00:15"
+    }
+    ...
+  }
+}
+```
+
+To run in DOcker, then run the following command from the src/ directory:
+```bash
+docker build -f Topica.Web\Dockerfile -t topica.web:latest .
+```
+```bash
+docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=http://*:7022 --name topica.web topica.web:latest
+```
+
+If you want to run the https endpoint, then you must create a self-signed certificate and place it in the %USERPROFILE%\\.aspnet\https\ folder with the name aspnetapp.pfx and password "password". You can create a self-signed certificate. Then you can add these environment variables to your Docker run command:
+```
+-e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/
+```
+
+You can then access the health check UI at:
+
+http://localhost:7022/health
+or
+https://localhost:7055/health
+
+## License
+
 MIT
 <hr/>
 

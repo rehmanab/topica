@@ -20,7 +20,7 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
     .AddEnvironmentVariables();
 
 // If env is not local,load secrets from Azure Key Vault, else will use appsettings and secrets
-if (!builder.Environment.IsEnvironment("local"))
+if (builder.Environment.IsStaging() || builder.Environment.IsProduction())
 {
     builder.Configuration.AddAzureKeyVault(
         new Uri($"https://{builder.Configuration["AzureKeyVaultName"]}.vault.azure.net/"),

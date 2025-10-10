@@ -1,13 +1,19 @@
+# To pull and run locally:
+# docker run -d -p 7055:7055 -p 7022:7022 --env ASPNETCORE_ENVIRONMENT=Development -e ASPNETCORE_URLS=https://*:7055;http://*:7022 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ --env-file Topica.Web/local.env --name topica.web rehmanab/topica.web:5
+
 name: Docker Build & Push
 
 on:
   push:
-    branches: [ dev ]
+    branches: [ main ]
     paths:
       - ".github/workflows/cd_docker_build_push.yml"
       - "src/**"
   
   workflow_dispatch:
+
+env:
+  docker_repository_name: rehmanab
 
 jobs:
   build-docker-and-push:
@@ -23,8 +29,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -f ./src/Topica.Web/Dockerfile -t rehmanab/topica.web:${{ github.run_number }} src/
+          docker build -f ./src/Topica.Web/Dockerfile -t ${{ env.docker_repository_name }}/topica.web:latest src/
 
       - name: Push Docker image
         run: |
-          docker push rehmanab/topica.web:${{ github.run_number }}
+          docker push ${{ env.docker_repository_name }}/topica.web:latest
