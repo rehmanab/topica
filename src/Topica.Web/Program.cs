@@ -6,6 +6,9 @@ using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Allow serving static files from wwwroot in all environments
+builder.WebHost.UseStaticWebAssets();
+
 ////////////////////////////////////
 // Configure Services
 
@@ -42,6 +45,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHealthCheckServices(config => { config.HealthCheckSettings = healthCheckSettings; });
 
 builder.Services.AddHealthChecksUI().AddInMemoryStorage();
+
+
 
 // Add MessagingPlatform Components
 var awsHostSettings = builder.Configuration.GetSection(AwsHostSettings.SectionName).Get<AwsHostSettings>() ?? throw new Exception("Could not bind the AWS Host Settings, please check configuration");
@@ -106,7 +111,6 @@ if (!app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapStaticAssets();
