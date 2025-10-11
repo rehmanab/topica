@@ -42,6 +42,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{CA4B87
 		..\.github\workflows\ci_main.yml = ..\.github\workflows\ci_main.yml
 		..\.github\workflows\ci_main_tag.yml = ..\.github\workflows\ci_main_tag.yml
 		..\.github\workflows\cd_docker_build_push.yml = ..\.github\workflows\cd_docker_build_push.yml
+		..\.github\workflows\cd_aci_deploy.yml = ..\.github\workflows\cd_aci_deploy.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Consumers", "Consumers", "{2498F3D0-A2AE-4E82-9166-3F99CFD2AD01}"

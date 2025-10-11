@@ -1,0 +1,44 @@
+name: Azure Container Instance Deploy (Manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Container Instance
+        uses: azure/cli@v2
+        env:
+          AZ_RESOURCE_GROUP: rg-topica-dev-001
+          AZ_CONTAINER_NAME: ci-topica-web-${{ github.run_number }}
+          AZ_IMAGE: rehmanab/topica.web:latest
+          AZ_CPU: 1
+          AZ_MEMORY: 1
+          AZ_ENVIRONMENT: Production
+          AZ_URLS: http://*:7022
+          AZ_PORT1: 7022
+          AZ_PORT2: 7055
+          AZ_DNS_LABEL: topica
+          AZ_IDENTITY: /subscriptions/2d79f8c4-b688-4d60-9e90-f467727753ad/resourcegroups/rg-topica-dev-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi-topica-dev-kv
+          AZ_OS_TYPE: linux
+        with:
+          inlineScript: |
+            az container create \
+            -g $AZ_RESOURCE_GROUP \
+            --name $AZ_CONTAINER_NAME \
+            --image $AZ_IMAGE \
+            --cpu $AZ_CPU --memory $AZ_MEMORY \
+            --environment-variables ASPNETCORE_ENVIRONMENT=$AZ_ENVIRONMENT ASPNETCORE_URLS=$AZ_URLS \
+            --ports $AZ_PORT1 $AZ_PORT2 \
+            --dns-name-label $AZ_DNS_LABEL \
+            --assign-identity $AZ_IDENTITY \
+            --os-type $AZ_OS_TYPE
