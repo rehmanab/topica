@@ -103,6 +103,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bicep", "Bicep", "{9D99EA63
 		..\.azure\templates\bicep\topica-dev.bicepparam = ..\.azure\templates\bicep\topica-dev.bicepparam
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ACI", "ACI", "{8B51CEC4-A1CF-4D22-9DB2-A7C488E7A4F0}"
+	ProjectSection(SolutionItems) = preProject
+		..\.azure\templates\aci\ci-topica-web-dev.yaml = ..\.azure\templates\aci\ci-topica-web-dev.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -240,5 +245,6 @@ Global
 		{8B93E09A-DCCA-4C6D-9710-AD36959E800E} = {3D338369-EC0A-4AC6-B956-F7A75F4B7C4C}
 		{66358FB9-6664-4EEE-87ED-853E209308D5} = {8B93E09A-DCCA-4C6D-9710-AD36959E800E}
 		{9D99EA63-7284-4BF2-9FB5-ACFC45DEE4B5} = {8B93E09A-DCCA-4C6D-9710-AD36959E800E}
+		{8B51CEC4-A1CF-4D22-9DB2-A7C488E7A4F0} = {8B93E09A-DCCA-4C6D-9710-AD36959E800E}
 	EndGlobalSection
 EndGlobal
