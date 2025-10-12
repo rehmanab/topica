@@ -14,6 +14,9 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          # The service principal need these roles:
+          # Azure Container Instances Contributor Role
+          # Managed Identity Operator
 
       - name: Deploy to Azure Container Instance
         uses: azure/cli@v2
