@@ -10,7 +10,7 @@ using './topica.bicep'
 @description('Variables defined for this Environment')
 param project_name = 'topica'
 param project_suffix  = '001'
-param environment_name = 'staging'
+param environment_name = 'dev'
 param location = 'uksouth'
 
 param key_vault_key_values = [

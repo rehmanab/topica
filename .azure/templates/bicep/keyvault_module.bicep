@@ -54,7 +54,7 @@ resource kv_secret_resource 'Microsoft.KeyVault/vaults/secrets@2024-12-01-previe
 
 @description('Managed Identity for Key Vault access')
 // ACT: Managed Identity need "Key Vault Secrets User" role assignment (in the Key Vault) to read secrets
-var managed_identity_name string = 'mi-${project_name}-${project_suffix}-${environment_name}-kv'
+var managed_identity_name string = 'mi-${project_name}-${environment_name}-${project_suffix}-kv'
 resource managed_user_assigned_identity_resource 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
   name: managed_identity_name
   location: location

@@ -32,7 +32,7 @@ jobs:
           AZ_PORT1: 7022
           AZ_PORT2: 7055
           AZ_DNS_LABEL: topica
-          AZ_IDENTITY: /subscriptions/2d79f8c4-b688-4d60-9e90-f467727753ad/resourcegroups/rg-topica-dev-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi-topica-dev-kv
+          AZ_IDENTITY: /subscriptions/2d79f8c4-b688-4d60-9e90-f467727753ad/resourcegroups/rg-topica-dev-001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/mi-topica-dev-001-kv
           AZ_OS_TYPE: linux
         with:
           inlineScript: |
