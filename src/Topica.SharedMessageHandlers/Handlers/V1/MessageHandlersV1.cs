@@ -138,3 +138,18 @@ public class VideoPlayedMessageHandlerV1(ILogger<VideoPlayedMessageHandlerV1> lo
         return true;
     }
 }
+
+public class EvictCacheItemMessageHandlerV1(ILogger<EvictCacheItemMessageHandlerV1> logger) : IHandler<EvictCacheItemMessageV1>
+{
+    public async Task<bool> HandleAsync(EvictCacheItemMessageV1 source, Dictionary<string, string>? properties)
+    {
+        logger.LogInformation("Handle: {Name} for event: {Data} - {Props}", nameof(EvictCacheItemMessageV1), $"{source.EventId} : {source.EventName}", string.Join("; ", properties?.Select(x => $"{x.Key}:{x.Value}") ?? []));
+        return await Task.FromResult(true);
+    }
+
+    public bool ValidateMessage(EvictCacheItemMessageV1 message)
+    {
+        // Todo - Fluent validation for message properties
+        return true;
+    }
+}

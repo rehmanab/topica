@@ -84,7 +84,7 @@ public class AwsTopicBuilder(ITopicProviderFactory topicProviderFactory)
             AwsMessageVisibilityTimeoutSeconds = AwsQueueAttributes.DefaultMessageVisibilityTimeoutSeconds, // Default - 30 seconds
             AwsQueueMessageDelaySeconds = AwsQueueAttributes.DefaultQueueMessageDelaySeconds, // Default - 0 seconds
             AwsQueueMessageRetentionPeriodSeconds = AwsQueueAttributes.DefaultQueueMessageRetentionPeriodSeconds, // Default - 345600 (4 days)
-            AwsQueueReceiveMessageWaitTimeSeconds = AwsQueueAttributes.DefaultQueueReceiveMessageWaitTimeSeconds, // Default - is 0 seconds
+            AwsQueueReceiveMessageWaitTimeSeconds = AwsQueueAttributes.DefaultQueueReceiveMessageWaitTimeSeconds, // Default - is 10 seconds
             AwsQueueMaximumMessageSizeKb = AwsQueueAttributes.QueueMaximumMessageSizeMaxKb // Default - Between 1 and 262144 bytes (256 KB),
         };
     }

@@ -75,3 +75,8 @@ public class VideoPlayedMessageV1 : BaseMessage
     public DateTime? Timestamp { get; set; }
     public TimeSpan? VideoPosition { get; set; }
 }
+
+public class EvictCacheItemMessageV1 : BaseMessage
+{
+    public string CacheKey { get; init; } = null!;
+}

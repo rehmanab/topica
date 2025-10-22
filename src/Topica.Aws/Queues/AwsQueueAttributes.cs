@@ -17,7 +17,7 @@ public class AwsQueueAttributes
 
     public const int DefaultMessageVisibilityTimeoutSeconds = 30;
     public const int DefaultErrorQueueMaxReceiveCount = 1;
-    public const int DefaultQueueReceiveMessageWaitTimeSeconds = 0;
+    public const int DefaultQueueReceiveMessageWaitTimeSeconds = 10;
     public const int DefaultQueueMessageRetentionPeriodSeconds = 345600;
     public const int DefaultQueueMessageDelaySeconds = 0;
     public const int DefaultQueueReceiveMaximumNumberOfMessages = 10;

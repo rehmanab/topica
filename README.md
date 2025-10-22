@@ -104,6 +104,7 @@ Inject an instance of `IAwsTopicCreationBuilder` and use its builder methods to 
 
 To use a builder that does NOT create the Topic and queue, please ensure that they already exist (else producing and consuming will throw an exception) use an instance of `IAwsTopicBuilder`
 
+#### Building a Producer and Consumer (not all are required, only the ones you need)
 ```csharp
 var producer = await builder
     .WithWorkerName(nameof(ButtonClickedMessageV1)) // Just the name of the worker so you can identify it when you log
@@ -111,7 +112,9 @@ var producer = await builder
     .WithSubscribedQueues(["topica_web_analytics_queue_sales_v1", "topica_web_analytics_queue_reporting_v1"]) // Topic will publish to these queues
     .WithQueueToSubscribeTo("topica_web_analytics_queue_sales_v1") // Will consume from this queue
     .WithFifoSettings(true, true) // First in First out, do duplication based on message content
+    .WithTemporalSettings(30, 0, 345600, 5) // (MessageVisibilityTimeoutSeconds, QueueMessageDelaySeconds, QueueMessageRetentionPeriodSeconds, QueueReceiveMessageWaitTimeSeconds)
     .WithErrorQueueSettings(true, 5) // Create and error queue that is published to after 5 handling errors
+    .WithQueueSettings(262144) // QueueMaximumMessageSize KB
     .BuildProducerAsync(cancellationToken);
 ```
 
@@ -122,7 +125,9 @@ var consumer = await builder
     .WithSubscribedQueues(["topica_web_analytics_queue_sales_v1", "topica_web_analytics_queue_reporting_v1"]) // Topic will publish to these queues
     .WithQueueToSubscribeTo("topica_web_analytics_queue_sales_v1") // Will consume from this queue
     .WithFifoSettings(true, true) // First in First out, do duplication based on message content
+    .WithTemporalSettings(30, 0, 345600, 5) // (MessageVisibilityTimeoutSeconds, QueueMessageDelaySeconds, QueueMessageRetentionPeriodSeconds, QueueReceiveMessageWaitTimeSeconds)
     .WithErrorQueueSettings(true, 5) // Create and error queue that is published to after 5 handling errors
+    .WithQueueSettings(262144) // QueueMaximumMessageSize KB
     .WithConsumeSettings(1, 10) // Number of parallel instances, QueueReceiveMaximumNumberOfMessages
     .BuildConsumerAsync(cancellationToken);
 ```
