@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.0.6"></a>
+## [1.0.6](https://www.github.com/rehmanab/topica/releases/tag/v1.0.6) (2025-10-23)
+
+### Bug Fixes
+
+* Add static web resources to none development environments ([1b92f9e](https://www.github.com/rehmanab/topica/commit/1b92f9e34a1bbd90516a68ab8f80274c8e093cdf))
+* Up the DefaultQueueReceiveMessageWaitTimeSeconds to 10 seconds ([06b1fbe](https://www.github.com/rehmanab/topica/commit/06b1fbe6adfb751bd813c1b7f5adaa1dd027e433))
+
 <a name="1.0.5"></a>
 ## [1.0.5](https://www.github.com/rehmanab/topica/releases/tag/v1.0.5) (2025-10-10)
 
