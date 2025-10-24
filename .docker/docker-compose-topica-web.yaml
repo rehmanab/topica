@@ -1,0 +1,20 @@
+﻿#  docker-compose -f .docker/docker-compose-topica-web.yaml -p topica up -d
+#  docker-compose -f .docker/docker-compose-topica-web.yaml -p topica down
+
+services:
+  topica.web:
+    build:
+      context: ../src
+      dockerfile: Topica.Web/Dockerfile
+    ports:
+      - "7055:7055"
+      - "7022:7022"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: https://*:7055;http://*:7022
+      ASPNETCORE_Kestrel__Certificates__Default__Password: "password"
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/aspnetapp.pfx
+    volumes:
+      - ~/.aspnet/https:/https/
+    env_file:
+      - ../src/Topica.Web/local.env
