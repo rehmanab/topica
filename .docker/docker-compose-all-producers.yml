@@ -1,4 +1,4 @@
-#  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers up -d
+#  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers up -d --build --force-recreate
 #  docker-compose -f .docker/docker-compose-all-producers.yml -p topica_producers down
 
 services:

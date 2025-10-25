@@ -1,8 +1,10 @@
-﻿#  docker-compose -f .docker/docker-compose-topica-web.yaml -p topica up -d
+﻿#  docker-compose -f .docker/docker-compose-topica-web.yaml -p topica up -d --build --force-recreate
 #  docker-compose -f .docker/docker-compose-topica-web.yaml -p topica down
 
 services:
   topica.web:
+    image: rehmanab/topica.web:latest
+    pull_policy: never
     build:
       context: ../src
       dockerfile: Topica.Web/Dockerfile

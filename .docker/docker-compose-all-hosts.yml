@@ -1,4 +1,4 @@
-#  docker-compose -f .docker/docker-compose-all-hosts.yml -p topica_hosts up -d
+#  docker-compose -f .docker/docker-compose-all-hosts.yml -p topica_hosts up -d --build --force-recreate
 #  docker-compose -f .docker/docker-compose-all-hosts.yml -p topica_hosts down
 
 services:

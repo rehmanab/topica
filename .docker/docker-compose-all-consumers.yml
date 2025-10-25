@@ -1,4 +1,4 @@
-#  docker-compose -f .docker/docker-compose-all-consumers.yml -p topica_consumers up -d
+#  docker-compose -f .docker/docker-compose-all-consumers.yml -p topica_consumers up -d --build --force-recreate
 #  docker-compose -f .docker/docker-compose-all-consumers.yml -p topica_consumers down
 
 services:
