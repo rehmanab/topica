@@ -4,10 +4,10 @@ public class AwsConsumerSettings
 {
     public static string SectionName => nameof(AwsConsumerSettings);
 
-    public AwsTopicSettings WebAnalyticsQueueSettings { get; init; } = null!;
+    public AwsQueueSettings WebAnalyticsQueueSettings { get; init; } = null!;
 }
 
-public class AwsTopicSettings
+public class AwsQueueSettings
 {
     public string WorkerName { get; set; } = null!;
     public string Source { get; set; } = null!;

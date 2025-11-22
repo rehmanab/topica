@@ -11,11 +11,6 @@ public class QueueProviderFactory(IEnumerable<IQueueProvider> queueProviders) : 
     {
         var queueProvider = queueProviders.FirstOrDefault(x => x.MessagingPlatform == messagingPlatform);
 
-        if (queueProvider == null)
-        {
-            throw new NotImplementedException($"Queue provider is not implemented for MessagingPlatform: {messagingPlatform}");
-        }
-
-        return queueProvider;
+        return queueProvider ?? throw new NotImplementedException($"Queue provider is not implemented for MessagingPlatform: {messagingPlatform}");
     }
 }

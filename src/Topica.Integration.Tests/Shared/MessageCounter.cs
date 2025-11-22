@@ -10,6 +10,9 @@ public static class MessageCounter
     public static List<MessageAttributePair> AwsTopicMessageSent { get; set; } = [];
     public static List<MessageAttributePair> AwsTopicMessageReceived { get; set; } = [];
     
+    public static List<MessageAttributePair> AzureServiceBusQueueMessageSent { get; set; } = [];
+    public static List<MessageAttributePair> AzureServiceBusQueueMessageReceived { get; set; } = [];
+    
     public static List<MessageAttributePair> AzureServiceBusTopicMessageSent { get; set; } = [];
     public static List<MessageAttributePair> AzureServiceBusTopicMessageReceived { get; set; } = [];
     

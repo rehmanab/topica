@@ -39,6 +39,12 @@
       <None Update="Azure\ServiceBus\AzureServiceBusConfig.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Azure\ServiceBusTopic\AzureServiceBusConfig.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Azure\ServiceBusQueue\AzureServiceBusConfig.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

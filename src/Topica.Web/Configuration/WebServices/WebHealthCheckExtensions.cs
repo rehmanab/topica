@@ -37,10 +37,16 @@ public static class WebHealthCheckExtensions
             healthChecksBuilder.AddCheck<AwsTopicHealthCheck>(config.HealthCheckSettings.AwsTopic.Name, timeout: config.HealthCheckSettings.AwsTopic.TimeOut, tags: [config.HealthCheckSettings.AwsTopic.Tag.ToString()]);
         }
 
-        if (config.HealthCheckSettings.AzureServiceBus.Enabled)
+        if (config.HealthCheckSettings.AzureServiceBusQueue.Enabled)
         {
-            tags.Add(config.HealthCheckSettings.AzureServiceBus.Tag.ToString());
-            healthChecksBuilder.AddCheck<AzureServiceBusHealthCheck>(config.HealthCheckSettings.AzureServiceBus.Name, timeout: config.HealthCheckSettings.AzureServiceBus.TimeOut, tags: [config.HealthCheckSettings.AzureServiceBus.Tag.ToString()]);
+            tags.Add(config.HealthCheckSettings.AzureServiceBusQueue.Tag.ToString());
+            healthChecksBuilder.AddCheck<AzureServiceBusQueueHealthCheck>(config.HealthCheckSettings.AzureServiceBusQueue.Name, timeout: config.HealthCheckSettings.AzureServiceBusQueue.TimeOut, tags: [config.HealthCheckSettings.AzureServiceBusQueue.Tag.ToString()]);
+        }
+        
+        if (config.HealthCheckSettings.AzureServiceBusTopic.Enabled)
+        {
+            tags.Add(config.HealthCheckSettings.AzureServiceBusTopic.Tag.ToString());
+            healthChecksBuilder.AddCheck<AzureServiceBusTopicHealthCheck>(config.HealthCheckSettings.AzureServiceBusTopic.Name, timeout: config.HealthCheckSettings.AzureServiceBusTopic.TimeOut, tags: [config.HealthCheckSettings.AzureServiceBusTopic.Tag.ToString()]);
         }
 
         if (config.HealthCheckSettings.Kafka.Enabled)

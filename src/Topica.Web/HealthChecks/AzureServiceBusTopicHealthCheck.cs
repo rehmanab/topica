@@ -10,12 +10,12 @@ using Topica.Messages;
 
 namespace Topica.Web.HealthChecks;
 
-public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider, IWebHostEnvironment env) : IHealthCheck
+public class AzureServiceBusTopicHealthCheck(IAzureServiceBusAdministrationClientProvider administrationClientProvider, IAzureServiceBusClientProvider azureServiceBusClientProvider, IWebHostEnvironment env) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        var topicName = $"topica_azure_sb_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
-        var subscribedQueueName = $"topica_azure_sb_topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
+        var topicName = $"topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
+        var subscribedQueueName = $"topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 
@@ -68,7 +68,7 @@ public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProv
                 }
             }
 
-            await using var sender = azureServiceBusClientProvider.Client.CreateSender(topicName, new ServiceBusSenderOptions { Identifier = "AzureServiceBusHealthCheckSender" });
+            await using var sender = azureServiceBusClientProvider.Client.CreateSender(topicName, new ServiceBusSenderOptions { Identifier = "AzureServiceBusTopicHealthCheckSender" });
 
             var testMessageName = Guid.NewGuid().ToString();
 
@@ -87,7 +87,7 @@ public class AzureServiceBusHealthCheck(IAzureServiceBusAdministrationClientProv
 
             await  using var receiver = azureServiceBusClientProvider.Client.CreateReceiver(topicName, subscribedQueueName, new ServiceBusReceiverOptions
             {
-                Identifier = "AzureServiceBusHealthCheckReceiver",
+                Identifier = "AzureServiceBusTopicHealthCheckReceiver",
                 ReceiveMode = ServiceBusReceiveMode.PeekLock
             });
 

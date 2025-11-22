@@ -1,11 +1,10 @@
 using Topica.Integration.Tests.Aws.AwsQueue;
 using Topica.Integration.Tests.Aws.AwsTopic;
-using Topica.Integration.Tests.Azure.ServiceBus;
+using Topica.Integration.Tests.Azure.ServiceBusQueue;
+using Topica.Integration.Tests.Azure.ServiceBusTopic;
 using Topica.Integration.Tests.Kafka;
 using Topica.Integration.Tests.Pulsar;
 using Topica.Integration.Tests.RabbitMq;
-using Topica.Integration.Tests.RabbitMq.RabbitMqQueue;
-using Topica.Integration.Tests.RabbitMq.RabbitMqTopic;
 using Xunit;
 
 namespace Topica.Integration.Tests.Shared;
@@ -27,6 +26,9 @@ public class AwsQueueCollection : ICollectionFixture<AwsQueueSharedFixture>;
 
 [CollectionDefinition(nameof(AwsTopicCollection))]
 public class AwsTopicCollection : ICollectionFixture<AwsTopicSharedFixture>;
+
+[CollectionDefinition(nameof(AzureServiceBusQueueCollection))]
+public class AzureServiceBusQueueCollection : ICollectionFixture<AzureServiceBusQueueSharedFixture>;
 
 [CollectionDefinition(nameof(AzureServiceBusTopicCollection))]
 public class AzureServiceBusTopicCollection : ICollectionFixture<AzureServiceBusTopicSharedFixture>;

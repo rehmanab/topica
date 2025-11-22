@@ -11,7 +11,7 @@ using Topica.Azure.ServiceBus.Contracts;
 using Topica.Contracts;
 using Topica.SharedMessageHandlers;
 
-Console.WriteLine("******* Starting AzureServiceBus.Consumer.Host *******");
+Console.WriteLine("******* Starting Azure.ServiceBus.Topic.Consumer.Host *******");
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(builder =>

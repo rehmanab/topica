@@ -34,7 +34,7 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
         if (!await administrationClientProvider.AdminClient.TopicExistsAsync(settings.Source, cancellationToken))
         {
             await administrationClientProvider.AdminClient.CreateTopicAsync(topicOptions, cancellationToken);
-            logger.LogInformation("**** CREATED: topic: {TopicName}", settings.Source);
+            logger.LogInformation("**** CREATED: Topic: {TopicName}", settings.Source);
         }
         else
         {
@@ -66,7 +66,7 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
             };
 
             _ = await administrationClientProvider.AdminClient.CreateSubscriptionAsync(subscriptionOptions, cancellationToken);
-            logger.LogInformation("**** CREATED: subscription: {SubscriptionName} for topic: {TopicName}", subscription.Source, settings.Source);
+            logger.LogInformation("**** CREATED: Subscription: {SubscriptionName} for topic: {TopicName}", subscription.Source, settings.Source);
         }
     }
 
@@ -74,13 +74,13 @@ public class AzureServiceBusTopicProvider(IAzureServiceBusAdministrationClientPr
     {
         await Task.CompletedTask;
 
-        return new AzureServiceBusTopicSubscriptionConsumer(azureServiceBusClientProvider, messageHandlerExecutor, messagingSettings, logger);
+        return new AzureServiceBusConsumer(azureServiceBusClientProvider, messageHandlerExecutor, messagingSettings, logger);
     }
 
     public async Task<IProducer> ProvideProducerAsync(string producerName, MessagingSettings messagingSettings)
     {
         await Task.CompletedTask;
 
-        return new AzureServiceBusTopicProducer(producerName, azureServiceBusClientProvider, messagingSettings);
+        return new AzureServiceBusProducer(producerName, azureServiceBusClientProvider, messagingSettings);
     }
 }

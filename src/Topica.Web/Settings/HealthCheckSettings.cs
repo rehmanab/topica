@@ -8,7 +8,8 @@ public class HealthCheckSettings
 
     public HealthCheckModel AwsQueue { get; set; } = null!;
     public HealthCheckModel AwsTopic { get; set; } = null!;
-    public HealthCheckModel AzureServiceBus { get; set; } = null!;
+    public HealthCheckModel AzureServiceBusQueue { get; set; } = null!;
+    public HealthCheckModel AzureServiceBusTopic { get; set; } = null!;
     public HealthCheckModel Kafka { get; set; } = null!;
     public HealthCheckModel Pulsar { get; set; } = null!;
     public HealthCheckModel RabbitMqQueue { get; set; } = null!; 

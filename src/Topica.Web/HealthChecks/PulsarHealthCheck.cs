@@ -14,7 +14,7 @@ public class PulsarHealthCheck(IPulsarService pulsarService, PulsarClientBuilder
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
-        var topicName = $"topica_pulsar_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
+        var topicName = $"topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

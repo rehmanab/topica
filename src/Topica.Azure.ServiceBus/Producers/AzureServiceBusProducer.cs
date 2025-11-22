@@ -8,7 +8,7 @@ using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Producers;
 
-internal class AzureServiceBusTopicProducer(string producerName, IAzureServiceBusClientProvider provider, MessagingSettings messagingSettings) : IProducer
+internal class AzureServiceBusProducer(string producerName, IAzureServiceBusClientProvider provider, MessagingSettings messagingSettings) : IProducer
 {
     private ServiceBusSender? _sender;
 

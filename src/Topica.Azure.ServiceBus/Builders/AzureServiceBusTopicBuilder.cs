@@ -4,8 +4,7 @@ using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Builders;
 
-public class AzureServiceBusTopicBuilder(
-    ITopicProviderFactory topicProviderFactory) 
+public class AzureServiceBusTopicBuilder(ITopicProviderFactory topicProviderFactory)
     : IAzureServiceBusTopicBuilder, IAzureServiceBusTopicBuilderWithTopicName, IAzureServiceBusTopicBuilderWithSubscribeToSubscription, IAzureServiceBusTopicBuilderWithBuild
 {
     private string _workerName = null!;
@@ -24,13 +23,13 @@ public class AzureServiceBusTopicBuilder(
         _topicName = topicName;
         return this;
     }
-    
+
     public IAzureServiceBusTopicBuilderWithBuild WithSubscribeToSubscription(string subscribeToSubscription)
     {
         _subscribeToSubscription = subscribeToSubscription;
         return this;
     }
-    
+
     public IAzureServiceBusTopicBuilderWithBuild WithNumberOfInstances(int? numberOfInstances)
     {
         _numberOfInstances = numberOfInstances;

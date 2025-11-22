@@ -7,11 +7,11 @@ public class RabbitMqConsumerSettingsValidator : AbstractValidator<RabbitMqConsu
 {
     public RabbitMqConsumerSettingsValidator()
     {
-        RuleFor(x => x.WebAnalyticsTopicSettings)
+        RuleFor(x => x.WebAnalyticsQueueSettings)
             .NotNull().DependentRules(() =>
             {
-                RuleFor(x => x.WebAnalyticsTopicSettings.WorkerName).NotNull().NotEmpty();
-                RuleFor(x => x.WebAnalyticsTopicSettings.Source).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsQueueSettings.WorkerName).NotNull().NotEmpty();
+                RuleFor(x => x.WebAnalyticsQueueSettings.Source).NotNull().NotEmpty();
             });
     }
 }

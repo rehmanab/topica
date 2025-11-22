@@ -16,8 +16,8 @@ public class AwsTopicHealthCheck(IAmazonSimpleNotificationService snsClient, IAm
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        var topicName = $"topica_aws_topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
-        var subscribedQueueName = $"topica_aws_topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
+        var topicName = $"topic_health_check_web_topic_{env.EnvironmentName.ToLower()}";
+        var subscribedQueueName = $"topic_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

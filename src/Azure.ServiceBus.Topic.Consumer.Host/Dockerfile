@@ -8,10 +8,9 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Azure.ServiceBus.Topic.Consumer.Host/Azure.ServiceBus.Topic.Consumer.Host.csproj", "Azure.ServiceBus.Topic.Consumer.Host/"]
-COPY ["Topica.Aws/Topica.Aws.csproj", "Topica.Aws/"]
 COPY ["Topica/Topica.csproj", "Topica/"]
 COPY ["Topica.Azure.ServiceBus/Topica.Azure.ServiceBus.csproj", "Topica.Azure.ServiceBus/"]
+COPY ["Azure.ServiceBus.Topic.Consumer.Host/Azure.ServiceBus.Topic.Consumer.Host.csproj", "Azure.ServiceBus.Topic.Consumer.Host/"]
 COPY ["Topica.SharedMessageHandlers/Topica.SharedMessageHandlers.csproj", "Topica.SharedMessageHandlers/"]
 RUN dotnet restore "Azure.ServiceBus.Topic.Consumer.Host/Azure.ServiceBus.Topic.Consumer.Host.csproj"
 COPY . .

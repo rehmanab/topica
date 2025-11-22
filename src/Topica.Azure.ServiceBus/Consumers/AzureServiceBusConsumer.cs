@@ -9,7 +9,7 @@ using Topica.Settings;
 
 namespace Topica.Azure.ServiceBus.Consumers;
 
-public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
+public class AzureServiceBusConsumer : IConsumer
 {
     private readonly IAzureServiceBusClientProvider _azureServiceBusClientProvider;
     private readonly IMessageHandlerExecutor _messageHandlerExecutor;
@@ -17,7 +17,7 @@ public class AzureServiceBusTopicSubscriptionConsumer : IConsumer
     private readonly ResiliencePipeline _retryPipeline;
     private readonly ILogger _logger;
 
-    public AzureServiceBusTopicSubscriptionConsumer(
+    public AzureServiceBusConsumer(
         IAzureServiceBusClientProvider azureServiceBusClientProvider,
         IMessageHandlerExecutor messageHandlerExecutor,
         MessagingSettings messagingSettings, 

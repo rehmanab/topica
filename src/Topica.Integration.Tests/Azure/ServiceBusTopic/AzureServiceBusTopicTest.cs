@@ -3,7 +3,7 @@ using Topica.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Topica.Integration.Tests.Azure.ServiceBus;
+namespace Topica.Integration.Tests.Azure.ServiceBusTopic;
 
 [Trait("Category", "Integration"), Collection(nameof(AzureServiceBusTopicCollection))]
 public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFixture, ITestOutputHelper testOutputHelper)
@@ -39,7 +39,7 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
         };
 
         var queueBuilder = sharedFixture.Builder
-            .WithWorkerName("AzureServiceBusIntegrationTestWorker")
+            .WithWorkerName("AzureServiceBusTopicIntegrationTestWorker")
             .WithTopicName(topicName)
             .WithSubscriptions(subscriptions)
             .WithSubscribeToSubscription("integration_test_subscription_1_v1");
@@ -56,12 +56,12 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
             {
                 var messageGroupId = Guid.NewGuid().ToString();
 
-                var message = new AzureServiceBusTestMessageV1
+                var message = new AzureServiceBusTopicTestMessageV1
                 {
                     ConversationId = Guid.NewGuid(),
                     EventId = MessageCounter.AzureServiceBusTopicMessageSent.Count + 1,
                     EventName = "integration.test.v1",
-                    Type = nameof(AzureServiceBusTestMessageV1),
+                    Type = nameof(AzureServiceBusTopicTestMessageV1),
                     MessageGroupId = messageGroupId,
                     MessageAdditionalProperties = new Dictionary<string, string>
                     {
@@ -90,7 +90,7 @@ public class AzureServiceBusTopicTest(AzureServiceBusTopicSharedFixture sharedFi
         foreach (var sent in MessageCounter.AzureServiceBusTopicMessageReceived)
         {
             Assert.NotNull(sent.Attributes);
-            Assert.Equal("AzureServiceBusIntegrationTestWorker", sent.Attributes["ProducerName"]);
+            Assert.Equal("AzureServiceBusTopicIntegrationTestWorker", sent.Attributes["ProducerName"]);
             Assert.Equal("value1", sent.Attributes["attr1"]);
             Assert.Equal("traceparent", sent.Attributes["traceparent"]);
             Assert.Equal("tracestate", sent.Attributes["tracestate"]);

@@ -9,7 +9,7 @@ using Topica.Azure.ServiceBus.Contracts;
 using Topica.Integration.Tests.Shared;
 using Xunit;
 
-namespace Topica.Integration.Tests.Azure.ServiceBus;
+namespace Topica.Integration.Tests.Azure.ServiceBusTopic;
 
 public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
 {
@@ -23,7 +23,7 @@ public class AzureServiceBusTopicSharedFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         var currentDomainBaseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        var configFilePath = Path.Join(currentDomainBaseDirectory, "Azure", "ServiceBus", "AzureServiceBusConfig.json");
+        var configFilePath = Path.Join(currentDomainBaseDirectory, "Azure", "ServiceBusTopic", "AzureServiceBusConfig.json");
         const string sqlPassword = "Password123!";
         var name = $"azure-integration-tests-{Guid.NewGuid()}";
         var sqlContainerName = $"sqledge-integration-tests-{Guid.NewGuid()}";

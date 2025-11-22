@@ -12,7 +12,7 @@ public class AwsQueueHealthCheck(IAmazonSQS sqsClient, IWebHostEnvironment env) 
 {
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        var queueName = $"topica_aws_queue_health_check_web_{env.EnvironmentName.ToLower()}";
+        var queueName = $"queue_health_check_web_queue_{env.EnvironmentName.ToLower()}";
 
         var sw = Stopwatch.StartNew();
 

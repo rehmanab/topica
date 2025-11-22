@@ -74,17 +74,17 @@ return;
 void AddCreationConsumer(IServiceCollection serviceCollection, RabbitMqConsumerSettings rabbitMqConsumerSettings)
 {
     serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IRabbitMqQueueCreationBuilder>()
-        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
-        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.Source)
-        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.WorkerName)
+        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.Source)
+        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.NumberOfInstances)
         .BuildConsumerAsync(CancellationToken.None).Result);
 }
 
 void AddNonCreationConsumer(IServiceCollection serviceCollection, RabbitMqConsumerSettings rabbitMqConsumerSettings)
 {
     serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IRabbitMqQueueBuilder>()
-        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
-        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.Source)
-        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances)
+        .WithWorkerName(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.WorkerName)
+        .WithQueueName(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.Source)
+        .WithConsumeSettings(rabbitMqConsumerSettings.WebAnalyticsQueueSettings.NumberOfInstances)
         .BuildConsumerAsync(CancellationToken.None).Result);
 }
