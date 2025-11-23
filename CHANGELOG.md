@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.1.2"></a>
+## [1.1.2](https://www.github.com/rehmanab/topica/releases/tag/v1.1.2) (2025-11-23)
+
+### Bug Fixes
+
+* azure service bus queue creation was using topic creation, change to create queue type ([8a246bf](https://www.github.com/rehmanab/topica/commit/8a246bf1bcce0cc3298b1aa6a6f8b15284fc9be2))
+
 <a name="1.1.1"></a>
 ## [1.1.1](https://www.github.com/rehmanab/topica/releases/tag/v1.1.1) (2025-11-23)
 
