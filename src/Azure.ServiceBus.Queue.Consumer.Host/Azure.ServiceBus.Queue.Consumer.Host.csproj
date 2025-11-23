@@ -7,6 +7,8 @@
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <UserSecretsId>29290223-3bf5-4d63-8876-c7815f632e75</UserSecretsId>
+        <IsPackable>false</IsPackable>
+        <LangVersion>default</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
