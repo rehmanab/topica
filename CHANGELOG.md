@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.1.0"></a>
+## [1.1.0](https://www.github.com/rehmanab/topica/releases/tag/v1.1.0) (2025-11-23)
+
+### Features
+
+* Adding Azure service bus queue only consumer/producer ([1fa8b9d](https://www.github.com/rehmanab/topica/commit/1fa8b9dabd287d889d3b3468d017284f9fc5ab37))
+
 <a name="1.0.6"></a>
 ## [1.0.6](https://www.github.com/rehmanab/topica/releases/tag/v1.0.6) (2025-10-23)
 
