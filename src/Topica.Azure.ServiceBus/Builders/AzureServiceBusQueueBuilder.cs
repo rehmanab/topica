@@ -9,6 +9,14 @@ public class AzureServiceBusQueueBuilder(IQueueProviderFactory queueProviderFact
 {
     private string _workerName = null!;
     private string _queueName = null!;
+    private string? _duplicateDetectionHistoryTimeWindow;
+    private bool? _enableBatchedOperations = true;
+    private bool? _enablePartitioning = false;
+    private int? _maxSizeInMegabytes = 1024;
+    private int? _maxMessageSizeInKilobytes = 256;
+    private bool? _enabledStatus = true;
+    private bool? _supportOrdering = false;
+    private string? _metadata;
     private int? _numberOfInstances;
 
     public IAzureServiceBusQueueBuilderWithQueueName WithWorkerName(string workerName)
@@ -20,6 +28,36 @@ public class AzureServiceBusQueueBuilder(IQueueProviderFactory queueProviderFact
     public IAzureServiceBusQueueBuilderWithBuild WithQueueName(string queueName)
     {
         _queueName = queueName;
+        return this;
+    }
+    
+    public IAzureServiceBusQueueBuilderWithBuild WithTimings(
+        string? duplicateDetectionHistoryTimeWindow)
+    {
+        _duplicateDetectionHistoryTimeWindow = duplicateDetectionHistoryTimeWindow;
+        return this;
+    }
+
+    public IAzureServiceBusQueueBuilderWithBuild WithOptions(
+        bool? enableBatchedOperations, 
+        bool? enablePartitioning,
+        int? maxSizeInMegabytes, 
+        int? maxMessageSizeInKilobytes, 
+        bool? enabledStatus,
+        bool? supportOrdering)
+    {
+        _enableBatchedOperations = enableBatchedOperations;
+        _enablePartitioning = enablePartitioning;
+        _maxSizeInMegabytes = maxSizeInMegabytes;
+        _maxMessageSizeInKilobytes = maxMessageSizeInKilobytes;
+        _enabledStatus = enabledStatus;
+        _supportOrdering = supportOrdering;
+        return this;
+    }
+
+    public IAzureServiceBusQueueBuilderWithBuild WithMetadata(string? metadata)
+    {
+        _metadata = metadata;
         return this;
     }
 
@@ -51,6 +89,14 @@ public class AzureServiceBusQueueBuilder(IQueueProviderFactory queueProviderFact
         {
             WorkerName = _workerName,
             Source = _queueName,
+            AzureServiceBusDuplicateDetectionHistoryTimeWindow = _duplicateDetectionHistoryTimeWindow,
+            AzureServiceBusEnableBatchedOperations = _enableBatchedOperations,
+            AzureServiceBusEnablePartitioning = _enablePartitioning,
+            AzureServiceBusMaxSizeInMegabytes = _maxSizeInMegabytes,
+            AzureServiceBusMaxMessageSizeInKilobytes = _maxMessageSizeInKilobytes,
+            AzureServiceBusEnabledStatus = _enabledStatus,
+            AzureServiceBusSupportOrdering = _supportOrdering,
+            AzureServiceBusUserMetadata = _metadata,
             NumberOfInstances = _numberOfInstances ?? 1
         };
     }

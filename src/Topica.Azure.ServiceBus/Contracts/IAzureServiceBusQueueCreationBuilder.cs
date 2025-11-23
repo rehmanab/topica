@@ -14,8 +14,8 @@ public interface IAzureServiceBusQueueCreationBuilderWithQueueName
 
 public interface IAzureServiceBusQueueCreationBuilderWithBuild
 {
-    IAzureServiceBusQueueCreationBuilderWithBuild WithTimings(string? autoDeleteOnIdle, string? defaultMessageTimeToLive, string? duplicateDetectionHistoryTimeWindow);
-    IAzureServiceBusQueueCreationBuilderWithBuild WithOptions(bool? enableBatchedOperations, bool? enablePartitioning, int? maxSizeInMegabytes, bool? requiresDuplicateDetection, int? maxMessageSizeInKilobytes, bool? enabledStatus, bool? supportOrdering);
+    IAzureServiceBusQueueCreationBuilderWithBuild WithTimings(string? duplicateDetectionHistoryTimeWindow);
+    IAzureServiceBusQueueCreationBuilderWithBuild WithOptions(bool? enableBatchedOperations, bool? enablePartitioning, int? maxSizeInMegabytes, int? maxMessageSizeInKilobytes, bool? enabledStatus, bool? supportOrdering);
     IAzureServiceBusQueueCreationBuilderWithBuild WithMetadata(string? metadata);
     IAzureServiceBusQueueCreationBuilderWithBuild WithNumberOfInstances(int? numberOfInstances);
 

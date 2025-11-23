@@ -25,13 +25,10 @@ public class AzureServiceBusQueueHealthCheck(IAzureServiceBusAdministrationClien
             {
                 var queueOptions = new CreateQueueOptions(queueName)
                 {
-                    AutoDeleteOnIdle = TimeSpan.MaxValue, // Default
                     DefaultMessageTimeToLive = TimeSpan.MaxValue, // Default
-                    DuplicateDetectionHistoryTimeWindow = TimeSpan.FromMinutes(1), // Default
                     EnableBatchedOperations = true, // Default
                     EnablePartitioning = false, // Default
                     MaxSizeInMegabytes = 1024, // Default
-                    RequiresDuplicateDetection = true,
                     UserMetadata = "", // Default
                     MaxMessageSizeInKilobytes = 256, // Default - 256 KB (standard tier) or 100 MB (premium tier)
                     Status = EntityStatus.Active, // Default

@@ -14,6 +14,9 @@ public interface IAzureServiceBusQueueBuilderWithQueueName
 
 public interface IAzureServiceBusQueueBuilderWithBuild
 {
+    IAzureServiceBusQueueBuilderWithBuild WithTimings(string? duplicateDetectionHistoryTimeWindow);
+    IAzureServiceBusQueueBuilderWithBuild WithOptions(bool? enableBatchedOperations, bool? enablePartitioning, int? maxSizeInMegabytes, int? maxMessageSizeInKilobytes, bool? enabledStatus, bool? supportOrdering);
+    IAzureServiceBusQueueBuilderWithBuild WithMetadata(string? metadata);
     IAzureServiceBusQueueBuilderWithBuild WithNumberOfInstances(int? numberOfInstances);
     
     Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);

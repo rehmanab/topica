@@ -16,13 +16,10 @@ public class AzureServiceBusQueueProvider(IAzureServiceBusAdministrationClientPr
     {
         var queueOptions = new CreateQueueOptions(settings.Source)
         {
-            AutoDeleteOnIdle = TimeSpan.TryParse(settings.AzureServiceBusAutoDeleteOnIdle!, out var autoDeleteOnIdleTopic) ? autoDeleteOnIdleTopic : TimeSpan.MaxValue, // Default
-            DefaultMessageTimeToLive = TimeSpan.TryParse(settings.AzureServiceBusDefaultMessageTimeToLive!, out var defaultMessageTimeToLiveTopic) ? defaultMessageTimeToLiveTopic : TimeSpan.MaxValue, // Default
             DuplicateDetectionHistoryTimeWindow = TimeSpan.TryParse(settings.AzureServiceBusDuplicateDetectionHistoryTimeWindow!, out var duplicateDetectionHistoryTimeWindowTopic) ? duplicateDetectionHistoryTimeWindowTopic : TimeSpan.FromMinutes(1), // Default
             EnableBatchedOperations = settings.AzureServiceBusEnableBatchedOperations ?? true, // Default
             EnablePartitioning = settings.AzureServiceBusEnablePartitioning ?? false, // Default
             MaxSizeInMegabytes = settings.AzureServiceBusMaxSizeInMegabytes ?? 1024, // Default
-            RequiresDuplicateDetection = settings.AzureServiceBusRequiresDuplicateDetection ?? true,
             UserMetadata = settings.AzureServiceBusUserMetadata ?? "", // Default
             MaxMessageSizeInKilobytes = settings.AzureServiceBusMaxMessageSizeInKilobytes ?? 256, // Default - 256 KB (standard tier) or 100 MB (premium tier)
             Status = settings.AzureServiceBusEnabledStatus.HasValue && !settings.AzureServiceBusEnabledStatus.Value ? EntityStatus.Disabled : EntityStatus.Active, // Default

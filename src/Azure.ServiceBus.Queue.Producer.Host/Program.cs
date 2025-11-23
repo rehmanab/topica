@@ -71,8 +71,6 @@ void AddCreationProducer(IServiceCollection serviceCollection, AzureServiceBusPr
         .WithQueueName(azureServiceBusProducerSettings.WebAnalyticsQueueSettings.Source)
         .WithTimings
         (
-            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.AutoDeleteOnIdle,
-            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.DefaultMessageTimeToLive,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.DuplicateDetectionHistoryTimeWindow
         )
         .WithOptions
@@ -80,7 +78,6 @@ void AddCreationProducer(IServiceCollection serviceCollection, AzureServiceBusPr
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnableBatchedOperations,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnablePartitioning,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.MaxSizeInMegabytes,
-            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.RequiresDuplicateDetection,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.MaxMessageSizeInKilobytes,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnabledStatus,
             azureServiceBusProducerSettings.WebAnalyticsQueueSettings.SupportOrdering
@@ -95,6 +92,20 @@ void AddNonCreationProducer(IServiceCollection serviceCollection, AzureServiceBu
     serviceCollection.AddKeyedSingleton<IProducer>("Producer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAzureServiceBusQueueBuilder>()
         .WithWorkerName(azureServiceBusProducerSettings.WebAnalyticsQueueSettings.WorkerName)
         .WithQueueName(azureServiceBusProducerSettings.WebAnalyticsQueueSettings.Source)
+        .WithTimings
+        (
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.DuplicateDetectionHistoryTimeWindow
+        )
+        .WithOptions
+        (
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnableBatchedOperations,
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnablePartitioning,
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.MaxSizeInMegabytes,
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.MaxMessageSizeInKilobytes,
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.EnabledStatus,
+            azureServiceBusProducerSettings.WebAnalyticsQueueSettings.SupportOrdering
+        )
+        .WithMetadata(azureServiceBusProducerSettings.WebAnalyticsQueueSettings.UserMetadata)
         .WithNumberOfInstances(1)
         .BuildProducerAsync(CancellationToken.None).Result);
 }

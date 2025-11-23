@@ -9,20 +9,17 @@ namespace Topica.Azure.ServiceBus.Builders;
 
 public class AzureServiceBusQueueCreationBuilder(
     IPollyRetryService pollyRetryService,
-    ITopicProviderFactory topicProviderFactory, 
+    IQueueProviderFactory queueProviderFactory, 
     IAzureServiceBusClientProvider provider, 
     ILogger<AzureServiceBusQueueCreationBuilder> logger) 
     : IAzureServiceBusQueueCreationBuilder, IAzureServiceBusQueueCreationBuilderWithQueueName, IAzureServiceBusQueueCreationBuilderWithBuild
 {
     private string _workerName = null!;
     private string _queueName = null!;
-    private string? _autoDeleteOnIdle;
-    private string? _defaultMessageTimeToLive;
     private string? _duplicateDetectionHistoryTimeWindow;
     private bool? _enableBatchedOperations = true;
     private bool? _enablePartitioning = false;
     private int? _maxSizeInMegabytes = 1024;
-    private bool? _requiresDuplicateDetection = true;
     private int? _maxMessageSizeInKilobytes = 256;
     private bool? _enabledStatus = true;
     private bool? _supportOrdering = false;
@@ -42,12 +39,8 @@ public class AzureServiceBusQueueCreationBuilder(
     }
 
     public IAzureServiceBusQueueCreationBuilderWithBuild WithTimings(
-        string? autoDeleteOnIdle,
-        string? defaultMessageTimeToLive, 
         string? duplicateDetectionHistoryTimeWindow)
     {
-        _autoDeleteOnIdle = autoDeleteOnIdle;
-        _defaultMessageTimeToLive = defaultMessageTimeToLive;
         _duplicateDetectionHistoryTimeWindow = duplicateDetectionHistoryTimeWindow;
         return this;
     }
@@ -56,7 +49,6 @@ public class AzureServiceBusQueueCreationBuilder(
         bool? enableBatchedOperations, 
         bool? enablePartitioning,
         int? maxSizeInMegabytes, 
-        bool? requiresDuplicateDetection, 
         int? maxMessageSizeInKilobytes, 
         bool? enabledStatus,
         bool? supportOrdering)
@@ -64,7 +56,6 @@ public class AzureServiceBusQueueCreationBuilder(
         _enableBatchedOperations = enableBatchedOperations;
         _enablePartitioning = enablePartitioning;
         _maxSizeInMegabytes = maxSizeInMegabytes;
-        _requiresDuplicateDetection = requiresDuplicateDetection;
         _maxMessageSizeInKilobytes = maxMessageSizeInKilobytes;
         _enabledStatus = enabledStatus;
         _supportOrdering = supportOrdering;
@@ -85,7 +76,7 @@ public class AzureServiceBusQueueCreationBuilder(
 
     public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
     {
-        var topicProvider = topicProviderFactory.Create(MessagingPlatform.AzureServiceBus);
+        var queueProvider = queueProviderFactory.Create(MessagingPlatform.AzureServiceBus);
         var messagingSettings = GetMessagingSettings();
         
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for consumer: {Name} to Source: {MessagingSettings}", MessagingPlatform.AzureServiceBus, _workerName, messagingSettings.Source);
@@ -99,7 +90,7 @@ public class AzureServiceBusQueueCreationBuilder(
                 30,
                 _ => TimeSpan.FromSeconds(10),
                 (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
-                ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+                ct => queueProvider.CreateQueueAsync(messagingSettings, ct),
                 false,
                 cancellationToken
             );
@@ -109,14 +100,14 @@ public class AzureServiceBusQueueCreationBuilder(
             logger.LogInformation("Azure Service Bus Consumer: {ConsumerName} is using the Emulator endpoint: {ConnectionStringEndpoint} .. Skipping Creation as it's not supported", _workerName, connectionStringEndpoint);
         }
 
-        return await topicProvider.ProvideConsumerAsync(messagingSettings);
+        return await queueProvider.ProvideConsumerAsync(messagingSettings);
     }
 
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
     {
         var messagingSettings = GetMessagingSettings();
 
-        var topicProvider = topicProviderFactory.Create(MessagingPlatform.AzureServiceBus);
+        var queueProvider = queueProviderFactory.Create(MessagingPlatform.AzureServiceBus);
             
         logger.LogInformation("***** Please Wait - Connecting to {MessagingPlatform} for producer: {Name} to Source: {MessagingSettings}", MessagingPlatform.AzureServiceBus, _workerName, messagingSettings.Source);
         
@@ -129,7 +120,7 @@ public class AzureServiceBusQueueCreationBuilder(
                 30,
                 _ => TimeSpan.FromSeconds(10),
                 (delegateResult, ts, index, context) => logger.LogWarning("**** RETRY: {Name}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Error ({ExceptionType}) Message: {Result}", nameof(AzureServiceBusTopicCreationBuilder), index, ts, delegateResult.GetType(), delegateResult.Message ?? "Error creating topic, queue, subscriptions."),
-                ct => topicProvider.CreateTopicAsync(messagingSettings, ct),
+                ct => queueProvider.CreateQueueAsync(messagingSettings, ct),
                 false,
                 cancellationToken
             );
@@ -139,7 +130,7 @@ public class AzureServiceBusQueueCreationBuilder(
             logger.LogInformation("Azure Service Bus Producer: {ProducerName} is using the Emulator endpoint: {ConnectionStringEndpoint} .. Skipping Creation as it's not supported", _workerName, connectionStringEndpoint);
         }
 
-        return await topicProvider.ProvideProducerAsync(_workerName, messagingSettings);
+        return await queueProvider.ProvideProducerAsync(_workerName, messagingSettings);
     }
 
     private MessagingSettings GetMessagingSettings()
@@ -148,13 +139,10 @@ public class AzureServiceBusQueueCreationBuilder(
         {
             WorkerName = _workerName,
             Source = _queueName,
-            AzureServiceBusAutoDeleteOnIdle = _autoDeleteOnIdle,
-            AzureServiceBusDefaultMessageTimeToLive = _defaultMessageTimeToLive,
             AzureServiceBusDuplicateDetectionHistoryTimeWindow = _duplicateDetectionHistoryTimeWindow,
             AzureServiceBusEnableBatchedOperations = _enableBatchedOperations,
             AzureServiceBusEnablePartitioning = _enablePartitioning,
             AzureServiceBusMaxSizeInMegabytes = _maxSizeInMegabytes,
-            AzureServiceBusRequiresDuplicateDetection = _requiresDuplicateDetection,
             AzureServiceBusMaxMessageSizeInKilobytes = _maxMessageSizeInKilobytes,
             AzureServiceBusEnabledStatus = _enabledStatus,
             AzureServiceBusSupportOrdering = _supportOrdering,
