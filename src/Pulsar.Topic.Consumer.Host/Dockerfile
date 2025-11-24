@@ -1,11 +1,11 @@
 ﻿# buid and run from the src folder using cmd
 # docker build -f Pulsar.Topic.Consumer.Host\Dockerfile -t pulsar.topic.consumer.host:latest . && docker run -d --name pulsar.topic.consumer.host pulsar.topic.consumer.host:latest
 
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Pulsar.Topic.Consumer.Host/Pulsar.Topic.Consumer.Host.csproj", "Pulsar.Topic.Consumer.Host/"]
