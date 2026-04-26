@@ -8,7 +8,7 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <LangVersion>default</LangVersion>
         <IsPackable>false</IsPackable>
-        <UserSecretsId>e9e5ab3f-e4a4-40de-9d8c-a8f3805f2486</UserSecretsId>
+        <UserSecretsId>Azure.ServiceBus.Topic.Consumer.Host</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

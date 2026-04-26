@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <UserSecretsId>e496c13c-431f-49ac-82d8-15632112a913</UserSecretsId>
+        <UserSecretsId>Azure.ServiceBus.Topic.Producer.Host</UserSecretsId>
         <IsPackable>false</IsPackable>
         <LangVersion>default</LangVersion>
     </PropertyGroup>

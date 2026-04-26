@@ -5,7 +5,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>0d933513-cba7-4ea6-bcc8-2310785f6f7c</UserSecretsId>
+        <UserSecretsId>Topica.Web</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <PackageProjectUrl>https://github.com/rehmanab/topica</PackageProjectUrl>
         <RepositoryUrl>https://github.com/rehmanab/topica</RepositoryUrl>
