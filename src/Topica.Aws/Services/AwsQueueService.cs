@@ -24,7 +24,7 @@ namespace Topica.Aws.Services
         public async Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken)
         {
             queueName = TopicQueueHelper.AddTopicQueueNameFifoSuffix(queueName, isFifo);
-            
+
             try
             {
                 var response = await client.GetQueueUrlAsync(queueName, cancellationToken);
@@ -56,16 +56,16 @@ namespace Topica.Aws.Services
             return queueAttributes;
         }
 
-        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration? awsSqsConfiguration, CancellationToken cancellationToken)
+        public async Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration, CancellationToken cancellationToken)
         {
-            var queueUrl = await GetQueueUrlAsync(queueName, awsSqsConfiguration?.QueueAttributes.IsFifoQueue ?? false, cancellationToken);
-            
+            var queueUrl = await GetQueueUrlAsync(queueName, awsSqsConfiguration.QueueAttributes.IsFifoQueue, cancellationToken);
+
             if (!string.IsNullOrWhiteSpace(queueUrl))
             {
                 logger.LogDebug("**** EXISTS: queue already exists, queueUrl: {QueueUrl}", queueUrl);
                 return queueUrl;
             }
-            
+
             var createQueueType = awsSqsConfiguration.CreateErrorQueue
                 ? AwsQueueCreationType.WithErrorQueue
                 : AwsQueueCreationType.SoleQueue;
@@ -79,7 +79,7 @@ namespace Topica.Aws.Services
 
             queueUrl = await queueCreator.CreateQueue(queueName, awsSqsConfiguration, cancellationToken);
             logger.LogDebug("**** CREATED QUEUE SUCCESS: QueueUrl: {QueueUrl}", queueUrl);
-            
+
             return queueUrl;
         }
 
@@ -94,8 +94,8 @@ namespace Topica.Aws.Services
         public async Task<bool> DeleteQueueAsync(string? queueUrl, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(queueUrl)) return true;
-            
-            try       
+
+            try
             {
                 var response = await client.DeleteQueueAsync(queueUrl, cancellationToken);
                 return response.HttpStatusCode == HttpStatusCode.OK;

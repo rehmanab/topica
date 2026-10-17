@@ -64,7 +64,7 @@ namespace Topica.Aws.Consumers
                 (
                     5,
                     _ => TimeSpan.FromSeconds(3),
-                    (delegateResult, ts, index, context) => _logger.LogWarning("**** RETRY: {Name}:{ConsumerName}:  Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueConsumer), consumerName, index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
+                    (delegateResult, ts, index, context) => _logger.LogWarning("**** RETRY: {Name}:{ConsumerName}: Retry attempt: {RetryAttempt} - Retry in {RetryDelayTotalSeconds} - Result: {Result}", nameof(AwsQueueConsumer), consumerName, index, ts, delegateResult.Exception?.Message ?? "The result did not pass the result condition."),
                     result => string.IsNullOrWhiteSpace(result) || !result.StartsWith("http"),
                     ct => _awsQueueService.GetQueueUrlAsync(_messagingSettings.SubscribeToSource, _messagingSettings.AwsIsFifoQueue, ct),
                     false,

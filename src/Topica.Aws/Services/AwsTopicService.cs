@@ -22,19 +22,15 @@ namespace Topica.Aws.Services
         ILogger<AwsTopicService> logger) 
         : IAwsTopicService
     {
-        public async IAsyncEnumerable<IEnumerable<Topic>> GetAllTopics(string? topicNamePrefix = null, bool? isFifo = false)
+        public async IAsyncEnumerable<IEnumerable<Topic>> GetAllTopics(string? topicName = null, bool? isFifo = false)
         {
             Func<Topic, bool> filterTopics = x =>
             {
-                if (string.IsNullOrWhiteSpace(topicNamePrefix)) return true;
+                if (string.IsNullOrWhiteSpace(topicName)) return true;
 
                 if (string.IsNullOrWhiteSpace(x.TopicArn) || !x.TopicArn.Contains(':')) return false;
 
-                var lastEntryTopicName = x.TopicArn.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
-
-                return !string.IsNullOrWhiteSpace(lastEntryTopicName)
-                       && lastEntryTopicName.StartsWith(topicNamePrefix, StringComparison.CurrentCultureIgnoreCase)
-                       && (isFifo.HasValue && isFifo.Value ? lastEntryTopicName.EndsWith(Constants.FifoSuffix) : !lastEntryTopicName.EndsWith(Constants.FifoSuffix));
+                return x.TopicArn.EndsWith($":{TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName, isFifo ?? false)}", StringComparison.InvariantCultureIgnoreCase);
             };
 
             var response = await snsClient.ListTopicsAsync();
@@ -46,7 +42,9 @@ namespace Topica.Aws.Services
             while (!string.IsNullOrWhiteSpace(response.NextToken))
             {
                 response = await snsClient.ListTopicsAsync(response.NextToken);
+                
                 if (response?.Topics == null || response.Topics.Count == 0) yield break;
+                
                 yield return response.Topics.Where(filterTopics);
             }
         }
@@ -60,15 +58,62 @@ namespace Topica.Aws.Services
             do
             {
                 var response = await snsClient.ListTopicsAsync(nextToken);
-                if (response?.Topics == null) break;
+                
+                if (response?.Topics == null || response.Topics.Count == 0) break;
 
-                topicArnFound = response.Topics.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.TopicArn) && string.Equals(x.TopicArn.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault(), TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName, isFifo), StringComparison.InvariantCultureIgnoreCase))?.TopicArn;
+                topicArnFound = response.Topics.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.TopicArn) && x.TopicArn.EndsWith($":{TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName, isFifo)}", StringComparison.InvariantCultureIgnoreCase))?.TopicArn;
                 
                 if (!string.IsNullOrWhiteSpace(topicArnFound)) found = true;
+                
                 nextToken = response.NextToken;
             } while (!found && !string.IsNullOrWhiteSpace(nextToken));
 
             return !string.IsNullOrWhiteSpace(topicArnFound) ? topicArnFound : null;
+        }
+        
+        public async IAsyncEnumerable<IEnumerable<Subscription>> GetAllSubscriptions(string topicName, bool isFifo = false)
+        {
+            Func<Subscription, bool> filterTopics = x =>
+            {
+                if (string.IsNullOrWhiteSpace(topicName)) return true;
+
+                if (string.IsNullOrWhiteSpace(x.TopicArn) || !x.TopicArn.Contains(':')) return false;
+
+                return x.TopicArn.EndsWith($":{TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName, isFifo)}", StringComparison.InvariantCultureIgnoreCase);
+            };
+
+            var response = await snsClient.ListSubscriptionsAsync();
+
+            if (response.Subscriptions == null || !response.Subscriptions.Any()) yield break;
+
+            yield return response.Subscriptions.Where(filterTopics);
+
+            while (!string.IsNullOrWhiteSpace(response.NextToken))
+            {
+                response = await snsClient.ListSubscriptionsAsync(response.NextToken);
+		
+                if (response.Subscriptions == null || !response.Subscriptions.Any()) yield break;
+		
+                yield return response.Subscriptions.Where(filterTopics);
+            }
+        }
+        
+        public async IAsyncEnumerable<IEnumerable<Subscription>> GetSubscriptions(string topicArn)
+        {
+            var response = await snsClient.ListSubscriptionsByTopicAsync(topicArn);
+
+            if (response?.Subscriptions == null || response.Subscriptions.Count == 0) yield break;
+
+            yield return response.Subscriptions;
+
+            while (!string.IsNullOrWhiteSpace(response.NextToken))
+            {
+                response = await snsClient.ListSubscriptionsByTopicAsync(topicArn, response.NextToken);
+		
+                if (response?.Subscriptions == null || response.Subscriptions.Count == 0) yield break;
+		
+                yield return response.Subscriptions;
+            }
         }
 
         public async Task<bool> TopicExistsAsync(string topicName)
@@ -123,6 +168,11 @@ namespace Topica.Aws.Services
         public async Task<string> CreateTopicWithOptionalQueuesSubscribedAsync(string topicName, string[] queueNames, AwsSqsConfiguration sqsConfiguration, CancellationToken cancellationToken)
         {
             var topicArn = await CreateTopicArnAsync(topicName, sqsConfiguration.QueueAttributes.IsFifoQueue);
+            
+            if(string.IsNullOrWhiteSpace(topicArn))
+            {
+                throw new ApplicationException($"Could not create topic: {topicName}");
+            }
 
             foreach (var queueName in queueNames)
             {
@@ -175,7 +225,7 @@ namespace Topica.Aws.Services
             return topicArn;
         }
 
-        private static string BuildQueueAllowPolicyForTopicToSendMessage(string queueArn, string topicArn)
+        public string BuildQueueAllowPolicyForTopicToSendMessage(string queueArn, string topicArn)
         {
             const Statement.StatementEffect statementEffect = Statement.StatementEffect.Allow;
             var sourceArnWildcard = CreateResourceArnWildcard(topicArn);
@@ -190,7 +240,7 @@ namespace Topica.Aws.Services
                     .WithActionIdentifiers(actionIdentifiers)).ToJson();
         }
 
-        private static string CreateResourceArnWildcard(string resourceArn)
+        public string CreateResourceArnWildcard(string resourceArn)
         {
             if (string.IsNullOrWhiteSpace(resourceArn) ||
                 !resourceArn.StartsWith("arn", StringComparison.InvariantCultureIgnoreCase))

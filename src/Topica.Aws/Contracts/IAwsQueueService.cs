@@ -10,7 +10,7 @@ namespace Topica.Aws.Contracts
         Task<string?> GetQueueUrlAsync(string queueName, CancellationToken cancellationToken);
         Task<string?> GetQueueUrlAsync(string queueName, bool isFifo, CancellationToken cancellationToken);
         Task<IDictionary<string, string>> GetAttributesByQueueUrl(string queueUrl, IEnumerable<string>? attributeNames = null);
-        Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration? awsSqsConfiguration, CancellationToken cancellationToken);
+        Task<string> CreateQueueAsync(string queueName, AwsSqsConfiguration awsSqsConfiguration, CancellationToken cancellationToken);
         Task<bool> UpdateQueueAttributesAsync(string queueUrl, AwsSqsConfiguration configuration);
         Task<bool> DeleteQueueAsync(string? queueUrl, CancellationToken cancellationToken);
         Task<bool> DeleteMessageAsync(string queueUrl, string receiptHandle);

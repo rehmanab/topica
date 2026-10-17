@@ -50,14 +50,6 @@ public class AwsTopicBuilder(ITopicProviderFactory topicProviderFactory)
         return this;
     }
 
-    public async Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken)
-    {
-        var topicProvider = topicProviderFactory.Create(MessagingPlatform.Aws);
-        var messagingSettings = GetMessagingSettings(_subscribeToQueueName);
-
-        return await topicProvider.ProvideConsumerAsync(messagingSettings);
-    }
-
     public async Task<IProducer> BuildProducerAsync(CancellationToken cancellationToken)
     {
         var topicProvider = topicProviderFactory.Create(MessagingPlatform.Aws);

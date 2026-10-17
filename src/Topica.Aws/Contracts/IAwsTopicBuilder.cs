@@ -25,13 +25,6 @@ namespace Topica.Aws.Contracts
         IAwsTopicBuilderWithBuild WithConsumeSettings(int? numberOfInstances, int? receiveMaximumNumberOfMessages);
         
         /// <summary>
-        /// Builds the consumer with the specified number of instances and maximum number of messages to receive.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token</param>
-        /// <returns>Returns an <see cref="IConsumer"/> instance, ready to consume the SubscribeToQueueName app setting</returns>
-        Task<IConsumer> BuildConsumerAsync(CancellationToken cancellationToken);
-        
-        /// <summary>
         /// Builds the producer, ready to send messages to the topic.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token</param>

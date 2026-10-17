@@ -61,7 +61,6 @@ var host = Host.CreateDefaultBuilder()
         services.AddHostedService<Worker>();
 
         AddCreationProducer(services, settings);
-        // AddNonCreationProducer(services, settings);
     })
     .Build();
 
@@ -90,22 +89,6 @@ void AddCreationProducer(IServiceCollection serviceCollection, AwsConsumerSettin
             awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMessageWaitTimeSeconds
         )
         .WithQueueSettings(awsConsumerSettings.WebAnalyticsTopicSettings.QueueMaximumMessageSize)
-        .WithConsumeSettings(
-            awsConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances,
-            awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages
-        ).BuildConsumerAsync(CancellationToken.None).Result);
-}
-
-void AddNonCreationProducer(IServiceCollection serviceCollection, AwsConsumerSettings awsConsumerSettings)
-{
-    serviceCollection.AddKeyedSingleton<IConsumer>("Consumer", (_, _) => serviceCollection.BuildServiceProvider().GetRequiredService<IAwsTopicBuilder>()
-        .WithWorkerName(awsConsumerSettings.WebAnalyticsTopicSettings.WorkerName)
-        .WithTopicName(awsConsumerSettings.WebAnalyticsTopicSettings.Source)
-        .WithQueueToSubscribeTo(awsConsumerSettings.WebAnalyticsTopicSettings.SubscribeToSource)
-        .WithFifoSettings(
-            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoQueue,
-            awsConsumerSettings.WebAnalyticsTopicSettings.IsFifoContentBasedDeduplication
-        )
         .WithConsumeSettings(
             awsConsumerSettings.WebAnalyticsTopicSettings.NumberOfInstances,
             awsConsumerSettings.WebAnalyticsTopicSettings.QueueReceiveMaximumNumberOfMessages

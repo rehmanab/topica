@@ -11,8 +11,12 @@ using Topica.Aws.Contracts;
 
 namespace Topica.Aws.Services;
 
+// ReSharper disable once ContextualLoggerProblem - used to accross other classes
 public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientService
 {
+    private const string DefaultEmulatorServiceUrl = "http://localhost:4566";
+    private const string DefaultEmulatorRegion = "us-east-1";
+    
     public IAmazonSQS GetSqsClient(AwsTopicaConfiguration awsSettings)
     {
         var sharedFile = new SharedCredentialsFile();
@@ -49,14 +53,17 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
             return new AmazonSQSClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
         }
             
-        // Get from LocalStack
-        if (string.IsNullOrWhiteSpace(awsSettings.ServiceUrl))
-        {
-            throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(AmazonSQSClient)}");
-        }
-        logger.LogDebug($"**** AWS PROFILE: Using LOCALSTACK for {nameof(AmazonSQSClient)}");
-        config.ServiceURL = awsSettings.ServiceUrl;
-        return new AmazonSQSClient(new BasicAWSCredentials("", ""), config);
+        // Get from Emulator
+            
+        var emulatorRegion = awsSettings.RegionEndpoint ?? DefaultEmulatorRegion;
+        
+        config.RegionEndpoint = RegionEndpoint.GetBySystemName(emulatorRegion);
+        config.ServiceURL = awsSettings.ServiceUrl ?? DefaultEmulatorServiceUrl;
+        config.AuthenticationRegion = emulatorRegion;
+        
+        logger.LogDebug($"**** AWS PROFILE: Using Emulator for {nameof(AmazonSQSClient)}");
+        
+        return new AmazonSQSClient(new BasicAWSCredentials("test", "test"), config);
     }
 
     public IAmazonSimpleNotificationService GetSnsClient(AwsTopicaConfiguration awsSettings)
@@ -95,14 +102,17 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
             return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
         }
             
-        // Get from LocalStack
-        if (string.IsNullOrWhiteSpace(awsSettings.ServiceUrl))
-        {
-            throw new Exception($"Please set the ServiceUrl to use localstack for {nameof(AmazonSimpleNotificationServiceClient)}");
-        }
-        logger.LogDebug($"**** AWS PROFILE: Using LOCALSTACK for {nameof(AmazonSimpleNotificationServiceClient)}");
-        config.ServiceURL = awsSettings.ServiceUrl;
-        return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("", ""), config);
+        // Get from Emulator
+        
+        var emulatorRegion = awsSettings.RegionEndpoint ?? DefaultEmulatorRegion;
+        
+        config.RegionEndpoint = RegionEndpoint.GetBySystemName(emulatorRegion);
+        config.ServiceURL = awsSettings.ServiceUrl ?? DefaultEmulatorServiceUrl;
+        config.AuthenticationRegion = emulatorRegion;
+        
+        logger.LogDebug($"**** AWS PROFILE: Using Emulator for {nameof(AmazonSQSClient)}");
+        
+        return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("test", "test"), config);
     }
 
     private RegionEndpoint GetRegionEndpoint(string profileName, string? regionEndpointSystemName, CredentialProfile? profile, RegionEndpoint defaultRegionEndpoint)

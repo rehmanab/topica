@@ -20,30 +20,61 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class AwsServiceExtensions
 {
-    public static IServiceCollection AddAwsTopica(this IServiceCollection services, Action<AwsTopicaConfiguration> configuration, Assembly assembly)
+    extension(IServiceCollection services)
     {
-        if (assembly == null)
+        public IServiceCollection AddAwsTopica(Action<AwsTopicaConfiguration> configuration, Assembly assembly)
         {
-            throw new Exception($"{nameof(AwsServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
-        }
+            if (assembly == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
         
-        var config = new AwsTopicaConfiguration();
-        configuration(config);
+            var config = new AwsTopicaConfiguration();
+            configuration(config);
             
-        var serviceProvider = services.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider();
             
-        var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
+            var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
             
-        if (logger == null)
-        {
-            throw new Exception($"{nameof(AwsServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
+            if (logger == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
+            }
+            
+            var awsClientService = new AwsClientService(logger);
+            services.AddTransient<IPollyRetryService, PollyRetryService>();
+        
+            return CreateServiceCollection(services, assembly, awsClientService, logger, awsClientService.GetSnsClient(config), awsClientService.GetSqsClient(config));
         }
+
+        public IServiceCollection AddAwsTopica(IAmazonSimpleNotificationService snsService, IAmazonSQS sqsClient, Assembly assembly)
+        {
+            if (assembly == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: entry assembly is null, this can happen if the executing application is from unmanaged code");
+            }
             
-        var awsClientService = new AwsClientService(logger);
-        services.AddTransient<IPollyRetryService, PollyRetryService>();
+            var serviceProvider = services.BuildServiceProvider();
+            
+            var logger = serviceProvider.GetService<ILogger<MessagingPlatform>>();
+            
+            if (logger == null)
+            {
+                throw new Exception($"{nameof(AwsServiceExtensions)}: logger is null, this can happen if the executing application is from unmanaged code");
+            }
+            
+            var awsClientService = new AwsClientService(logger);
+            services.AddTransient<IPollyRetryService, PollyRetryService>();
+        
+            return CreateServiceCollection(services, assembly, awsClientService, logger, snsService, sqsClient);
+        }
+    }
+
+    private static IServiceCollection CreateServiceCollection(IServiceCollection services, Assembly assembly, AwsClientService awsClientService, ILogger<MessagingPlatform> logger, IAmazonSimpleNotificationService snsService, IAmazonSQS sqsClient)
+    {
         services.AddTransient<IAwsClientService>(_ => awsClientService);
-        services.AddTransient<IAmazonSimpleNotificationService>(_ => awsClientService.GetSnsClient(config));
-        services.AddTransient<IAmazonSQS>(_ => awsClientService.GetSqsClient(config));
+        services.AddTransient<IAmazonSimpleNotificationService>(_ => snsService);
+        services.AddTransient<IAmazonSQS>(_ => sqsClient);
         services.AddTransient<IAwsQueueService, AwsQueueService>();
         services.AddTransient<IAwsTopicService, AwsTopicService>();
         services.AddTransient<IAwsQueueBuilder, AwsQueueBuilder>();

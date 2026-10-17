@@ -100,9 +100,9 @@ internal class AwsTopicProducer(string producerName, IAwsTopicService awsTopicSe
         switch (topicArns.Count)
         {
             case 0:
-                throw new Exception($"No topic found for prefix: {topicName}");
+                throw new Exception($"No topic found for topic name: {topicName}");
             case > 1:
-                throw new Exception($"More than 1 topic found for prefix: {topicName}");
+                throw new Exception($"More than 1 topic found for topic name: {topicName}");
         }
         
         return topicArns.First().TopicArn;
