@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.1.4"></a>
+## [1.1.4](https://www.github.com/rehmanab/topica/releases/tag/v1.1.4) (2026-10-17)
+
+### Bug Fixes
+
+* multiple AWS topic names to match name, not starts with ([a07f229](https://www.github.com/rehmanab/topica/commit/a07f2295b0f24c4b30f13e6a73175f9af1817119))
+
 <a name="1.1.3"></a>
 ## [1.1.3](https://www.github.com/rehmanab/topica/releases/tag/v1.1.3) (2025-11-24)
 
