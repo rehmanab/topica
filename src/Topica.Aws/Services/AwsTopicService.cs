@@ -62,7 +62,8 @@ namespace Topica.Aws.Services
                 var response = await snsClient.ListTopicsAsync(nextToken);
                 if (response?.Topics == null) break;
 
-                topicArnFound = response.Topics.Select(x => x.TopicArn.ToLower()).SingleOrDefault(y => y.EndsWith(TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName.ToLower(), isFifo)));
+                topicArnFound = response.Topics.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.TopicArn) && string.Equals(x.TopicArn.Split(":".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).LastOrDefault(), TopicQueueHelper.AddTopicQueueNameFifoSuffix(topicName, isFifo), StringComparison.InvariantCultureIgnoreCase))?.TopicArn;
+                
                 if (!string.IsNullOrWhiteSpace(topicArnFound)) found = true;
                 nextToken = response.NextToken;
             } while (!found && !string.IsNullOrWhiteSpace(nextToken));
