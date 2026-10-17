@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [versionize](https://github.com/versionize/versionize) for commit guidelines.
 
+<a name="1.1.5"></a>
+## [1.1.5](https://www.github.com/rehmanab/topica/releases/tag/v1.1.5) (2026-10-17)
+
 <a name="1.1.4"></a>
 ## [1.1.4](https://www.github.com/rehmanab/topica/releases/tag/v1.1.4) (2026-10-17)
 
