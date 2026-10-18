@@ -14,8 +14,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Topica\Topica.csproj" />
-        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.2.7" />
-        <PackageReference Include="AWSSDK.SQS" Version="4.0.2.5" />
+        <PackageReference Include="AWSSDK.SecurityToken" Version="4.0.101.4" />
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.100.19" />
+        <PackageReference Include="AWSSDK.SQS" Version="4.0.100.18" />
     </ItemGroup>
 
     <ItemGroup>

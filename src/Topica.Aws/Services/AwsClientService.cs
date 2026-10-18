@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Linq;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
-using Amazon.SimpleNotificationService;
-using Amazon.SQS;
+using Amazon.SecurityToken;
+using Amazon.SecurityToken.Model;
 using Microsoft.Extensions.Logging;
-using Topica.Aws.Configuration;
 using Topica.Aws.Contracts;
 
 namespace Topica.Aws.Services;
@@ -17,123 +15,58 @@ public class AwsClientService(ILogger<MessagingPlatform> logger) : IAwsClientSer
     private const string DefaultEmulatorServiceUrl = "http://localhost:4566";
     private const string DefaultEmulatorRegion = "us-east-1";
     
-    public IAmazonSQS GetSqsClient(AwsTopicaConfiguration awsSettings)
+    public TClient GetAwsClient<TClient, TConfig>(string? profileName = null, string? regionEndpoint = null, string? serviceUrl = null)
+        where TClient : AmazonServiceClient
+        where TConfig : ClientConfig, new()
     {
         var sharedFile = new SharedCredentialsFile();
-        var config = new AmazonSQSConfig();
-        
-        // Get from Profile name in credentials file
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName))
-        {
-            var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
-            if(!tryGetProfile) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
-        
-            if (AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
-            {
-                var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
-                var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
-                logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {ClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSQSClient));
-            
-                config.RegionEndpoint = regionEndpoint;
-                if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
-            
-                return new AmazonSQSClient(credentials, config);
-            }
-        }
-        
-        // Get from Access key & Secret from local appsettings.json -> AwsHostSettings
-        if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
-        {
-            var regionEndpoint = GetRegionEndpoint("awsSettings", awsSettings.RegionEndpoint, null, config.RegionEndpoint);
-            logger.LogDebug("**** AWS PROFILE: Using AwsAccessKeyId & AwsSecretAccessKey from appsettings.json for Region: {Region} {ServiceUrl} for {GetSqsClientName}", regionEndpoint, !string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? $" - ServiceUrl: {awsSettings.ServiceUrl}" : "", nameof(AmazonSQSClient));
+        var config = new TConfig();
 
-            config.RegionEndpoint = regionEndpoint;
-            if (!string.IsNullOrWhiteSpace(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
-            
-            return new AmazonSQSClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
-        }
-            
-        // Get from Emulator
-            
-        var emulatorRegion = awsSettings.RegionEndpoint ?? DefaultEmulatorRegion;
-        
-        config.RegionEndpoint = RegionEndpoint.GetBySystemName(emulatorRegion);
-        config.ServiceURL = awsSettings.ServiceUrl ?? DefaultEmulatorServiceUrl;
-        config.AuthenticationRegion = emulatorRegion;
-        
-        logger.LogDebug($"**** AWS PROFILE: Using Emulator for {nameof(AmazonSQSClient)}");
-        
-        return new AmazonSQSClient(new BasicAWSCredentials("test", "test"), config);
-    }
-
-    public IAmazonSimpleNotificationService GetSnsClient(AwsTopicaConfiguration awsSettings)
-    {
-        var sharedFile = new SharedCredentialsFile();
-        var config = new AmazonSimpleNotificationServiceConfig();
-        
-        // Get from Profile name in credentials file
-        if (!string.IsNullOrWhiteSpace(awsSettings.ProfileName))
+        if (string.IsNullOrWhiteSpace(profileName))
         {
-            var tryGetProfile = sharedFile.TryGetProfile(awsSettings.ProfileName, out var profile);
-            if(!tryGetProfile) throw new ApplicationException($"No AWS profile found with name: {awsSettings.ProfileName}");
-        
-            if (AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials))
-            {
-                var regionEndpoint = GetRegionEndpoint(awsSettings.ProfileName, awsSettings.RegionEndpoint, profile, config.RegionEndpoint);
-                var serviceUrl = string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? profile.EndpointUrl ?? null : awsSettings.ServiceUrl;
-                logger.LogDebug("**** AWS PROFILE: using {AwsSettingsProfileName} - REGION: {Region}{ServiceUrl} for {ClientName}", awsSettings.ProfileName, regionEndpoint.SystemName, !string.IsNullOrWhiteSpace(serviceUrl) ? $" - ServiceUrl: {serviceUrl}" : "", nameof(AmazonSimpleNotificationServiceClient));
-            
-                config.RegionEndpoint = regionEndpoint;
-                if(!string.IsNullOrWhiteSpace(serviceUrl)) config.ServiceURL = serviceUrl;
-            
-                return new AmazonSimpleNotificationServiceClient(credentials, config);
-            }
+            var emulatorRegion = string.IsNullOrWhiteSpace(regionEndpoint) ? DefaultEmulatorRegion : regionEndpoint;
+		
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(emulatorRegion);
+            config.ServiceURL = string.IsNullOrWhiteSpace(serviceUrl) ? DefaultEmulatorServiceUrl : serviceUrl;
+            config.AuthenticationRegion = emulatorRegion;
+
+            logger.LogDebug("**** AWS PROFILE: Using Emulator: {ServiceName}; ServiceUrl: {ConfigServiceUrl}; Region: {ConfigAuthenticationRegion}", typeof(TClient).Name, config.ServiceURL, config.AuthenticationRegion);
+
+            var localCredentials = new BasicAWSCredentials("test", "test");
+
+            return (TClient)Activator.CreateInstance(typeof(TClient), localCredentials, config)!;
+        }
+	
+        if(!sharedFile.TryGetProfile(profileName, out var profile))
+        {
+            throw new Exception($"Profile '{profileName}' not found in AWS credentials/config file.");
         }
 
-        // Get from Access key & Secret from local appsettings.json -> AwsHostSettings
-        if (!string.IsNullOrWhiteSpace(awsSettings.AccessKey) && !string.IsNullOrWhiteSpace(awsSettings.SecretKey))
-        {
-            var regionEndpoint = GetRegionEndpoint("awsSettings", awsSettings.RegionEndpoint, null, config.RegionEndpoint);
-            logger.LogDebug("**** AWS PROFILE: Using AwsAccessKeyId & AwsSecretAccessKey from appsettings.json for Region: {Region} {ServiceUrl} for {GetSqsClientName}", regionEndpoint, !string.IsNullOrWhiteSpace(awsSettings.ServiceUrl) ? $" - ServiceUrl: {awsSettings.ServiceUrl}" : "", nameof(AmazonSimpleNotificationServiceClient));
+        AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedFile, out var credentials);
 
-            config.RegionEndpoint = regionEndpoint;
-            if (!string.IsNullOrWhiteSpace(awsSettings.ServiceUrl)) config.ServiceURL = awsSettings.ServiceUrl;
-            
-            return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials(awsSettings.AccessKey, awsSettings.SecretKey), config);
-        }
-            
-        // Get from Emulator
-        
-        var emulatorRegion = awsSettings.RegionEndpoint ?? DefaultEmulatorRegion;
-        
-        config.RegionEndpoint = RegionEndpoint.GetBySystemName(emulatorRegion);
-        config.ServiceURL = awsSettings.ServiceUrl ?? DefaultEmulatorServiceUrl;
-        config.AuthenticationRegion = emulatorRegion;
-        
-        logger.LogDebug($"**** AWS PROFILE: Using Emulator for {nameof(AmazonSQSClient)}");
-        
-        return new AmazonSimpleNotificationServiceClient(new BasicAWSCredentials("test", "test"), config);
-    }
-
-    private RegionEndpoint GetRegionEndpoint(string profileName, string? regionEndpointSystemName, CredentialProfile? profile, RegionEndpoint defaultRegionEndpoint)
-    {
-        RegionEndpoint regionEndpoint;
-        if (!string.IsNullOrWhiteSpace(regionEndpointSystemName))
+        if (!string.IsNullOrWhiteSpace(regionEndpoint))
         {
-            var lookupRegionEndpoint = RegionEndpoint.EnumerableAllRegions.FirstOrDefault(x => x.SystemName.Equals(regionEndpointSystemName, StringComparison.OrdinalIgnoreCase));
-            regionEndpoint = lookupRegionEndpoint ?? throw new ApplicationException($"RegionEndpoint with SystemName '{regionEndpointSystemName}' not found in AWS SDK. Please check your configuration.");
-        }
-        else if(profile is { Region: not null })
-        {
-            var lookupRegionEndpoint = RegionEndpoint.EnumerableAllRegions.FirstOrDefault(x => x.SystemName.Equals(profile.Region.SystemName, StringComparison.OrdinalIgnoreCase) && x.DisplayName != "Unknown");
-            regionEndpoint = lookupRegionEndpoint ?? throw new ApplicationException($"RegionEndpoint with SystemName '{profile.Region.SystemName}' not found in AWS SDK. Please check your configuration.");
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(regionEndpoint);
         }
         else
         {
-            regionEndpoint = defaultRegionEndpoint;
-            logger.LogWarning("**** NO AWS profile Region found for {AwsSettingsProfileName}. Using Default Region: {DefaultRegion}", profileName, defaultRegionEndpoint.SystemName);
-        } 
-        
-        return regionEndpoint;
+            config.RegionEndpoint = profile.Region;
+        }
+
+        if (!string.IsNullOrWhiteSpace(serviceUrl))
+        {
+            config.ServiceURL = serviceUrl;
+        }
+        else if(!string.IsNullOrWhiteSpace(profile.EndpointUrl))
+        {
+            config.ServiceURL = profile.EndpointUrl;
+        }
+
+        var sts = new AmazonSecurityTokenServiceClient(credentials, RegionEndpoint.EUWest1);
+        var who = sts.GetCallerIdentityAsync(new GetCallerIdentityRequest()).Result;
+
+        logger.LogDebug("**** AWS PROFILE: Using: {ProfileName} : {ConfigRegionEndpoint} for {ServiceName} as Identity: {WhoArn}", profileName, config.RegionEndpoint, typeof(TClient).Name, who.Arn);
+
+        return (TClient)Activator.CreateInstance(typeof(TClient), credentials, config)!;
     }
 }

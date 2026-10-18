@@ -43,8 +43,11 @@ public static class AwsServiceExtensions
             
             var awsClientService = new AwsClientService(logger);
             services.AddTransient<IPollyRetryService, PollyRetryService>();
-        
-            return CreateServiceCollection(services, assembly, awsClientService, logger, awsClientService.GetSnsClient(config), awsClientService.GetSqsClient(config));
+
+            var amazonSimpleNotificationServiceClient = awsClientService.GetAwsClient<AmazonSimpleNotificationServiceClient, AmazonSimpleNotificationServiceConfig>(config.ProfileName, config.RegionEndpoint, config.ServiceUrl);
+            var amazonSqsClient = awsClientService.GetAwsClient<AmazonSQSClient, AmazonSQSConfig>(config.ProfileName, config.RegionEndpoint, config.ServiceUrl);
+            
+            return CreateServiceCollection(services, assembly, awsClientService, logger, amazonSimpleNotificationServiceClient, amazonSqsClient);
         }
 
         public IServiceCollection AddAwsTopica(IAmazonSimpleNotificationService snsService, IAmazonSQS sqsClient, Assembly assembly)
