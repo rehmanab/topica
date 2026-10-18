@@ -33,7 +33,10 @@ namespace Topica.Resolvers
             
             if(string.IsNullOrWhiteSpace(baseMessage.Type))
             {
-                logger.LogError("Message type property is null or empty for for incoming message body: {Source}", source);
+                logger.LogWarning("Message type property is null or empty for for incoming message ->");
+                logger.LogDebug("--------------------------------");
+                logger.LogDebug("{Source}", source);
+                logger.LogDebug("--------------------------------");
                 return (false, new object(), false, new object());
             }
             
@@ -46,7 +49,10 @@ namespace Topica.Resolvers
 
             if (!handlers.Any())
             {
-                logger.LogWarning("No IHandler found for incoming message type: {Name} .. Skipping message", baseMessage.Type);
+                logger.LogWarning("No IHandler found for incoming message type: {Name} .. Skipping this message ->", baseMessage.Type);
+                logger.LogDebug("--------------------------------");
+                logger.LogDebug("{Source}", source);
+                logger.LogDebug("--------------------------------");
                 return (false, new object(), false, new object());
             }
 
@@ -62,7 +68,10 @@ namespace Topica.Resolvers
 
             if (message == null)
             {
-                logger.LogError("Message for {HandlerTypeParam} could not be parsed", handlerTypeParam.Name);
+                logger.LogError("Message for {HandlerTypeParam} could not be parsed for this message ->", handlerTypeParam.Name);
+                logger.LogDebug("--------------------------------");
+                logger.LogDebug("{Source}", source);
+                logger.LogDebug("--------------------------------");
                 return (false, new object(), false, new object());
             }
             
